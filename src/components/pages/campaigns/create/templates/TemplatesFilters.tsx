@@ -1,7 +1,6 @@
 "use client";
 
 import { Search } from "lucide-react";
-import { FilterDropdown } from "@/components/ui/FilterDropdown";
 import { LimitSelector } from "@/components/ui/LimitSelector";
 
 
