@@ -7,28 +7,33 @@ import {
   useGetNotificationQuery,
 } from "@/services/notification.api";
 import { useRouter } from "next/navigation";
+import { useParams } from "@/hooks/useParams";
 
-const ITEMS_PER_PAGE = 6;
+const ITEMS_PER_PAGE = 10;
 
 export default function NotificationsPage() {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const router = useRouter();
-
+   const [queryState, setQueryState] = useParams({
+        page: "1",
+        limit: ITEMS_PER_PAGE.toString(),
+      });
+  
   const { data, isLoading, error } = useGetNotificationQuery({
-    page: currentPage,
-    limit: ITEMS_PER_PAGE,
+    page: Number(queryState.page || 1),
+    limit: Number(queryState.limit || ITEMS_PER_PAGE.toString()),
   } as GetNotificationParams);
 
   const notifications = data?.data?.items || [];
   const totalItems = data?.data?.meta?.total || 0;
   const totalPages =
     data?.data?.meta?.total_pages ||
-    Math.max(1, Math.ceil(totalItems / ITEMS_PER_PAGE));
+    Math.max(1, Math.ceil(totalItems / Number(queryState.limit || ITEMS_PER_PAGE.toString())));
   useEffect(() => {
-    router.push(`/notifications?page=${currentPage}&limit=${ITEMS_PER_PAGE}`, {
+    router.push(`/notifications?page=${queryState.page}`, {
       scroll: false,
     });
-  }, [currentPage, router]);
+  }, [queryState, router]);
 
   return (
     <div className="space-y-2">
@@ -55,9 +60,9 @@ export default function NotificationsPage() {
 
       {totalPages > 1 && (
         <Pagination
-          currentPage={currentPage}
+          currentPage={Number(queryState.page || 1)}
           totalPages={totalPages}
-          onPageChange={(page) => setCurrentPage(page)}
+          onPageChange={(page) => setQueryState({ page: page.toString() })}
           totalItems={totalItems}
           itemsPerPage={ITEMS_PER_PAGE}
           isLoading={isLoading}
