@@ -169,7 +169,7 @@ export default function Queries() {
       </h2>
 
       <div className="mb-3 flex justify-between items-center">
-        <div className="relative flex-1 max-w-[400px]">
+        <div className="relative flex-1 max-w-100">
           <input
             className="w-full border border-[#E8E8E9] rounded-lg text-sm py-3 pl-4 pr-12 outline-none"
             placeholder="Search by name, phone number, email..."
