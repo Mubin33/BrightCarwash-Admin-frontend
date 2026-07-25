@@ -62,7 +62,7 @@ export function useHeroData() {
 				hero.content.bannerImageUrl ||
 				hero.content.banner_image_url ||
 				hero.content.bannerImageUrl,
-			status: hero.content.status || (hero.is_active ? 'form' : 'hidden'),
+			status: hero.content.status || 'form',
 			textAlignment: normalizedTextAlignment,
 		};
 	}, [hero]);
@@ -110,7 +110,7 @@ export function useHeroData() {
 				key: 'home_hero',
 				data: {
 					content: content,
-					is_active: data.status !== 'hidden',
+					is_active: true, // ✅ Always keep the section active
 				},
 			}).unwrap();
 
