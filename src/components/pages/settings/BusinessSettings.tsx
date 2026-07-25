@@ -10,6 +10,8 @@ import { PERMISSIONS } from "@/lib/permissions";
 const labelClass = "text-[#777980] font-inter text-base font-normal leading-5";
 const inputClass = "w-full px-4 py-3 bg-white rounded-lg border border-[#DFE1E7] text-[#1B1B1B] font-inter text-base outline-none focus:border-[#0098E8] transition-all";
 
+const STORAGE_URL = process.env.NEXT_PUBLIC_STORAGE_URL;
+
 export function BusinessSettings() {
     const { data: initialData, isLoading } = useGetBusinessProfileQuery();
 
@@ -42,7 +44,7 @@ export function BusinessSettings() {
                     <div className="flex items-center gap-4">
                         <div className="w-14 h-14 rounded-lg border border-dashed border-[#DFE1E7] bg-white overflow-hidden relative flex items-center justify-center">
                             {logo ? (
-                                <Image src={logo} alt="Business logo" fill className="object-cover" />
+                                <Image src={`${STORAGE_URL}${logo}`} alt="Business logo" fill className="object-cover" />
                             ) : (
                                 <Upload size={18} className="text-[#777980]" />
                             )}

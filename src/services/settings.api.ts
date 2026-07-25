@@ -45,7 +45,6 @@ export const settingsApi = createApi({
                 }
             },
         }),
-
         getProfile: builder.query<ProfileFormData, void>({
             queryFn: async () => {
                 try {
@@ -58,14 +57,14 @@ export const settingsApi = createApi({
                             last_name: data.last_name || '',
                             email: data.email || '',
                             phone: data.phone_number || data.phoneNumber || '',
-                            avatar: data.avatar_url || data.avatar || null,
+                            avatar: (data.avatar_url || data.avatar || null),
                         },
                     };
                 } catch (error) {
                     return { error: { status: 500, data: 'Failed to fetch profile' } };
                 }
             },
-            providesTags: ['Profile'], // 👈 enables cache invalidation
+            providesTags: ['Profile'],
         }),
 
         updateProfile: builder.mutation<null, UpdateProfilePayload>({
@@ -88,7 +87,7 @@ export const settingsApi = createApi({
                     return { error: { status: 500, data: 'Update failed' } };
                 }
             },
-            invalidatesTags: ['Profile'], // 👈 triggers getProfile refetch
+            invalidatesTags: ['Profile'],
         }),
 
         changePassword: builder.mutation<null, { old_password: string; new_password: string }>({
@@ -143,7 +142,9 @@ export const settingsApi = createApi({
             },
             invalidatesTags: ['BusinessProfile'],
         }),
+
     }),
+
 });
 
 export const {

@@ -1,34 +1,49 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { usePathname } from "next/navigation";
-import Link from "next/link";
-import Image from "next/image";
-import { Icon } from "@/components/ui/Icon";
-import { Button } from "@/components/ui/Button";
-import { ChevronDown } from "lucide-react";
-import { NAVIGATION_CONFIG } from "@/configs/navigation.config";
-import { useAuth } from "@/hooks/useAuth";
-import { useSelector } from "react-redux";
-import type { RootState } from "@/lib/store";
-import type { SidebarProps, NavItem } from "@/types/navigation";
-import { useGetBusinessProfileQuery } from "@/services/settings.api";
+import { useState } from 'react';
+import { usePathname } from 'next/navigation';
+import Link from 'next/link';
+import Image from 'next/image';
+import { Icon } from '@/components/ui/Icon';
+import { Button } from '@/components/ui/Button';
+import { ChevronDown } from 'lucide-react';
+import { NAVIGATION_CONFIG } from '@/configs/navigation.config';
+import { useAuth } from '@/hooks/useAuth';
+import { useSelector } from 'react-redux';
+import type { RootState } from '@/lib/store';
+import type { SidebarProps, NavItem } from '@/types/navigation';
+import { useGetBusinessProfileQuery } from '@/services/settings.api';
 
-function filterItemsByPermission(items: NavItem[], userPermissions: string[]): NavItem[] {
-  return items.filter((item) => {
-    if (item.permission && !userPermissions.includes(item.permission)) return false;
-    if (item.subItems) {
-      const filteredSubs = filterItemsByPermission(item.subItems, userPermissions);
-      if (filteredSubs.length === 0 && item.href === "") return false;
+
+const STORAGE_URL = process.env.NEXT_PUBLIC_STORAGE_URL;
+
+function filterItemsByPermission(
+  items: NavItem[],
+  userPermissions: string[],
+): NavItem[] {
+  return items
+    .filter((item) => {
+      if (item.permission && !userPermissions.includes(item.permission))
+        return false;
+      if (item.subItems) {
+        const filteredSubs = filterItemsByPermission(
+          item.subItems,
+          userPermissions,
+        );
+        if (filteredSubs.length === 0 && item.href === '') return false;
+        return true;
+      }
       return true;
-    }
-    return true;
-  }).map((item) => {
-    if (item.subItems) {
-      return { ...item, subItems: filterItemsByPermission(item.subItems, userPermissions) };
-    }
-    return item;
-  });
+    })
+    .map((item) => {
+      if (item.subItems) {
+        return {
+          ...item,
+          subItems: filterItemsByPermission(item.subItems, userPermissions),
+        };
+      }
+      return item;
+    });
 }
 
 export function Sidebar({ isOpen, onClose }: SidebarProps) {
@@ -52,6 +67,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
 
   const { data: businessProfile } = useGetBusinessProfileQuery();
   const businessLogo = businessProfile?.logo;
+  console.log('Business Profile:', businessProfile);
 
   const filteredConfig = NAVIGATION_CONFIG.map((section) => ({
     ...section,
@@ -59,7 +75,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
   })).filter((section) => section.items.length > 0);
 
   function isActive(href: string): boolean {
-    if (href === "/dashboard") return pathname === "/dashboard";
+    if (href === '/dashboard') return pathname === '/dashboard';
     return pathname.startsWith(href);
   }
 
@@ -84,94 +100,147 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
     <>
       {isOpen && (
         <div
-          className="fixed inset-0 bg-black/50 z-40 lg:hidden adm-sidebar-overlay"
+          className='fixed inset-0 bg-black/50 z-40 lg:hidden adm-sidebar-overlay'
           onClick={onClose}
         />
       )}
 
       <aside
-        className={`w-[250px] h-screen fixed top-0 left-0 flex flex-col py-4 sm:py-6 pl-4 sm:pl-6 pr-3 sm:pr-4 border-r border-[#ECEFF3] bg-[#0B1220] z-50 transition-transform duration-300 ${isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}
+        className={`w-[250px] h-screen fixed top-0 left-0 flex flex-col py-4 sm:py-6 pl-4 sm:pl-6 pr-3 sm:pr-4 border-r border-[#ECEFF3] bg-[#0B1220] z-50 transition-transform duration-300 ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}
       >
         {/* Logo - fixed at top */}
-        <div className="flex flex-col items-center w-full shrink-0 mb-4">
+        <div className='flex flex-col items-center w-full shrink-0 mb-4'>
           {!logoError ? (
-            <div className="flex justify-center items-center w-full">
+            <div className='flex justify-center items-center w-full'>
               <Image
-                src={businessLogo || "/images/logo.png"}
-                alt="Logo"
+                src={`${STORAGE_URL}${businessLogo}`}
+                alt='Logo'
                 width={64}
                 height={72}
                 priority
-                className="object-contain w-12 h-14 sm:w-16 sm:h-[72px]"
+                className='object-contain w-12 h-14 sm:w-16 sm:h-[72px]'
                 onError={() => setLogoError(true)}
               />
             </div>
           ) : (
-            <div className="flex justify-center items-center w-full text-white font-inter text-base sm:text-lg font-bold tracking-[2px] py-2">
+            <div className='flex justify-center items-center w-full text-white font-inter text-base sm:text-lg font-bold tracking-[2px] py-2'>
               CW
             </div>
           )}
         </div>
 
         {/* Nav - scrollable middle section with fixed height */}
-        <nav className="flex-1 min-h-0 overflow-y-auto adm-sidebar-scroll w-full">
-          <div className="flex flex-col items-start gap-4 sm:gap-5 self-stretch">
+        <nav className='flex-1 min-h-0 overflow-y-auto adm-sidebar-scroll w-full'>
+          <div className='flex flex-col items-start gap-4 sm:gap-5 self-stretch'>
             {filteredConfig.map((section) => (
-              <div key={section.title} className="flex flex-col items-start gap-2 sm:gap-3 self-stretch">
-                <span className="text-[#777980] font-geist text-[10px] sm:text-xs font-medium leading-[140%] tracking-[0.06px] uppercase px-1">
+              <div
+                key={section.title}
+                className='flex flex-col items-start gap-2 sm:gap-3 self-stretch'
+              >
+                <span className='text-[#777980] font-geist text-[10px] sm:text-xs font-medium leading-[140%] tracking-[0.06px] uppercase px-1'>
                   {section.title}
                 </span>
-                <div className="flex flex-col items-start gap-0.5 sm:gap-1 self-stretch">
+                <div className='flex flex-col items-start gap-0.5 sm:gap-1 self-stretch'>
                   {section.items.map((item) => {
-                    const hasSubItems = item.subItems && item.subItems.length > 0;
-                    const isParentActive = isActive(item.href) || (hasSubItems && isSubItemActive(item.subItems));
+                    const hasSubItems =
+                      item.subItems && item.subItems.length > 0;
+                    const isParentActive =
+                      isActive(item.href) ||
+                      (hasSubItems && isSubItemActive(item.subItems));
                     const isExpanded = expandedItems.has(item.id);
 
                     return (
-                      <div key={item.id} className="flex flex-col items-start gap-0.5 sm:gap-1 self-stretch">
-                        <div className="flex items-center gap-0 w-full">
+                      <div
+                        key={item.id}
+                        className='flex flex-col items-start gap-0.5 sm:gap-1 self-stretch'
+                      >
+                        <div className='flex items-center gap-0 w-full'>
                           {hasSubItems ? (
                             <button
                               onClick={() => toggleExpand(item.id)}
-                              className={`flex flex-1 py-2.5 sm:py-[14px] px-3 sm:px-4 items-center justify-between rounded-lg font-inter text-sm sm:text-base font-normal leading-[124%] tracking-[0.08px] no-underline transition-colors duration-200 cursor-pointer ${isExpanded ? "bg-white/5 text-white" : "text-white/80 hover:bg-white/5"}`}
+                              className={`flex flex-1 py-2.5 sm:py-[14px] px-3 sm:px-4 items-center justify-between rounded-lg font-inter text-sm sm:text-base font-normal leading-[124%] tracking-[0.08px] no-underline transition-colors duration-200 cursor-pointer ${isExpanded ? 'bg-white/5 text-white' : 'text-white/80 hover:bg-white/5'}`}
                             >
-                              <div className="flex items-center gap-2 sm:gap-3">
-                                <Icon name={item.icon} width={18} height={18} className={`sm:w-5 sm:h-5 ${isExpanded ? "opacity-100" : "opacity-80"}`} />
-                                <span className="truncate">{item.label}</span>
+                              <div className='flex items-center gap-2 sm:gap-3'>
+                                <Icon
+                                  name={item.icon}
+                                  width={18}
+                                  height={18}
+                                  className={`sm:w-5 sm:h-5 ${isExpanded ? 'opacity-100' : 'opacity-80'}`}
+                                />
+                                <span className='truncate'>{item.label}</span>
                               </div>
-                              <ChevronDown size={16} className={`transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`} />
+                              <ChevronDown
+                                size={16}
+                                className={`transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}
+                              />
                             </button>
                           ) : (
                             <Link
                               href={item.href}
                               onClick={onClose}
-                              className={`flex-1 flex py-2.5 sm:py-[14px] px-3 sm:px-4 items-center gap-2 sm:gap-3 rounded-lg font-inter text-sm sm:text-base font-normal leading-[124%] tracking-[0.08px] no-underline transition-colors duration-200 cursor-pointer ${isParentActive ? "bg-[#B23730] text-white" : "text-white/80 hover:bg-white/5"}`}
+                              className={`flex-1 flex py-2.5 sm:py-[14px] px-3 sm:px-4 items-center gap-2 sm:gap-3 rounded-lg font-inter text-sm sm:text-base font-normal leading-[124%] tracking-[0.08px] no-underline transition-colors duration-200 cursor-pointer ${isParentActive ? 'bg-[#B23730] text-white' : 'text-white/80 hover:bg-white/5'}`}
                             >
-                              <Icon name={item.icon} width={18} height={18} className={`sm:w-5 sm:h-5 ${isParentActive ? "opacity-100" : "opacity-80"}`} />
-                              <span className="truncate">{item.label}</span>
+                              <Icon
+                                name={item.icon}
+                                width={18}
+                                height={18}
+                                className={`sm:w-5 sm:h-5 ${isParentActive ? 'opacity-100' : 'opacity-80'}`}
+                              />
+                              <span className='truncate'>{item.label}</span>
                             </Link>
                           )}
                         </div>
 
                         {hasSubItems && isExpanded && (
-                          <div className="flex flex-col pl-10 mt-3">
+                          <div className='flex flex-col pl-10 mt-3'>
                             {item.subItems?.map((subItem, index) => {
-                              const isSubActive = pathname.startsWith(subItem.href);
-                              const isLast = index === (item.subItems?.length || 0) - 1;
+                              const isSubActive = pathname.startsWith(
+                                subItem.href,
+                              );
+                              const isLast =
+                                index === (item.subItems?.length || 0) - 1;
                               return (
-                                <div key={subItem.id} className="relative flex items-center min-h-10">
-                                  <svg className="absolute -left-[11px] top-0" width="20" height="40" viewBox="0 0 20 40">
-                                    {!isLast && <line x1="1" y1="11" x2="1" y2="40" stroke="white" strokeWidth="1.5" strokeLinecap="round" />}
-                                    <g transform="translate(0,0)">
-                                      <path d="M1 0 V10 Q1 18 9 18 H16" stroke="white" strokeWidth="1.5" fill="none" />
+                                <div
+                                  key={subItem.id}
+                                  className='relative flex items-center min-h-10'
+                                >
+                                  <svg
+                                    className='absolute -left-[11px] top-0'
+                                    width='20'
+                                    height='40'
+                                    viewBox='0 0 20 40'
+                                  >
+                                    {!isLast && (
+                                      <line
+                                        x1='1'
+                                        y1='11'
+                                        x2='1'
+                                        y2='40'
+                                        stroke='white'
+                                        strokeWidth='1.5'
+                                        strokeLinecap='round'
+                                      />
+                                    )}
+                                    <g transform='translate(0,0)'>
+                                      <path
+                                        d='M1 0 V10 Q1 18 9 18 H16'
+                                        stroke='white'
+                                        strokeWidth='1.5'
+                                        fill='none'
+                                      />
                                     </g>
                                   </svg>
                                   <Link
                                     href={subItem.href}
                                     onClick={onClose}
-                                    className={`flex flex-1 ml-2 py-2 px-3 items-center gap-2 rounded-lg transition-colors ${isSubActive ? "bg-[#B23730] text-white" : "text-white/80 hover:bg-white/5 hover:text-white"}`}
+                                    className={`flex flex-1 ml-2 py-2 px-3 items-center gap-2 rounded-lg transition-colors ${isSubActive ? 'bg-[#B23730] text-white' : 'text-white/80 hover:bg-white/5 hover:text-white'}`}
                                   >
-                                    <Icon name={subItem.icon} width={18} height={18} color="white" />
+                                    <Icon
+                                      name={subItem.icon}
+                                      width={18}
+                                      height={18}
+                                      color='white'
+                                    />
                                     <span>{subItem.label}</span>
                                   </Link>
                                 </div>
@@ -190,11 +259,16 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
 
         {/* Logout - fixed at bottom */}
         <Button
-          variant="sidebar"
+          variant='sidebar'
           onClick={logout}
-          className="flex py-2.5 sm:py-[14px] px-3 sm:px-4 items-center gap-2 sm:gap-3 self-stretch rounded-lg bg-[#FFE6E6] border-none text-[#FF4345] font-inter text-sm sm:text-base font-normal leading-[124%] tracking-[0.08px] cursor-pointer shrink-0 mt-4"
+          className='flex py-2.5 sm:py-[14px] px-3 sm:px-4 items-center gap-2 sm:gap-3 self-stretch rounded-lg bg-[#FFE6E6] border-none text-[#FF4345] font-inter text-sm sm:text-base font-normal leading-[124%] tracking-[0.08px] cursor-pointer shrink-0 mt-4'
         >
-          <Icon name="logout" width={18} height={18} className="sm:w-5 sm:h-5" />
+          <Icon
+            name='logout'
+            width={18}
+            height={18}
+            className='sm:w-5 sm:h-5'
+          />
           <span>Log out</span>
         </Button>
       </aside>

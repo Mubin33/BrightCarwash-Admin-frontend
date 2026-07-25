@@ -4,14 +4,14 @@ const nextConfig: NextConfig = {
 	reactStrictMode: true,
 	allowedDevOrigins: [
 		'10.10.33.10',
-		'https://bridge-decent-operational-power.trycloudflare.com',
+		'https://tooth-availability-coupons-stays.trycloudflare.com',
 	],
 	images: {
 		unoptimized: true,
 		remotePatterns: [
 			{
 				protocol: 'https',
-				hostname: 'bridge-decent-operational-power.trycloudflare.com',
+				hostname: 'tooth-availability-coupons-stays.trycloudflare.com',
 			},
 		],
 	},

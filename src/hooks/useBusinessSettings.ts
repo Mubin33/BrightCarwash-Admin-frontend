@@ -42,7 +42,7 @@ export function useBusinessSettings(initialData: BusinessProfileData) {
             if (!res.ok) throw new Error('Upload failed');
             const json = await res.json();
             const uploaded = json.data?.[0] || json.data;
-            const url = uploaded.url || uploaded.path || '';
+            const url = uploaded.path
 
             setLogoPreview(url);
             updateField("logo", url);
