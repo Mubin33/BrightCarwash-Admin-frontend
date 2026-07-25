@@ -110,7 +110,7 @@ export function useHeroData() {
 				key: 'home_hero',
 				data: {
 					content: content,
-					is_active: true, // ✅ Always keep the section active
+					is_active: true,
 				},
 			}).unwrap();
 
