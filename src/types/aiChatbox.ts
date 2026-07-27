@@ -1,14 +1,52 @@
-export interface Users {
+export type ApiResponse<T> = {
   success: boolean;
   message: string;
-  data: Data[];
-}
+  data: T;
+};
 
-export interface Data {
-  user_id: string;
-  email: string;
+export type ChatUser = {
+  id: string;
   name: string;
-  human_escalation_required: boolean;
-  created_at: string;
-  updated_at: string;
-}
+  email: string;
+  lastActive: string;
+};
+
+export type ChatSession = {
+  id: string;
+  date: string;
+  label: string;
+  preview: string;
+};
+
+export type ChatMessage = {
+  sender: "bot" | "user";
+  text: string;
+  time: string;
+};
+
+export type ApiUser = {
+  user_id: string;
+  name?: string | null;
+  email?: string | null;
+  created_at?: string | null;
+  updated_at?: string | null;
+};
+
+export type ApiSession = {
+  session_id: string;
+  status?: string | null;
+  last_message?: string | null;
+  preview?: string | null;
+  created_at?: string | null;
+  updated_at?: string | null;
+};
+
+export type ApiMessage = {
+  role?: string | null;
+  sender?: string | null;
+  content?: string | null;
+  message?: string | null;
+  text?: string | null;
+  created_at?: string | null;
+  timestamp?: string | null;
+};

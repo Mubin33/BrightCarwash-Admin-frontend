@@ -1,18 +1,18 @@
-import { ArrowLeft, Mail } from "lucide-react";
 import ChatBubble from "./ChatBubble";
-import { ChatSession, ChatUser } from "@/mocks/ai-chatbox.mock";
+import { ChatMessage, ChatUser } from "@/types/aiChatbox";
 import ArrowLeftIcon from "../../../../public/icons/custom/ArrowLeftIcon";
 import MailIcon from "../../../../public/icons/custom/MailIcon";
 
 type Props = {
   user: ChatUser;
-  session: ChatSession;
+  messages: ChatMessage[];
+  isLoading: boolean;
   onCloseSession: () => void;
 };
 
-export default function ChatWindow({ user, session, onCloseSession }: Props) {
+export default function ChatWindow({ user, messages, isLoading, onCloseSession }: Props) {
   return (
-    <div className="flex flex-col rounded-xl overflow-hidden border border-[#DFE1E7] bg-white">
+    <div className="flex min-h-0 flex-col overflow-hidden rounded-xl border border-[#DFE1E7] bg-white">
       <div className="flex items-center justify-between border-b border-[#DFE1E7] p-4">
         <div className="flex items-center gap-3">
           <button
@@ -31,9 +31,9 @@ export default function ChatWindow({ user, session, onCloseSession }: Props) {
           <MailIcon />
         </button>
       </div>
-      <div className="flex-1 overflow-y-auto bg-gray-50 p-5">
+      <div className="min-h-0 flex-1 overflow-y-auto bg-gray-50 p-5">
         <div>
-          {session.messages.map((message, index) => (
+          {isLoading ? <p className="text-sm text-gray-500">Loading conversation...</p> : messages.map((message, index) => (
             <ChatBubble
               key={index}
               sender={message.sender}
