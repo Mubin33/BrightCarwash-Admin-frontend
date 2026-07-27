@@ -62,7 +62,7 @@ export default function AiChatbox() {
     preview: session.last_message || session.preview || "No messages in this session.",
   })), [sessionsResponse]);
 
-  const { data: messagesResponse, isLoading: isMessagesLoading } = useGetSessionChatsQuery(selectedSessionId ?? "", { skip: !selectedSessionId });
+  const { data: messagesResponse, isFetching: isMessagesFetching } = useGetSessionChatsQuery(selectedSessionId ?? "", { skip: !selectedSessionId });
   const messages = useMemo<ChatMessage[]>(() => getList<ApiMessage>(messagesResponse?.data, ["chats", "messages", "conversation", "results"]).map((message) => ({
     sender: message.role === "user" || message.sender === "user" ? "user" : "bot",
     text: message.content || message.message || message.text || "",
@@ -96,7 +96,7 @@ export default function AiChatbox() {
           <ChatWindow
             user={selectedUser}
             messages={messages}
-            isLoading={isMessagesLoading}
+            isLoading={isMessagesFetching}
             onCloseSession={() => setSelectedSessionId(null)}
           />
         ) : (
