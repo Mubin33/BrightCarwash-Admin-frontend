@@ -4,28 +4,29 @@ import { useState, useRef } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Icon } from '@/components/ui/Icon';
 import { toast } from 'react-toastify';
-import { getFullImageUrl } from '@/lib/image-url';
+import { HeroBackgroundImageGallery } from './HeroBackgroundImageGallery';
+import { HeroBackgroundImageDropzone } from './HeroBackgroundImageDropzone';
 
 interface HeroBackgroundImageProps {
-    initialImageUrl?: string;
+    initialImageUrls?: string[];
     onImageUpload: (file: File) => Promise<string>;
-    onSave: (data: { backgroundImageUrl: string }) => Promise<void>;
+    onSave: (data: { backgroundImageUrl: string[] }) => Promise<void>;
     label?: string;
 }
 
 export function HeroBackgroundImage({
-    initialImageUrl,
+    initialImageUrls = [],
     onImageUpload,
     onSave,
-    label = 'Background Image',
+    label = 'Background Images (Carousel)',
 }: HeroBackgroundImageProps) {
+    const [imageUrls, setImageUrls] = useState<string[]>(initialImageUrls);
     const [isDragging, setIsDragging] = useState(false);
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-    const [imageUrl, setImageUrl] = useState<string | undefined>(initialImageUrl);
     const [isUploading, setIsUploading] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
-    const [imageError, setImageError] = useState(false);
+    const [imageErrors, setImageErrors] = useState<Record<number, boolean>>({});
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const handleFileSelect = (file: File) => {
@@ -64,7 +65,7 @@ export function HeroBackgroundImage({
         setIsDragging(false);
     };
 
-    const handleReplaceClick = async () => {
+    const handleUpload = async () => {
         if (!selectedFile) {
             toast.warning('Please select an image first');
             return;
@@ -73,21 +74,41 @@ export function HeroBackgroundImage({
         setIsUploading(true);
         try {
             const uploadedUrl = await onImageUpload(selectedFile);
-            setImageUrl(uploadedUrl);
+            const updatedUrls = [...imageUrls, uploadedUrl];
+            setImageUrls(updatedUrls);
             setSelectedFile(null);
             setPreviewUrl(null);
-            setImageError(false);
 
             setIsSaving(true);
-            await onSave({ backgroundImageUrl: uploadedUrl });
+            await onSave({ backgroundImageUrl: updatedUrls });
             setIsSaving(false);
-            toast.success('Image updated successfully');
+            toast.success('Image added successfully');
         } catch (error) {
             console.error('Error:', error);
-            toast.error('Failed to update image');
+            toast.error('Failed to upload image');
         } finally {
             setIsUploading(false);
         }
+    };
+
+    const handleRemove = async (index: number) => {
+        const updatedUrls = imageUrls.filter((_, i) => i !== index);
+        setImageUrls(updatedUrls);
+        setIsSaving(true);
+        await onSave({ backgroundImageUrl: updatedUrls });
+        setIsSaving(false);
+        toast.success('Image removed');
+    };
+
+    const handleReorder = async (fromIndex: number, toIndex: number) => {
+        const updatedUrls = [...imageUrls];
+        const [moved] = updatedUrls.splice(fromIndex, 1);
+        updatedUrls.splice(toIndex, 0, moved);
+        setImageUrls(updatedUrls);
+        setIsSaving(true);
+        await onSave({ backgroundImageUrl: updatedUrls });
+        setIsSaving(false);
+        toast.success('Order updated');
     };
 
     const handleCancel = () => {
@@ -98,62 +119,34 @@ export function HeroBackgroundImage({
         }
     };
 
-    const fullUrl = imageUrl ? getFullImageUrl(imageUrl) : '';
-    const displayUrl = previewUrl || fullUrl;
-    const isPreviewMode = !!previewUrl;
-    const isLoading = isUploading || isSaving;
-
     const handleOpenPicker = () => {
-        if (!isLoading) {
+        if (!isUploading && !isSaving) {
             fileInputRef.current?.click();
         }
     };
+
+    const handleImageError = (index: number) => {
+        setImageErrors((prev) => ({ ...prev, [index]: true }));
+    };
+
+    const isLoading = isUploading || isSaving;
 
     return (
         <div className='p-6 bg-[#F8FAFB] rounded-lg border border-[#DFE1E7] flex flex-col gap-4'>
             <div className='flex justify-between items-center'>
                 <span className='text-[#1B1B1B] text-xl font-medium leading-6'>
-                    {label}
+                    {label} ({imageUrls.length})
                 </span>
                 <div className='flex gap-2'>
-                    {isPreviewMode ? (
-                        <>
-                            <Button
-                                variant='outline'
-                                className='w-auto! py-2.5 px-4 text-[#777980]'
-                                onClick={handleCancel}
-                                disabled={isLoading}
-                            >
-                                Cancel
-                            </Button>
-                            <Button
-                                className='w-auto! py-2.5 px-4 bg-[#0098E8] text-white'
-                                onClick={handleReplaceClick}
-                                isLoading={isLoading}
-                                loadingText='Uploading...'
-                                disabled={isLoading}
-                            >
-                                <Icon
-                                    name='upload'
-                                    width={16}
-                                    height={16}
-                                    className='mr-2'
-                                    color='white'
-                                />
-                                Replace Image
-                            </Button>
-                        </>
-                    ) : (
-                        <Button
-                            variant='outline'
-                            className='w-auto! flex! py-2.5 px-4 text-[#777980]'
-                            onClick={() => fileInputRef.current?.click()}
-                            disabled={isLoading}
-                        >
-                            <Icon name='upload' width={16} height={16} className='mr-2' />
-                            Replace Image
-                        </Button>
-                    )}
+                    <Button
+                        variant='outline'
+                        className='w-auto! flex! py-2.5 px-4 text-[#777980]'
+                        onClick={handleOpenPicker}
+                        disabled={isLoading}
+                    >
+                        <Icon name='upload' width={16} height={16} className='mr-2' />
+                        Add Image
+                    </Button>
                 </div>
                 <input
                     ref={fileInputRef}
@@ -164,77 +157,42 @@ export function HeroBackgroundImage({
                 />
             </div>
 
-            <div
-                className={`h-80 rounded-lg border-2 border-dashed transition-all overflow-hidden bg-[#F1F1F1] flex items-center justify-center relative ${isDragging ? 'border-[#0098E8] bg-[#EBF5FF]' : 'border-[#DFE1E7]'
-                    } ${!displayUrl ? 'cursor-pointer' : ''}`}
+            <HeroBackgroundImageDropzone
+                previewUrl={previewUrl}
+                selectedFile={selectedFile}
+                isLoading={isLoading}
+                isDragging={isDragging}
+                onFileSelect={handleFileSelect}
+                onFileChange={handleFileChange}
                 onDrop={handleDrop}
                 onDragOver={handleDragOver}
                 onDragLeave={handleDragLeave}
-                onClick={() => {
-                    if (!displayUrl && !isPreviewMode) {
-                        handleOpenPicker();
-                    }
-                }}
-            >
-                {isLoading ? (
-                    <div className='flex flex-col items-center gap-2'>
-                        <div className='w-8 h-8 border-2 border-[#0098E8] border-t-transparent rounded-full animate-spin' />
-                        <span className='text-[#777980] text-sm'>
-                            {isUploading ? 'Uploading...' : 'Saving...'}
-                        </span>
-                    </div>
-                ) : displayUrl && !imageError ? (
-                    <div className='relative w-full h-full'>
-                        <img
-                            src={displayUrl}
-                            alt='Background'
-                            className='w-full h-full object-cover'
-                            onError={() => {
-                                setImageError(true);
-                            }}
-                            onLoad={() => {
-                                setImageError(false);
-                            }}
-                        />
-                        <div
-                            className='absolute inset-0 bg-black/40 flex flex-col items-center justify-center gap-3 cursor-pointer hover:bg-black/50 transition-all'
-                            onClick={(event) => {
-                                event.stopPropagation();
-                                handleOpenPicker();
-                            }}
-                        >
-                            <div className='w-14 h-14 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-sm'>
-                                <Icon name='upload' width={28} height={28} color='white' />
-                            </div>
-                            <div className='text-center'>
-                                <p className='text-white text-base font-medium'>
-                                    Drop your image here, or click to browse
-                                </p>
-                                <p className='text-white/60 text-sm mt-1'>
-                                    PNG, JPG, WebP up to 10MB
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                ) : (
-                    <div className='flex flex-col items-center gap-3'>
-                        <Icon name='upload' width={48} height={48} color='#A5A5AB' />
-                        <div className='text-center'>
-                            <p className='text-[#777980] text-sm font-medium'>
-                                Drop your image here, or click to browse
-                            </p>
-                            <p className='text-[#A5A5AB] text-xs mt-1'>
-                                PNG, JPG, WebP up to 10MB
-                            </p>
-                            {imageError && (
-                                <p className='text-[#D14343] text-xs mt-2'>
-                                    Unable to load the current image. Please try another file.
-                                </p>
-                            )}
-                        </div>
-                    </div>
-                )}
-            </div>
+                onUpload={handleUpload}
+                onCancel={handleCancel}
+                onOpenPicker={handleOpenPicker}
+            />
+
+            <HeroBackgroundImageGallery
+                imageUrls={imageUrls}
+                isLoading={isLoading}
+                onReorder={handleReorder}
+                onRemove={handleRemove}
+                onImageError={handleImageError}
+                imageErrors={imageErrors}
+            />
+
+            {imageUrls.length === 0 && !previewUrl && (
+                <div className='text-center py-4 text-[#777980] text-sm'>
+                    No background images uploaded yet. Add your first image above.
+                </div>
+            )}
+
+            {isSaving && (
+                <div className='flex items-center justify-center gap-2 text-sm text-[#777980]'>
+                    <div className='w-4 h-4 border-2 border-[#0098E8] border-t-transparent rounded-full animate-spin' />
+                    Saving...
+                </div>
+            )}
         </div>
     );
 }

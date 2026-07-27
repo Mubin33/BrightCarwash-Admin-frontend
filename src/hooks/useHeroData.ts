@@ -15,7 +15,7 @@ export interface HeroFormData {
 	starRating: string;
 	carsWashed: string;
 	avgTime: string;
-	backgroundImageUrl?: string;
+	backgroundImageUrl: string[]; // 👈 now array
 	bannerImageUrl?: string;
 	status: 'form' | 'banner' | 'hidden';
 	textAlignment: 'left' | 'center' | 'right';
@@ -35,11 +35,20 @@ export function useHeroData() {
 				starRating: '',
 				carsWashed: '',
 				avgTime: '',
-				backgroundImageUrl: undefined,
+				backgroundImageUrl: [],
 				bannerImageUrl: undefined,
 				status: 'form',
 				textAlignment: 'left',
 			};
+		}
+
+		// Parse backgroundImageUrl – could be string or array
+		let bgImages: string[] = [];
+		const rawBg = hero.content.backgroundImageUrl || hero.content.background_image_url;
+		if (Array.isArray(rawBg)) {
+			bgImages = rawBg;
+		} else if (rawBg) {
+			bgImages = [rawBg]; // Convert single string to array
 		}
 
 		const textAlignment =
@@ -56,12 +65,9 @@ export function useHeroData() {
 			starRating: hero.content.star_rating || '4.9',
 			carsWashed: hero.content.cars_washed || '12K+',
 			avgTime: hero.content.avg_time || '15-Min Average',
-			backgroundImageUrl:
-				hero.content.backgroundImageUrl || hero.content.background_image_url,
+			backgroundImageUrl: bgImages,
 			bannerImageUrl:
-				hero.content.bannerImageUrl ||
-				hero.content.banner_image_url ||
-				hero.content.bannerImageUrl,
+				hero.content.bannerImageUrl || hero.content.banner_image_url,
 			status: hero.content.status || 'form',
 			textAlignment: normalizedTextAlignment,
 		};
@@ -77,8 +83,20 @@ export function useHeroData() {
 		data: HeroFormData & { text_alignment?: HeroFormData['textAlignment'] },
 	) => {
 		try {
-			const stripBaseUrl = (url?: string) => {
+			const stripBaseUrl = (url?: string | string[]) => {
 				if (!url) return undefined;
+				if (Array.isArray(url)) {
+					return url.map((u) => {
+						const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL?.trim();
+						if (baseUrl && u.startsWith(baseUrl)) {
+							return u.substring(baseUrl.length);
+						}
+						if (u.includes('/public/')) {
+							return u.substring(u.indexOf('/public/'));
+						}
+						return u;
+					});
+				}
 				const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL?.trim();
 				if (baseUrl && url.startsWith(baseUrl)) {
 					return url.substring(baseUrl.length);
@@ -89,7 +107,7 @@ export function useHeroData() {
 				return url;
 			};
 
-			const content: Record<string, string | boolean | undefined> = {
+			const content: Record<string, any> = {
 				eyebrow_text: data.eyebrowText,
 				main_headline: data.mainHeadline,
 				subtext: data.subtext,
@@ -100,7 +118,8 @@ export function useHeroData() {
 				text_alignment: data.text_alignment ?? data.textAlignment,
 			};
 
-			content.backgroundImageUrl = stripBaseUrl(data.backgroundImageUrl) || '';
+			// Handle backgroundImageUrl as array
+			content.backgroundImageUrl = stripBaseUrl(data.backgroundImageUrl) || [];
 
 			if (data.bannerImageUrl) {
 				content.bannerImageUrl = stripBaseUrl(data.bannerImageUrl);

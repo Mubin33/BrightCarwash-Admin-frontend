@@ -20,7 +20,7 @@ export function HeroContent() {
 		carsWashed: data.carsWashed,
 		avgTime: data.avgTime,
 		status: data.status,
-		backgroundImageUrl: data.backgroundImageUrl,
+		backgroundImageUrl: data.backgroundImageUrl || [],
 		bannerImageUrl: data.bannerImageUrl,
 		textAlignment: data.textAlignment,
 	});
@@ -33,7 +33,6 @@ export function HeroContent() {
 	useEffect(() => {
 		if (!isLoading) {
 			const next = buildFormData(initialData);
-			// eslint-disable-next-line react-hooks/set-state-in-effect
 			setFormData((prev) => {
 				if (
 					prev.eyebrowText === next.eyebrowText &&
@@ -43,13 +42,13 @@ export function HeroContent() {
 					prev.carsWashed === next.carsWashed &&
 					prev.avgTime === next.avgTime &&
 					prev.status === next.status &&
-					prev.backgroundImageUrl === next.backgroundImageUrl &&
+					JSON.stringify(prev.backgroundImageUrl) ===
+					JSON.stringify(next.backgroundImageUrl) &&
 					prev.bannerImageUrl === next.bannerImageUrl &&
 					prev.textAlignment === next.textAlignment
 				) {
 					return prev;
 				}
-
 				return next;
 			});
 		}
@@ -74,8 +73,9 @@ export function HeroContent() {
 					backgroundImageUrl: updated.backgroundImageUrl,
 					bannerImageUrl: updated.bannerImageUrl,
 					status: updated.status,
+					textAlignment: value as HeroFormData['textAlignment'],
 					text_alignment: value as HeroFormData['textAlignment'],
-				} as HeroFormData & { text_alignment?: HeroFormData['textAlignment'] });
+				} as any);
 			}
 
 			return updated;
@@ -91,11 +91,12 @@ export function HeroContent() {
 			starRating: data.starRating,
 			carsWashed: data.carsWashed,
 			avgTime: data.avgTime,
-			backgroundImageUrl: data.backgroundImageUrl,
+			backgroundImageUrl: data.backgroundImageUrl || [],
 			bannerImageUrl: data.bannerImageUrl,
 			status: data.status,
+			textAlignment: data.textAlignment,
 			text_alignment: data.textAlignment,
-		} as HeroFormData & { text_alignment?: HeroFormData['textAlignment'] };
+		} as any;
 	};
 
 	const handleBannerImageUpload = async (file: File): Promise<string> => {
@@ -112,7 +113,7 @@ export function HeroContent() {
 		await handleSave(buildSavePayload({ bannerImageUrl: data.bannerImageUrl }));
 	};
 
-	const handleBackgroundSave = async (data: { backgroundImageUrl: string }) => {
+	const handleBackgroundSave = async (data: { backgroundImageUrl: string[] }) => {
 		updateField('backgroundImageUrl', data.backgroundImageUrl);
 		await handleSave(
 			buildSavePayload({ backgroundImageUrl: data.backgroundImageUrl }),
@@ -145,11 +146,11 @@ export function HeroContent() {
 			<div className='flex gap-4'>
 				<div className='flex-1 flex flex-col gap-4'>
 					<HeroBackgroundImage
-						key={formData.backgroundImageUrl ?? 'empty'}
-						initialImageUrl={formData.backgroundImageUrl}
+						key={JSON.stringify(formData.backgroundImageUrl)}
+						initialImageUrls={formData.backgroundImageUrl || []}
 						onImageUpload={handleImageUpload}
 						onSave={handleBackgroundSave}
-						label='Background Image'
+						label='Background Images (Carousel)'
 					/>
 					<HeroTextContent
 						eyebrowText={formData.eyebrowText}

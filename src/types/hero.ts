@@ -3,7 +3,7 @@ export interface HeroContent {
 	main_headline: string;
 	subtext: string;
 	background_image_url?: string;
-	backgroundImageUrl?: string;
+	backgroundImageUrl?: string | string[];
 	bannerImageUrl?: string;
 	banner_image_url?: string;
 	star_rating: string;
