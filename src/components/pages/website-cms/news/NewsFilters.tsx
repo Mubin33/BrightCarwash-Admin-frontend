@@ -1,19 +1,17 @@
-"use client";
+'use client';
 
 import { Icon } from '@/components/ui/Icon';
 import { Button } from '@/components/ui/Button';
 import { FilterDropdown } from '@/components/ui/FilterDropdown';
 
 const STATUS_OPTIONS = [
-
     { value: 'true', label: 'Published' },
     { value: 'false', label: 'Draft' },
 ];
 
 const SORT_OPTIONS = [
     { value: 'created_at_desc', label: 'Newest' },
-    { value: 'created_at_asc', label: 'Oldest' }
-    ,
+    { value: 'created_at_asc', label: 'Oldest' },
 ];
 
 interface NewsFiltersProps {
@@ -96,13 +94,14 @@ export function NewsFilters({
                 />
             </div>
 
+            {/* FIX: Icon centering */}
             <div className="flex p-1 bg-[#F1F1F1] rounded-lg border border-[#DFE1E7]">
-                <Button
-                    variant="icon"
+                <button
+                    type="button"
                     onClick={() => onViewModeChange('grid')}
-                    className={`p-2 rounded-md transition-colors ${viewMode === 'grid'
-                        ? 'bg-white shadow-[0_4px_4px_0_rgba(0,0,0,0.05)]'
-                        : 'hover:bg-white/50'
+                    className={`p-2 rounded-md transition-colors flex items-center justify-center ${viewMode === 'grid'
+                            ? 'bg-white shadow-[0_4px_4px_0_rgba(0,0,0,0.05)]'
+                            : 'hover:bg-white/50'
                         }`}
                 >
                     <Icon
@@ -111,13 +110,13 @@ export function NewsFilters({
                         height={20}
                         color={viewMode === 'grid' ? '#1B1B1B' : '#777980'}
                     />
-                </Button>
-                <Button
-                    variant="icon"
+                </button>
+                <button
+                    type="button"
                     onClick={() => onViewModeChange('list')}
-                    className={`p-2 rounded-md transition-colors ${viewMode === 'list'
-                        ? 'bg-white shadow-[0_4px_4px_0_rgba(0,0,0,0.05)]'
-                        : 'hover:bg-white/50'
+                    className={`p-2 rounded-md transition-colors flex items-center justify-center ${viewMode === 'list'
+                            ? 'bg-white shadow-[0_4px_4px_0_rgba(0,0,0,0.05)]'
+                            : 'hover:bg-white/50'
                         }`}
                 >
                     <Icon
@@ -126,7 +125,7 @@ export function NewsFilters({
                         height={20}
                         color={viewMode === 'list' ? '#1B1B1B' : '#777980'}
                     />
-                </Button>
+                </button>
             </div>
         </div>
     );

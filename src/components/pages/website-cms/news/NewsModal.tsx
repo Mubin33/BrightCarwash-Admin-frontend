@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import { useState, useEffect, useRef } from 'react';
 import { X, Upload } from 'lucide-react';
@@ -238,7 +238,7 @@ export function NewsModal({ isOpen, onClose, item, onSuccess }: NewsModalProps) 
                                 />
                             </div>
                             <div className="flex-1 flex flex-col gap-2">
-                                <label className="text-[#777980] font-inter text-base font-normal leading-5">Category</label>
+                                <label className="text-[#777980] font-inter text-base font-normal leading-5">Category *</label>
                                 <FilterDropdown
                                     label="Select category"
                                     options={categoryOptions}
@@ -250,13 +250,25 @@ export function NewsModal({ isOpen, onClose, item, onSuccess }: NewsModalProps) 
                             </div>
                         </div>
 
+                        {/* ✅ SUMMARY FIELD - Added here */}
+                        <div className="flex flex-col gap-2">
+                            <label className="text-[#777980] font-inter text-base font-normal leading-5">Summary</label>
+                            <textarea
+                                value={summary}
+                                onChange={(e) => setSummary(e.target.value)}
+                                placeholder="A brief summary outline…"
+                                rows={2}
+                                className="w-full px-4 py-3 bg-white rounded-lg border border-[#DFE1E7] text-[#1B1B1B] placeholder-[#777980] font-inter text-base outline-none focus:border-[#0098E8] transition-all resize-none"
+                            />
+                        </div>
+
                         <div className="flex flex-col gap-2 flex-1">
-                            <label className="text-[#777980] font-inter text-base font-normal leading-5">Content</label>
+                            <label className="text-[#777980] font-inter text-base font-normal leading-5">Content *</label>
                             <textarea
                                 value={content}
                                 onChange={(e) => setContent(e.target.value)}
                                 placeholder="Write your post content here…"
-                                rows={8}
+                                rows={6}
                                 className="w-full px-4 py-3 bg-white rounded-lg border border-[#DFE1E7] text-[#1B1B1B] placeholder-[#777980] font-inter text-base outline-none focus:border-[#0098E8] transition-all resize-none"
                             />
                         </div>
