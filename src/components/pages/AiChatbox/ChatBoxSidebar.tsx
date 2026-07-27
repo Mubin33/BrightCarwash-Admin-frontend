@@ -12,7 +12,7 @@ type Props = {
 export default function Sidebar({ selectedUser, onSelectUser, users, isLoading }: Props) {
   return (
     <div className="flex min-h-0 flex-col rounded-xl border border-[#DFE1E7] bg-white ">
-      <div className="min-h-0 flex-1 overflow-y-auto p-3 ">
+      <div className="min-h-0 flex-1 overflow-y-auto custom-scroll p-3 ">
         <div className="relative mb-2">
           <Search
             size={16}

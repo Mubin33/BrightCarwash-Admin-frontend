@@ -31,7 +31,7 @@ export default function ChatWindow({ user, messages, isLoading, onCloseSession }
           <MailIcon />
         </button>
       </div>
-      <div className="min-h-0 flex-1 overflow-y-auto bg-gray-50 p-5">
+      <div className="min-h-0 flex-1 overflow-y-auto custom-scroll bg-gray-50 p-5">
         <div>
           {isLoading ? <p className="text-sm text-gray-500">Loading conversation...</p> : messages.map((message, index) => (
             <ChatBubble
