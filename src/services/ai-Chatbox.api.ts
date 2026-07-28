@@ -8,6 +8,8 @@ import {
 import { createApi } from "@reduxjs/toolkit/query/react";
 import axios from "axios";
 
+const API_BASE_AI_URL = process.env.NEXT_PUBLIC_API_BASE_AI_URL;
+
 export const chatboxApis = createApi({
   reducerPath: "chatboxApi",
   baseQuery: async () => ({ data: null }),
@@ -17,7 +19,7 @@ export const chatboxApis = createApi({
       queryFn: async () => {
         try {
           const response = await axios.get(
-            "https://taste-engineer-terms-ends.trycloudflare.com/api/v1/admin/users/",
+            `${API_BASE_AI_URL}/v1/admin/users/`,
             {
               headers: {
                 "Content-Type": "application/json",
@@ -40,7 +42,7 @@ export const chatboxApis = createApi({
       queryFn: async (userId) => {
         try {
           const response = await axios.get(
-            `https://taste-engineer-terms-ends.trycloudflare.com/api/v1/admin/users/${userId}/sessions/`,
+            `${API_BASE_AI_URL}/v1/admin/users/${userId}/sessions/`,
             { headers: { "Content-Type": "application/json", Authorization: `Bearer ${getAccessToken()}` } },
           );
           return { data: response.data };
