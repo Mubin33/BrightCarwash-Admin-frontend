@@ -14,6 +14,7 @@ export type ChatUser = {
   name: string;
   email: string;
   lastActive: string;
+  human_escalation_required:boolean;
 };
 
 export type ChatSession = {
@@ -35,6 +36,7 @@ export type ApiUser = {
   email?: string | null;
   created_at?: string | null;
   updated_at?: string | null;
+  human_escalation_required: boolean;
 };
 
 export type GetUsersParams = {

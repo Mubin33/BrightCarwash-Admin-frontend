@@ -121,6 +121,7 @@ export default function AiChatbox() {
         id: user.user_id,
         name: user.name || "Unknown user",
         email: user.email || "No email address",
+        human_escalation_required: user.human_escalation_required,
         lastActive: formatDate(user.updated_at || user.created_at),
       })),
     [apiUsers],
