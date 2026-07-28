@@ -1,6 +1,6 @@
 'use client';
 
-import { Calendar } from 'lucide-react';
+import { DatePicker } from '@/components/ui/DatePicker';
 
 interface CampaignViewDatesProps {
     startDate: string;
@@ -32,16 +32,12 @@ export function CampaignViewDates({
                     Starting Date
                 </div>
                 {isEditing ? (
-                    <div className="relative">
-                        <input
-                            type="date"
-                            value={startDate}
-                            onChange={(e) => onStartDateChange(e.target.value)}
-                            disabled={isUpdating}
-                            className="w-full p-4 bg-gray-50 rounded-lg outline outline-1 outline-offset-[-1px] outline-zinc-200 text-neutral-600 text-base font-normal font-['Inter'] leading-6 focus:outline-2 focus:outline-sky-500 disabled:opacity-50 appearance-none [&::-webkit-calendar-picker-indicator]:hidden"
-                        />
-                        <Calendar size={20} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-                    </div>
+                    <DatePicker
+                        value={startDate}
+                        onChange={onStartDateChange}
+                        placeholder="Select start date"
+                        disabled={isUpdating}
+                    />
                 ) : (
                     <div className="w-full p-4 bg-gray-50 rounded-lg outline outline-1 outline-offset-[-1px] outline-zinc-200 text-neutral-600 text-base font-normal font-['Inter'] leading-6">
                         {formatDate(startDate || null)}
@@ -53,16 +49,12 @@ export function CampaignViewDates({
                     Ending Date
                 </div>
                 {isEditing ? (
-                    <div className="relative">
-                        <input
-                            type="date"
-                            value={endDate}
-                            onChange={(e) => onEndDateChange(e.target.value)}
-                            disabled={isUpdating}
-                            className="w-full p-4 bg-gray-50 rounded-lg outline outline-1 outline-offset-[-1px] outline-zinc-200 text-neutral-600 text-base font-normal font-['Inter'] leading-6 focus:outline-2 focus:outline-sky-500 disabled:opacity-50 appearance-none [&::-webkit-calendar-picker-indicator]:hidden"
-                        />
-                        <Calendar size={20} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-                    </div>
+                    <DatePicker
+                        value={endDate}
+                        onChange={onEndDateChange}
+                        placeholder="Select end date"
+                        disabled={isUpdating}
+                    />
                 ) : (
                     <div className="w-full p-4 bg-gray-50 rounded-lg outline outline-1 outline-offset-[-1px] outline-zinc-200 text-neutral-600 text-base font-normal font-['Inter'] leading-6">
                         {formatDate(endDate || null)}
