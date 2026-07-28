@@ -29,9 +29,9 @@ export function recentInquiriesColumns(stages: StageOption[]): Column<RecentInqu
       header: "Lead Name",
       render: (row) => (
         <div className="flex items-center gap-2">
-          <div className="w-6 h-6 rounded-full overflow-hidden border border-white">
+          {/* <div className="w-6 h-6 rounded-full overflow-hidden border border-white">
             <Image src={row.avatar} alt={row.name} width={24} height={24} className="object-cover" />
-          </div>
+          </div> */}
           <span className="text-[#1B1B1B] font-inter text-sm font-normal leading-[150%] truncate max-w-[120px]">{row.name}</span>
         </div>
       ),

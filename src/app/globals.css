@@ -376,38 +376,54 @@ body {
 /*  Custom scroll */
 
 .custom-scroll {
-  scrollbar-width: thin;
-  scrollbar-color: #071f4d transparent;
-  
-  scroll-behavior: smooth;
-  overflow-y: auto;
+	scrollbar-width: thin;
+	scrollbar-color: #071f4d transparent;
+
+	scroll-behavior: smooth;
+	overflow-y: auto;
 }
 
 .custom-scroll::-webkit-scrollbar {
-  width: 6px;
-  height: 6px; 
+	width: 6px;
+	height: 6px;
 }
 
 .custom-scroll::-webkit-scrollbar-track {
-  background: transparent;
-  border-radius: 10px;
+	background: transparent;
+	border-radius: 10px;
 }
 
 .custom-scroll::-webkit-scrollbar-thumb {
-  background: #071f4d;
-  border-radius: 10px;
-  transition: background 0.3s ease;
+	background: #071f4d;
+	border-radius: 10px;
+	transition: background 0.3s ease;
 }
 
 .custom-scroll::-webkit-scrollbar-thumb:hover {
-  background: #071f4d; 
+	background: #071f4d;
 }
 
 .custom-scroll::-webkit-scrollbar-thumb:active {
-  background: #071f4d;
+	background: #071f4d;
 }
 
 .custom-scroll::-webkit-scrollbar-corner {
-  background: transparent;
-  background: linear-gradient(0deg, rgba(0, 0, 0, 0.4) 30%, rgba(0, 0, 0, 0.4) 0%), url('/images/abt-hero.png') lightgray 0% 30% / cover no-repeat;
+	background: transparent;
+	background: linear-gradient(0deg, rgba(0, 0, 0, 0.4) 30%, rgba(0, 0, 0, 0.4) 0%), url('/images/abt-hero.png') lightgray 0% 30% / cover no-repeat;
+}
+
+
+
+@keyframes adm-slide-in-right {
+	from {
+		transform: translateX(100%);
+	}
+
+	to {
+		transform: translateX(0);
+	}
+}
+
+.adm-slide-in-right {
+	animation: adm-slide-in-right 0.3s ease-out forwards;
 }

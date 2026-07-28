@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { X, Plus, Edit2, Trash2 } from 'lucide-react';
+import { X, Plus, Edit2, Trash2, Check, X as XIcon } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Icon } from '@/components/ui/Icon';
-import { useGetCategoriesQuery, useCreateCategoryMutation, useDeleteCategoryMutation } from '@/services/category.api';
+import { useGetCategoriesQuery, useCreateCategoryMutation, useDeleteCategoryMutation, useUpdateCategoryMutation } from '@/services/category.api';
 import type { Category } from '@/types/news';
 import { toast } from 'react-toastify';
 
@@ -15,12 +15,15 @@ interface CategoryModalProps {
 
 export function CategoryModal({ isOpen, onClose }: CategoryModalProps) {
     const [newCategory, setNewCategory] = useState('');
+    const [editingId, setEditingId] = useState<string | null>(null);
+    const [editingName, setEditingName] = useState('');
     const [isVisible, setIsVisible] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const modalRef = useRef<HTMLDivElement>(null);
 
     const { data: categories = [], refetch } = useGetCategoriesQuery();
     const [createCategory] = useCreateCategoryMutation();
+    const [updateCategory] = useUpdateCategoryMutation();
     const [deleteCategory] = useDeleteCategoryMutation();
 
     useEffect(() => {
@@ -45,6 +48,8 @@ export function CategoryModal({ isOpen, onClose }: CategoryModalProps) {
 
     const handleClose = () => {
         setIsVisible(false);
+        setEditingId(null);
+        setEditingName('');
         setTimeout(() => onClose(), 300);
     };
 
@@ -61,6 +66,35 @@ export function CategoryModal({ isOpen, onClose }: CategoryModalProps) {
             refetch();
         } catch {
             toast.error('Failed to add category');
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    const handleStartEdit = (category: Category) => {
+        setEditingId(category.id);
+        setEditingName(category.name);
+    };
+
+    const handleCancelEdit = () => {
+        setEditingId(null);
+        setEditingName('');
+    };
+
+    const handleSaveEdit = async (id: string) => {
+        if (!editingName.trim()) {
+            toast.warning('Please enter a category name');
+            return;
+        }
+        setIsSubmitting(true);
+        try {
+            await updateCategory({ id, data: { name: editingName.trim() } }).unwrap();
+            toast.success('Category updated successfully');
+            setEditingId(null);
+            setEditingName('');
+            refetch();
+        } catch {
+            toast.error('Failed to update category');
         } finally {
             setIsSubmitting(false);
         }
@@ -144,20 +178,55 @@ export function CategoryModal({ isOpen, onClose }: CategoryModalProps) {
                                             key={cat.id}
                                             className="flex items-center justify-between p-4 bg-white rounded-lg border border-[#DFE1E7]"
                                         >
-                                            <span className="text-[#1B1B1B] font-inter text-base leading-6">
-                                                {cat.name}
-                                            </span>
-                                            <div className="flex items-center gap-3">
-                                                <button className="p-1 rounded-lg text-[#777980] hover:bg-[#F8FAFB] transition-colors">
-                                                    <Edit2 size={18} />
-                                                </button>
-                                                <button
-                                                    onClick={() => handleDeleteCategory(cat.id, cat.name)}
-                                                    className="p-1 rounded-lg text-[#777980] hover:bg-[#FFE6E6] hover:text-[#FF4345] transition-colors"
-                                                >
-                                                    <Trash2 size={18} />
-                                                </button>
-                                            </div>
+                                            {editingId === cat.id ? (
+                                                <div className="flex-1 flex items-center gap-2">
+                                                    <input
+                                                        type="text"
+                                                        value={editingName}
+                                                        onChange={(e) => setEditingName(e.target.value)}
+                                                        className="flex-1 px-3 py-2 bg-[#F8FAFB] rounded-lg border border-[#DFE1E7] text-[#1B1B1B] placeholder-[#777980] font-inter text-base outline-none focus:border-[#0098E8] transition-all"
+                                                        autoFocus
+                                                        onKeyDown={(e) => {
+                                                            if (e.key === 'Enter') handleSaveEdit(cat.id);
+                                                            if (e.key === 'Escape') handleCancelEdit();
+                                                        }}
+                                                    />
+                                                    <button
+                                                        onClick={() => handleSaveEdit(cat.id)}
+                                                        className="p-2 rounded-lg bg-[#0098E8] text-white hover:bg-[#0088D8] transition-colors"
+                                                        disabled={isSubmitting}
+                                                    >
+                                                        <Check size={18} />
+                                                    </button>
+                                                    <button
+                                                        onClick={handleCancelEdit}
+                                                        className="p-2 rounded-lg bg-[#F1F1F1] text-[#777980] hover:bg-[#E8E8E9] transition-colors"
+                                                        disabled={isSubmitting}
+                                                    >
+                                                        <XIcon size={18} />
+                                                    </button>
+                                                </div>
+                                            ) : (
+                                                <>
+                                                    <span className="text-[#1B1B1B] font-inter text-base leading-6">
+                                                        {cat.name}
+                                                    </span>
+                                                    <div className="flex items-center gap-3">
+                                                        <button
+                                                            onClick={() => handleStartEdit(cat)}
+                                                            className="p-1 rounded-lg text-[#777980] hover:bg-[#F8FAFB] transition-colors"
+                                                        >
+                                                            <Edit2 size={18} />
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleDeleteCategory(cat.id, cat.name)}
+                                                            className="p-1 rounded-lg text-[#777980] hover:bg-[#FFE6E6] hover:text-[#FF4345] transition-colors"
+                                                        >
+                                                            <Trash2 size={18} />
+                                                        </button>
+                                                    </div>
+                                                </>
+                                            )}
                                         </div>
                                     ))
                                 )}

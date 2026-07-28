@@ -22,6 +22,8 @@ import { settingsApi } from '@/services/settings.api';
 import { notificationApi } from '@/services/notification.api';
 import { queriesApi } from '@/services/queries.api';
 import { chatboxApis } from '@/services/ai-Chatbox.api';
+import { knowledgeApi } from '@/services/knowledge.api';
+import { aiCampaignApi } from '@/services/ai-campaign.api';
 export const store = configureStore({
 	reducer: {
 		auth: authReducer,
@@ -46,6 +48,8 @@ export const store = configureStore({
 		[notificationApi.reducerPath]: notificationApi.reducer,
 		[queriesApi.reducerPath]: queriesApi.reducer,
 		[chatboxApis.reducerPath]: chatboxApis.reducer,
+		[knowledgeApi.reducerPath]: knowledgeApi.reducer,
+		[aiCampaignApi.reducerPath]: aiCampaignApi.reducer,
 	},
 	middleware: (getDefaultMiddleware) =>
 		getDefaultMiddleware().concat(
@@ -69,6 +73,8 @@ export const store = configureStore({
 			notificationApi.middleware,
 			queriesApi.middleware,
 			chatboxApis.middleware,
+			knowledgeApi.middleware,
+			aiCampaignApi.middleware,
 		),
 });
 

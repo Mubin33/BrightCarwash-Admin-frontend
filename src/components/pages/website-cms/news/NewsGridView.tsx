@@ -3,6 +3,7 @@
 import { Icon } from '@/components/ui/Icon';
 import type { NewsItem } from '@/types/news';
 import type { Category } from '@/types/news';
+import Image from 'next/image';
 
 interface NewsGridViewProps {
     items: NewsItem[];
@@ -35,10 +36,12 @@ export function NewsGridView({ items, categories, onEdit, onDelete }: NewsGridVi
                 >
                     <div className="relative h-44 overflow-hidden bg-[#F1F1F1]">
                         {item.image_url ? (
-                            <img
+                            <Image
                                 src={item.image_url}
                                 alt={item.title}
-                                className="w-full h-full object-cover"
+                                fill
+                                unoptimized
+                                className="object-cover object-top"
                             />
                         ) : (
                             <div className="w-full h-full flex items-center justify-center text-[#A5A5AB]">
