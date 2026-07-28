@@ -40,7 +40,7 @@ export function KnowledgeViewModal({
             />
 
             {/* Slide-in Panel from right */}
-            <div className="fixed top-0 right-0 h-full w-full max-w-2xl bg-white shadow-2xl z-50 transform transition-transform duration-300 ease-out adm-slide-in-right overflow-y-auto">
+            <div className="fixed top-0 right-0 h-full w-full max-w-[520px] bg-white shadow-2xl z-50 transform transition-transform duration-300 ease-out adm-slide-in-right overflow-y-auto">
                 <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center z-10">
                     <h2 className="text-xl font-semibold text-gray-900">
                         Document Details
@@ -86,10 +86,10 @@ export function KnowledgeViewModal({
                             <div>
                                 <h3 className="text-sm font-medium text-gray-500">Status</h3>
                                 <span className={`mt-1 inline-flex px-2 py-1 text-xs font-medium rounded-full ${file.is_processed
-                                        ? 'bg-green-100 text-green-700'
-                                        : file.processing_error
-                                            ? 'bg-red-100 text-red-700'
-                                            : 'bg-yellow-100 text-yellow-700'
+                                    ? 'bg-green-100 text-green-700'
+                                    : file.processing_error
+                                        ? 'bg-red-100 text-red-700'
+                                        : 'bg-yellow-100 text-yellow-700'
                                     }`}>
                                     {file.is_processed
                                         ? 'Processed'

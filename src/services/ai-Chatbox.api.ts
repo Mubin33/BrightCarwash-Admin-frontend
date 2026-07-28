@@ -8,6 +8,8 @@ import {
 import { createApi } from "@reduxjs/toolkit/query/react";
 import axios from "axios";
 
+const API_BASE = process.env.NEXT_PUBLIC_AI_BASE_URL?.replace(/\/$/, '');
+
 export const chatboxApis = createApi({
   reducerPath: "chatboxApi",
   baseQuery: async () => ({ data: null }),
@@ -17,7 +19,7 @@ export const chatboxApis = createApi({
       queryFn: async () => {
         try {
           const response = await axios.get(
-            "https://taste-engineer-terms-ends.trycloudflare.com/api/v1/admin/users/",
+            `${API_BASE}/api/v1/admin/users/`,
             {
               headers: {
                 "Content-Type": "application/json",
@@ -40,12 +42,22 @@ export const chatboxApis = createApi({
       queryFn: async (userId) => {
         try {
           const response = await axios.get(
-            `https://taste-engineer-terms-ends.trycloudflare.com/api/v1/admin/users/${userId}/sessions/`,
-            { headers: { "Content-Type": "application/json", Authorization: `Bearer ${getAccessToken()}` } },
+            `${API_BASE}/api/v1/admin/users/${userId}/sessions/`,
+            {
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${getAccessToken()}`
+              }
+            },
           );
           return { data: response.data };
         } catch (error) {
-          return { error: { status: "FETCH_ERROR", error: error instanceof Error ? error.message : "Unable to load sessions" } };
+          return {
+            error: {
+              status: "FETCH_ERROR",
+              error: error instanceof Error ? error.message : "Unable to load sessions"
+            }
+          };
         }
       },
       providesTags: ["Chatbox"],
@@ -54,12 +66,22 @@ export const chatboxApis = createApi({
       queryFn: async (sessionId) => {
         try {
           const response = await axios.get(
-            `https://taste-engineer-terms-ends.trycloudflare.com/api/v1/admin/sessions/${sessionId}/`,
-            { headers: { "Content-Type": "application/json", Authorization: `Bearer ${getAccessToken()}` } },
+            `${API_BASE}/api/v1/admin/sessions/${sessionId}/`,
+            {
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${getAccessToken()}`
+              }
+            },
           );
           return { data: response.data };
         } catch (error) {
-          return { error: { status: "FETCH_ERROR", error: error instanceof Error ? error.message : "Unable to load conversation" } };
+          return {
+            error: {
+              status: "FETCH_ERROR",
+              error: error instanceof Error ? error.message : "Unable to load conversation"
+            }
+          };
         }
       },
     }),

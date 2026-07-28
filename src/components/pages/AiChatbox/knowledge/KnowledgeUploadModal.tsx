@@ -120,7 +120,7 @@ export function KnowledgeUploadModal({
             />
 
             {/* Slide-in Panel from right */}
-            <div className="fixed top-0 right-0 h-full w-full max-w-2xl bg-white shadow-2xl z-50 transform transition-transform duration-300 ease-out adm-slide-in-right overflow-y-auto">
+            <div className="fixed top-0 right-0 h-full w-full max-w-[520px] bg-white shadow-2xl z-50 transform transition-transform duration-300 ease-out adm-slide-in-right overflow-y-auto">
                 <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center z-10">
                     <h2 className="text-xl font-semibold text-gray-900">
                         Add New Documents
