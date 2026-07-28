@@ -1,10 +1,12 @@
 import { RefreshCw } from "lucide-react";
-import { ChatSession, ChatUser } from "@/mocks/ai-chatbox.mock";
+import { ChatSession } from "@/types/aiChatbox";
 
 type Props = {
-  user: ChatUser;
   selectedSession: string | null;
   onSelectSession: (sessionId: string) => void;
+  sessions: ChatSession[];
+  isLoading: boolean;
+  onRefresh: () => void;
 };
 
 const statusColors: Record<string, string> = {
@@ -14,24 +16,28 @@ const statusColors: Record<string, string> = {
 };
 
 export default function ChatSessionList({
-  user,
   selectedSession,
   onSelectSession,
+  sessions,
+  isLoading,
+  onRefresh,
 }: Props) {
   return (
-    <div className="rounded-xl overflow-hidden border border-[#DFE1E7] bg-[#F8FAFB]">
+    <div className="flex min-h-0 flex-col overflow-hidden rounded-xl border border-[#DFE1E7] bg-[#F8FAFB]">
       <div className="flex items-center justify-between border-b border-[#DFE1E7] p-4.5 bg-white">
         <div>
           <h3 className="font-medium">Chat Sessions</h3>
         </div>
-        <button className="cursor-pointer p-1.5 rounded-md border border-[#DFE1E7] bg-[#F8FAFB]">
+        <button onClick={onRefresh} className="cursor-pointer p-1.5 rounded-md border border-[#DFE1E7] bg-[#F8FAFB]">
           <RefreshCw size={16} className="text-gray-500" />
         </button>
       </div>
 
-      <div className="space-y-3 p-3 bg-[#F8FAFB] overflow-y-auto">
-        {user.sessions.length ? (
-          user.sessions.map((session: ChatSession) => (
+      <div className="min-h-0 flex-1 space-y-3 overflow-y-auto bg-[#F8FAFB] p-3">
+        {isLoading ? (
+          <div className="rounded-2xl border border-dashed border-gray-200 p-6 text-center text-sm text-gray-500">Loading sessions...</div>
+        ) : sessions.length ? (
+          sessions.map((session: ChatSession) => (
             <button
               key={session.id}
               onClick={() => onSelectSession(session.id)}

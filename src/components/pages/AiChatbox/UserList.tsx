@@ -1,14 +1,15 @@
-import { mockChatUsers } from "@/mocks/ai-chatbox.mock";
+import { ChatUser } from "@/types/aiChatbox";
 
 type Props = {
   selectedUser: string;
   onSelectUser: (userId: string) => void;
+  users: ChatUser[];
 };
 
-export default function UserList({ selectedUser, onSelectUser }: Props) {
+export default function UserList({ selectedUser, onSelectUser, users }: Props) {
   return (
     <div className="space-y-2">
-      {mockChatUsers.map((user) => (
+      {users.map((user) => (
         <button
           key={user.id}
           onClick={() => onSelectUser(user.id)}
