@@ -40,9 +40,19 @@ export const NAVIGATION_CONFIG: NavSection[] = [
           { id: "cms-faq", label: "FAQ", icon: "faq", href: "/website-cms/faq", permission: PERMISSIONS.faq.read },
         ]
       },
+      {
+        id: "ai-chatbox",
+        label: "AI Chatbox",
+        icon: "bot",
+        href: "",
+        subItems: [
+          { id: "ai-chatbox-all-chats", label: "All Chats", icon: "bot", href: "/ai-chatbox" },
+          { id: "ai-chatbox-knowledge", label: "Knowledge", icon: "website-cms", href: "/ai-chatbox/knowledge" },
+          { id: "ai-chatbox-campaigns", label: "Campaigns", icon: "campaigns", href: "/ai-chatbox/campaigns" },
+        ]
+      },
       { id: "reports", label: "Reports", icon: "reports", href: "/reports" },
       { id: "activity-log", label: "Activity Log", icon: "activity-log", href: "/activity-log", permission: PERMISSIONS.activity_log.read },
-      { id: "ai-chatbox", label: "AI Chatbox", icon: "bot", href: "/ai-chatbox" },
       { id: "settings", label: "Settings", icon: "settings", href: "/settings" },
     ],
   },

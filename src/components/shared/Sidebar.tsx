@@ -14,7 +14,6 @@ import type { RootState } from '@/lib/store';
 import type { SidebarProps, NavItem } from '@/types/navigation';
 import { useGetBusinessProfileQuery } from '@/services/settings.api';
 
-
 const STORAGE_URL = process.env.NEXT_PUBLIC_STORAGE_URL;
 
 function filterItemsByPermission(
@@ -57,7 +56,13 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
     const activeIds = new Set<string>();
     NAVIGATION_CONFIG.forEach((section) => {
       section.items.forEach((item) => {
-        if (item.subItems?.some((sub) => pathname.startsWith(sub.href))) {
+        if (item.subItems?.some((sub) => {
+          // For root paths like "/ai-chatbox", only match exact path
+          if (sub.href === '/ai-chatbox') {
+            return pathname === sub.href;
+          }
+          return pathname === sub.href || pathname.startsWith(sub.href + '/');
+        })) {
           activeIds.add(item.id);
         }
       });
@@ -76,12 +81,24 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
 
   function isActive(href: string): boolean {
     if (href === '/dashboard') return pathname === '/dashboard';
-    return pathname.startsWith(href);
+    if (href === '') return false;
+    // For root paths like "/ai-chatbox", only match exact path
+    if (href === '/ai-chatbox') {
+      return pathname === href;
+    }
+    return pathname === href || pathname.startsWith(href + '/');
   }
 
   function isSubItemActive(subItems: NavItem[] | undefined): boolean {
     if (!subItems) return false;
-    return subItems.some((item) => pathname.startsWith(item.href));
+    return subItems.some((item) => {
+      if (item.href === '') return false;
+      // For root paths like "/ai-chatbox", only match exact path
+      if (item.href === '/ai-chatbox') {
+        return pathname === item.href;
+      }
+      return pathname === item.href || pathname.startsWith(item.href + '/');
+    });
   }
 
   const toggleExpand = (id: string) => {
@@ -106,10 +123,10 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
       )}
 
       <aside
-        className={`w-[250px] h-screen fixed top-0 left-0 flex flex-col py-4 sm:py-6 pl-4 sm:pl-6 pr-3 sm:pr-4 border-r border-[#ECEFF3] bg-[#0B1220] z-50 transition-transform duration-300 ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}
+        className={`w-[250px] h-screen fixed top-0 left-0 flex flex-col py-4 sm:py-6 pl-4 sm:pl-6 pr-0 border-r border-[#ECEFF3] bg-[#0B1220] z-50 transition-transform duration-300 ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}
       >
         {/* Logo - fixed at top */}
-        <div className='flex flex-col items-center w-full shrink-0 mb-4'>
+        <div className='flex flex-col items-center w-full shrink-0 mb-4 pr-3 sm:pr-4'>
           {!logoError ? (
             <div className='flex justify-center items-center w-full'>
               <Image
@@ -129,9 +146,9 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           )}
         </div>
 
-        {/* Nav - scrollable middle section with fixed height */}
-        <nav className='flex-1 min-h-0 overflow-y-auto adm-sidebar-scroll w-full'>
-          <div className='flex flex-col items-start gap-4 sm:gap-5 self-stretch'>
+        {/* Nav - scrollable middle section with scrollbar at right edge */}
+        <nav className='flex-1 min-h-0 overflow-y-auto adm-sidebar-scroll w-full pr-0'>
+          <div className='flex flex-col items-start gap-4 sm:gap-5 self-stretch pr-3 sm:pr-4'>
             {filteredConfig.map((section) => (
               <div
                 key={section.title}
@@ -194,9 +211,13 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                         {hasSubItems && isExpanded && (
                           <div className='flex flex-col pl-10 mt-3'>
                             {item.subItems?.map((subItem, index) => {
-                              const isSubActive = pathname.startsWith(
-                                subItem.href,
-                              );
+                              // For "All Chats" (root path), only match exact path
+                              let isSubActive;
+                              if (subItem.href === '/ai-chatbox') {
+                                isSubActive = pathname === subItem.href;
+                              } else {
+                                isSubActive = pathname === subItem.href || pathname.startsWith(subItem.href + '/');
+                              }
                               const isLast =
                                 index === (item.subItems?.length || 0) - 1;
                               return (
@@ -261,7 +282,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         <Button
           variant='sidebar'
           onClick={logout}
-          className='flex py-2.5 sm:py-[14px] px-3 sm:px-4 items-center gap-2 sm:gap-3 self-stretch rounded-lg bg-[#FFE6E6] border-none text-[#FF4345] font-inter text-sm sm:text-base font-normal leading-[124%] tracking-[0.08px] cursor-pointer shrink-0 mt-4'
+          className='flex mr-4 py-2.5 sm:py-[14px] px-3 sm:px-4 items-center gap-2 sm:gap-3 self-stretch rounded-lg bg-[#FFE6E6] border-none text-[#FF4345] font-inter text-sm sm:text-base font-normal leading-[124%] tracking-[0.08px] cursor-pointer shrink-0 mt-4'
         >
           <Icon
             name='logout'
