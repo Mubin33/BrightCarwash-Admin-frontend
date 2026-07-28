@@ -108,7 +108,7 @@ export function CampaignCreateModal({
             <div className="fixed inset-0 bg-black/50 z-40" onClick={handleClose} />
 
             {/* Slide-in Panel from right */}
-            <div className="fixed top-0 right-0 h-full w-full max-w-2xl bg-white shadow-2xl z-50 transform transition-transform duration-300 ease-out adm-slide-in-right overflow-y-auto">
+            <div className="fixed top-0 right-0 h-full w-full max-w-[520px] bg-white shadow-2xl z-50 transform transition-transform duration-300 ease-out adm-slide-in-right overflow-y-auto">
                 <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center z-10">
                     <h2 className="text-neutral-800 text-2xl font-medium font-['Inter'] leading-8">
                         Add New Campaign
@@ -242,15 +242,15 @@ export function CampaignCreateModal({
                                 <button
                                     onClick={() => setIsActive(false)}
                                     className={`flex-1 px-4 py-3 rounded-lg outline outline-1 outline-offset-[-1px] flex items-center gap-2 transition-colors ${!isActive
-                                            ? 'outline-red-700 bg-pink-100'
-                                            : 'outline-gray-100 bg-white'
+                                        ? 'outline-red-700 bg-pink-100'
+                                        : 'outline-gray-100 bg-white'
                                         }`}
                                     disabled={isCreating}
                                 >
                                     <div
                                         className={`w-5 h-5 rounded-full border flex items-center justify-center ${!isActive
-                                                ? 'border-red-700'
-                                                : 'border-gray-200'
+                                            ? 'border-red-700'
+                                            : 'border-gray-200'
                                             }`}
                                     >
                                         {!isActive && (
@@ -264,15 +264,15 @@ export function CampaignCreateModal({
                                 <button
                                     onClick={() => setIsActive(true)}
                                     className={`flex-1 px-4 py-3 rounded-lg outline outline-1 outline-offset-[-1px] flex items-center gap-2 transition-colors ${isActive
-                                            ? 'outline-green-700 bg-green-50'
-                                            : 'outline-gray-100 bg-white'
+                                        ? 'outline-green-700 bg-green-50'
+                                        : 'outline-gray-100 bg-white'
                                         }`}
                                     disabled={isCreating}
                                 >
                                     <div
                                         className={`w-5 h-5 rounded-full border flex items-center justify-center ${isActive
-                                                ? 'border-green-700'
-                                                : 'border-gray-200'
+                                            ? 'border-green-700'
+                                            : 'border-gray-200'
                                             }`}
                                     >
                                         {isActive && (

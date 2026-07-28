@@ -151,7 +151,7 @@ export function CampaignViewModal({
     return (
         <>
             <div className="fixed inset-0 bg-black/50 z-40" onClick={handleClose} />
-            <div className="fixed top-0 right-0 h-full w-full max-w-2xl bg-white shadow-2xl z-50 transform transition-transform duration-300 ease-out adm-slide-in-right overflow-y-auto">
+            <div className="fixed top-0 right-0 h-full w-full max-w-[520px] bg-white shadow-2xl z-50 transform transition-transform duration-300 ease-out adm-slide-in-right overflow-y-auto">
                 {/* Header */}
                 <CampaignViewHeader
                     isEditing={isEditing}
