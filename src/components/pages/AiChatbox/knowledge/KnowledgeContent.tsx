@@ -16,6 +16,8 @@ import {
     getKnowledgeColumns,
     KnowledgeViewModal,
 } from './';
+import { downloadFile } from '@/lib/file-export';
+import type { KnowledgeFile } from '@/types/knowledge';
 
 export function KnowledgeContent() {
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -29,6 +31,8 @@ export function KnowledgeContent() {
         selectedFileId!,
         { skip: !selectedFileId }
     );
+
+    const selectedFile = files?.find((f) => f.id === selectedFileId) || null;
 
     const handleDelete = async (id: number) => {
         if (!confirm('Are you sure you want to delete this file?')) return;
@@ -57,6 +61,38 @@ export function KnowledgeContent() {
         setIsViewModalOpen(true);
     };
 
+    const handleExport = async (file: KnowledgeFile) => {
+        try {
+            // The file URL is stored in the 'file' field
+            const fileUrl = file.file;
+            const fileName = file.title || 'download';
+
+            // Extract file extension from the URL
+            const extension = fileUrl.split('.').pop()?.toLowerCase() || '';
+
+            if (!extension) {
+                toast.error('Unable to determine file type');
+                return;
+            }
+
+            // Download the actual file from the AI server
+            const result = await downloadFile({
+                fileUrl: fileUrl,
+                fileName: fileName,
+                fileExtension: extension,
+            });
+
+            if (result.success) {
+                toast.success(result.message);
+            } else {
+                toast.error(result.message);
+            }
+        } catch (error) {
+            console.error('Export error:', error);
+            toast.error('Failed to download file');
+        }
+    };
+
     const handleCloseView = () => {
         setIsViewModalOpen(false);
         setSelectedFileId(null);
@@ -66,7 +102,17 @@ export function KnowledgeContent() {
         return <KnowledgeSkeleton />;
     }
 
-    const columns = getKnowledgeColumns(handleView, handleDelete, isDeleting);
+    const columns = getKnowledgeColumns(
+        handleView,
+        handleDelete,
+        (id: number) => {
+            const file = files?.find((f) => f.id === id);
+            if (file) {
+                handleExport(file);
+            }
+        },
+        isDeleting
+    );
 
     return (
         <>

@@ -1,8 +1,9 @@
 "use client";
 
-import Image from 'next/image';
-import { Icon } from '@/components/ui/Icon';
-import { Button } from '@/components/ui/Button';
+import Image from "next/image";
+import { Icon } from "@/components/ui/Icon";
+import { Button } from "@/components/ui/Button";
+import { useRef } from "react";
 
 interface HeroBannerUploadProps {
     isDragging: boolean;
@@ -39,6 +40,15 @@ export function HeroBannerUpload({
     setImageError,
     fileInputRef,
 }: HeroBannerUploadProps) {
+    const internalInputRef = useRef<HTMLInputElement | null>(null);
+
+    const handleFileInputClick = () => {
+        const input = fileInputRef?.current || internalInputRef.current;
+        if (input) {
+            input.click();
+        }
+    };
+
     return (
         <div className='flex flex-col gap-2'>
             <label className='text-[#777980] font-inter text-base font-normal leading-5'>
@@ -46,15 +56,15 @@ export function HeroBannerUpload({
             </label>
             <div
                 className={`h-64 rounded-lg border-2 border-dashed transition-all overflow-hidden bg-white flex items-center justify-center relative ${isDragging
-                    ? 'border-[#0098E8] bg-[#EBF5FF]'
-                    : 'border-[#DFE1E7]'
+                        ? 'border-[#0098E8] bg-[#EBF5FF]'
+                        : 'border-[#DFE1E7]'
                     } ${!displayUrl ? 'cursor-pointer' : ''}`}
                 onDrop={onDrop}
                 onDragOver={onDragOver}
                 onDragLeave={onDragLeave}
                 onClick={() => {
                     if (!displayUrl && !isPreviewMode) {
-                        onOpenPicker();
+                        handleFileInputClick();
                     }
                 }}
             >
@@ -78,8 +88,9 @@ export function HeroBannerUpload({
                         <div
                             className='absolute inset-0 bg-black/50 flex flex-col items-center justify-center gap-2 cursor-pointer hover:bg-black/60 transition-all'
                             onClick={(e) => {
+                                e.preventDefault();
                                 e.stopPropagation();
-                                onOpenPicker();
+                                handleFileInputClick();
                             }}
                         >
                             <div className='w-12 h-12 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-sm'>
@@ -116,8 +127,14 @@ export function HeroBannerUpload({
                 )}
             </div>
 
+            {/* File input - always visible but hidden */}
             <input
-                ref={fileInputRef}
+                ref={(el) => {
+                    internalInputRef.current = el;
+                    if (fileInputRef) {
+                        (fileInputRef as React.MutableRefObject<HTMLInputElement | null>).current = el;
+                    }
+                }}
                 type='file'
                 accept='image/*'
                 onChange={onFileChange}

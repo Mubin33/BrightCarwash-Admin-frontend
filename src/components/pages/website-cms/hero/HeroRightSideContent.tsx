@@ -112,8 +112,8 @@ export function HeroRightSideContent({
     };
 
     const handleOpenPicker = () => {
-        if (!isUploading && !isSaving) {
-            fileInputRef.current?.click();
+        if (!isUploading && !isSaving && fileInputRef.current) {
+            fileInputRef.current.click();
         }
     };
 
