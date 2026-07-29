@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import { useState, useEffect, useRef } from "react";
 import { useSelector } from "react-redux";
@@ -6,7 +6,7 @@ import { TeamsMembersSection } from "@/components/pages/teams/TeamsMembersSectio
 import { TeamsRolesSection } from "@/components/pages/teams/TeamsRolesSection";
 import { TeamsModals } from "@/components/pages/teams/TeamsModals";
 import { EditMemberRoleModal } from "@/components/pages/teams/EditMemberRoleModal";
-import { useGetTeamMembersQuery, useGetTeamRolesQuery, useGetPermissionsQuery, useGetRoleByIdQuery, useBlockMemberMutation, useUnblockMemberMutation, useDeleteRoleMutation } from "@/services/team.api";
+import { useGetTeamMembersQuery, useGetTeamRolesQuery, useGetPermissionsQuery, useGetRoleByIdQuery, useBlockMemberMutation, useUnblockMemberMutation, useDeleteRoleMutation, useResendInviteMutation } from "@/services/team.api";
 import { useTeamPermissions } from "@/hooks/useTeamPermissions";
 import type { RootState } from "@/lib/store";
 import type { TeamMember, TeamRole } from "@/types/team";
@@ -32,6 +32,7 @@ export function TeamsContent() {
     const { data: permissions = [] } = useGetPermissionsQuery();
     const [blockMember] = useBlockMemberMutation();
     const [unblockMember] = useUnblockMemberMutation();
+    const [resendInvite] = useResendInviteMutation();
     const [editRole, setEditRole] = useState<TeamRole | null>(null);
     const [rolePermissions, setRolePermissions] = useState<string[]>([]);
     const rolePermissionsRef = useRef<string[]>([]);
@@ -73,6 +74,15 @@ export function TeamsContent() {
         setEditMemberRoleTarget(member);
     };
 
+    const handleResendInvite = async (member: TeamMember) => {
+        try {
+            await resendInvite(member.email).unwrap();
+            toast.success(`Invitation resent to ${member.email}`);
+        } catch {
+            toast.error("Failed to resend invite");
+        }
+    };
+
     const handleToggleBlock = async (member: TeamMember) => {
         try {
             if (member.status === 1) {
@@ -100,6 +110,7 @@ export function TeamsContent() {
                 currentPage={memberPage}
                 onPageChange={setMemberPage}
                 onEditRole={handleEditRole}
+                onResendInvite={handleResendInvite}
                 onToggleBlock={handleToggleBlock}
                 onAddMember={() => setAddMemberOpen(true)}
                 currentUserId={currentUser?.id || ""}

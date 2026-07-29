@@ -26,6 +26,7 @@ const statusStyles: Record<number, string> = {
 interface TeamsColumnsParams {
     onEditRole: (member: TeamMember) => void;
     onToggleBlock: (member: TeamMember) => void;
+    onResendInvite: (member: TeamMember) => void;
     currentUserId: string;
     currentUserRole: string;
     roles: TeamRole[];
@@ -34,6 +35,7 @@ interface TeamsColumnsParams {
 export function createTeamsColumns({
     onEditRole,
     onToggleBlock,
+    onResendInvite,
     currentUserId,
     currentUserRole,
     roles,
@@ -41,10 +43,8 @@ export function createTeamsColumns({
 
     const superAdminRole = resolveSuperAdminRoleName(roles);
 
-    // Role can be edited for anyone — no restriction here.
     const canEditRole = (): boolean => true;
 
-    // Block/Unblock disabled if: it's yourself, OR the target is Super Admin/Admin.
     const canBlockMember = (member: TeamMember): boolean => {
         const isSelf = String(member.id) === String(currentUserId);
         const targetIsSuperAdmin = !!superAdminRole && member.role === superAdminRole;
@@ -55,6 +55,10 @@ export function createTeamsColumns({
         if (targetIsAdmin) return false;
 
         return true;
+    };
+
+    const canResendInvite = (member: TeamMember): boolean => {
+        return true; // Show for everyone
     };
 
     return [
@@ -102,6 +106,14 @@ export function createTeamsColumns({
                         label: "Edit Role",
                         onClick: () => onEditRole(row),
                         permission: PERMISSIONS.member.roles_update,
+                    });
+                }
+
+                if (canResendInvite(row)) {
+                    items.push({
+                        label: "Resend Invite",
+                        onClick: () => onResendInvite(row),
+                        permission: PERMISSIONS.staff.invite,
                     });
                 }
 

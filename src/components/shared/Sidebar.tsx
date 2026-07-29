@@ -14,7 +14,8 @@ import type { RootState } from '@/lib/store';
 import type { SidebarProps, NavItem } from '@/types/navigation';
 import { useGetBusinessProfileQuery } from '@/services/settings.api';
 
-const STORAGE_URL = process.env.NEXT_PUBLIC_STORAGE_URL;
+const STORAGE_URL = process.env.NEXT_PUBLIC_STORAGE_URL?.replace(/\/$/, '');
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL?.replace(/\/$/, '');
 
 function filterItemsByPermission(
   items: NavItem[],
@@ -73,6 +74,8 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const { data: businessProfile } = useGetBusinessProfileQuery();
   const businessLogo = businessProfile?.logo;
   console.log('Business Profile:', businessProfile);
+  console.log('STORAGE_URL:', STORAGE_URL);
+  console.log('Business Logo:', businessLogo);
 
   const filteredConfig = NAVIGATION_CONFIG.map((section) => ({
     ...section,
@@ -113,6 +116,39 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
     });
   };
 
+  // Build the full logo URL
+  const getLogoUrl = () => {
+    if (!businessLogo) {
+      console.log('No business logo found in profile');
+      return null;
+    }
+
+    // If the logo already starts with http, return it as-is
+    if (businessLogo.startsWith('http://') || businessLogo.startsWith('https://')) {
+      return businessLogo;
+    }
+
+    // If the logo already contains /public/storage, prepend only the base URL
+    if (businessLogo.includes('/public/storage')) {
+      const base = API_BASE_URL?.replace('/api', '') || '';
+      return `${base}${businessLogo}`;
+    }
+
+    // If STORAGE_URL is not set, log a warning
+    if (!STORAGE_URL) {
+      console.warn('STORAGE_URL is not set');
+      return null;
+    }
+
+    // Ensure the logo path starts with a slash if STORAGE_URL doesn't end with one
+    const logoPath = businessLogo.startsWith('/') ? businessLogo : `/${businessLogo}`;
+    const fullUrl = `${STORAGE_URL}${logoPath}`;
+    console.log('Generated logo URL:', fullUrl);
+    return fullUrl;
+  };
+
+  const logoUrl = getLogoUrl();
+
   return (
     <>
       {isOpen && (
@@ -127,22 +163,28 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
       >
         {/* Logo - fixed at top */}
         <div className='flex flex-col items-center w-full shrink-0 mb-4 pr-3 sm:pr-4'>
-          {!logoError ? (
+          {logoUrl && !logoError ? (
             <div className='flex justify-center items-center w-full'>
               <Image
-                src={`${STORAGE_URL}${businessLogo}`}
+                src={logoUrl}
                 alt='Logo'
-                width={64}
-                height={72}
+                width={80}
+                height={80}
                 priority
-                className='object-contain w-12 h-14 sm:w-16 sm:h-[72px]'
-                onError={() => setLogoError(true)}
+                className='object-contain w-auto h-16'
+                onError={() => {
+                  console.error('Failed to load logo from URL:', logoUrl);
+                  setLogoError(true);
+                }}
+                onLoad={() => {
+                  console.log('Logo loaded successfully from:', logoUrl);
+                  setLogoError(false);
+                }}
               />
             </div>
           ) : (
-            <div className='flex justify-center items-center w-full text-white font-inter text-base sm:text-lg font-bold tracking-[2px] py-2'>
-              CW
-            </div>
+            // Empty div to maintain spacing when logo is not available
+            <div className='h-16 w-full' />
           )}
         </div>
 

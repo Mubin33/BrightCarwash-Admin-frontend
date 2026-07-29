@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import { useMemo, useState } from "react";
 import { Search } from "lucide-react";
@@ -21,6 +21,7 @@ interface TeamsMembersSectionProps {
     onPageChange: (page: number) => void;
     onEditRole: (member: TeamMember) => void;
     onToggleBlock: (member: TeamMember) => void;
+    onResendInvite: (member: TeamMember) => void;
     onAddMember: () => void;
     currentUserId: string;
     currentUserRole: string;
@@ -37,6 +38,7 @@ export function TeamsMembersSection({
     onPageChange,
     onEditRole,
     onToggleBlock,
+    onResendInvite,
     onAddMember,
     currentUserId,
     currentUserRole,
@@ -46,8 +48,8 @@ export function TeamsMembersSection({
     const [inputValue, setInputValue] = useState(searchQuery);
 
     const columns = useMemo(
-        () => createTeamsColumns({ onEditRole, onToggleBlock, currentUserId, currentUserRole, roles }),
-        [onEditRole, onToggleBlock, currentUserId, currentUserRole, roles]
+        () => createTeamsColumns({ onEditRole, onResendInvite, onToggleBlock, currentUserId, currentUserRole, roles }),
+        [onEditRole, onToggleBlock, onResendInvite, currentUserId, currentUserRole, roles]
     );
 
     const handleSearch = () => {

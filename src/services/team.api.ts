@@ -85,6 +85,46 @@ export const teamApi = createApi({
             providesTags: ["TeamMembers"],
             keepUnusedDataFor: 60,
         }),
+        resendInvite: builder.mutation<{ success: boolean }, string>({
+            queryFn: async (email) => {
+                try {
+
+                    const token = getAccessToken();
+                    const response = await fetch(
+                        `${APP_CONFIG.API_BASE_URL}/auth/resend-invite`,
+                        {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                Authorization: `Bearer ${token}`,
+                            },
+                            body: JSON.stringify({ email }),
+                        }
+                    );
+
+                    const responseData = await response.json();
+
+                    if (!response.ok) {
+                        return {
+                            error: {
+                                status: response.status,
+                                data: responseData.message || 'Failed to resend invite',
+                            },
+                        };
+                    }
+
+                    return { data: { success: true } };
+                } catch (error) {
+                    return {
+                        error: {
+                            status: 500,
+                            data: error instanceof Error ? error.message : 'Failed to resend invite',
+                        },
+                    };
+                }
+            },
+            invalidatesTags: ['TeamMembers'],
+        }),
 
         getTeamRoles: builder.query<TeamRole[], void>({
             queryFn: async () => {
@@ -331,4 +371,5 @@ export const {
     useBlockMemberMutation,
     useUnblockMemberMutation,
     useDeleteRoleMutation,
+    useResendInviteMutation
 } = teamApi;
