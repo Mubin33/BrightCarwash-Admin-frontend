@@ -27,15 +27,25 @@ export default function UserList({ selectedUser, onSelectUser, users }: Props) {
                 <h3 className="font-medium text-slate-900 capitalize truncate">
                   {user?.name}
                 </h3>
-                <span className="text-xs text-gray-400">
-                  {user?.human_escalation_required === false ? (
-                    <p title="Need Inquiry" id="tooltip" className="text-red-500">
-                      <CircleAlert />
-                    </p>
-                  ) : (
-                    ""
+                <div className="relative inline-flex items-center group">
+                  {user?.human_escalation_required === false && (
+                    <>
+                      <CircleAlert
+                        size={16}
+                        className="text-red-500 cursor-pointer"
+                      />
+
+                      {/* Tooltip */}
+                      <div className="pointer-events-none absolute bottom-full  mb-3  -top-2 right-6 opacity-0 scale-95 transition-all duration-200 group-hover:opacity-100 group-hover:scale-100 z-50">
+                        <div className="relative whitespace-nowrap rounded-lg bg-gray-900 px-3 py-2 text-xs text-white shadow-xl">
+                          Need Inquiry
+                          {/* Arrow */}
+                          <div className="absolute -right-2 top-1/2 -translate-y-1/2 border-4 border-transparent border-t-gray-900 -rotate-90" />
+                        </div>
+                      </div>
+                    </>
                   )}
-                </span>
+                </div>
               </div>
               <p className="text-sm text-gray-500 truncate">{user?.email}</p>
             </div>
