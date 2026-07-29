@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import { StepTwoHeader } from "@/components/pages/campaigns/create/steps_cards/StepTwoHeader";
 import { StepTwoCards } from "@/components/pages/campaigns/create/steps_cards/StepTwoCards";
@@ -28,7 +28,7 @@ export function StepTwoTemplate({
 	campaignName,
 	setCampaignName,
 	onBack,
-	selectedTemplateName,
+	selectedTemplateName = '',
 	templateId,
 	onDesignClick,
 	selectedGroupId,

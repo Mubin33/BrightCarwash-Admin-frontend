@@ -22,7 +22,7 @@ export const aiCampaignApi = createApi({
             queryFn: async () => {
                 try {
                     const response = await axios.get<CampaignListResponse>(
-                        `${API_BASE}/api/v1/admin/campaigns/`,
+                        `${API_BASE}/admin/campaigns/`,
                         {
                             headers: {
                                 'Content-Type': 'application/json',
@@ -46,7 +46,7 @@ export const aiCampaignApi = createApi({
             queryFn: async (id) => {
                 try {
                     const response = await axios.get<CampaignDetailResponse>(
-                        `${API_BASE}/api/v1/admin/campaigns/${id}/`,
+                        `${API_BASE}/admin/campaigns/${id}/`,
                         {
                             headers: {
                                 'Content-Type': 'application/json',
@@ -77,7 +77,7 @@ export const aiCampaignApi = createApi({
                     if (payload.end_date) formData.append('end_date', payload.end_date);
 
                     const response = await axios.post<CampaignCreateResponse>(
-                        `${API_BASE}/api/v1/admin/campaigns/`,
+                        `${API_BASE}/admin/campaigns/`,
                         formData,
                         {
                             headers: {
@@ -110,7 +110,7 @@ export const aiCampaignApi = createApi({
                     if (payload.end_date) formData.append('end_date', payload.end_date);
 
                     const response = await axios.patch<CampaignCreateResponse>(
-                        `${API_BASE}/api/v1/admin/campaigns/${id}/`,
+                        `${API_BASE}/admin/campaigns/${id}/`,
                         formData,
                         {
                             headers: {
@@ -135,7 +135,7 @@ export const aiCampaignApi = createApi({
             queryFn: async (id) => {
                 try {
                     const response = await axios.delete<CampaignDeleteResponse>(
-                        `${API_BASE}/api/v1/admin/campaigns/${id}/`,
+                        `${API_BASE}/admin/campaigns/${id}/`,
                         {
                             headers: {
                                 'Content-Type': 'application/json',

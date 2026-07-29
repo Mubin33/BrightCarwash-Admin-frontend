@@ -87,8 +87,8 @@ export function StepTwoCards({
 		if (key === 'recipients' && selectedGroupName) {
 			return selectedGroupName;
 		}
-		if (key === 'design' && filled.design && selectedTemplateName) {
-			return selectedTemplateName;
+		if (key === 'design' && filled.design) {
+			return selectedTemplateName || 'Template selected';
 		}
 		if (key === 'subject' && filled.subject && subject) {
 			return subject.length > 40 ? subject.slice(0, 40) + '...' : subject;

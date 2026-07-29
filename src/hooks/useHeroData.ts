@@ -15,7 +15,7 @@ export interface HeroFormData {
 	starRating: string;
 	carsWashed: string;
 	avgTime: string;
-	backgroundImageUrl: string[]; // 👈 now array
+	backgroundImageUrl: string[];
 	bannerImageUrl?: string;
 	status: 'form' | 'banner' | 'hidden';
 	textAlignment: 'left' | 'center' | 'right';
@@ -48,7 +48,7 @@ export function useHeroData() {
 		if (Array.isArray(rawBg)) {
 			bgImages = rawBg;
 		} else if (rawBg) {
-			bgImages = [rawBg]; // Convert single string to array
+			bgImages = [rawBg];
 		}
 
 		const textAlignment =
@@ -91,18 +91,13 @@ export function useHeroData() {
 						if (baseUrl && u.startsWith(baseUrl)) {
 							return u.substring(baseUrl.length);
 						}
-						if (u.includes('/public/')) {
-							return u.substring(u.indexOf('/public/'));
-						}
+						// Keep /public/storage in the path
 						return u;
 					});
 				}
 				const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL?.trim();
 				if (baseUrl && url.startsWith(baseUrl)) {
 					return url.substring(baseUrl.length);
-				}
-				if (url.includes('/public/')) {
-					return url.substring(url.indexOf('/public/'));
 				}
 				return url;
 			};
@@ -118,7 +113,7 @@ export function useHeroData() {
 				text_alignment: data.text_alignment ?? data.textAlignment,
 			};
 
-			// Handle backgroundImageUrl as array
+			// Handle backgroundImageUrl as array - keep /public/storage in path
 			content.backgroundImageUrl = stripBaseUrl(data.backgroundImageUrl) || [];
 
 			if (data.bannerImageUrl) {

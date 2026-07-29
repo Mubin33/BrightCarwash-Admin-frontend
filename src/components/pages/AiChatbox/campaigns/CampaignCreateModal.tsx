@@ -4,7 +4,8 @@ import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Icon } from '@/components/ui/Icon';
 import { toast } from 'react-toastify';
-import { X, Calendar } from 'lucide-react';
+import { X } from 'lucide-react';
+import { DatePicker } from '@/components/ui/DatePicker';
 
 interface CampaignCreateModalProps {
     isOpen: boolean;
@@ -199,37 +200,29 @@ export function CampaignCreateModal({
                             </div>
                         </div>
 
-                        {/* Dates - using shadcn-like date inputs */}
-                        <div className="flex gap-4">
-                            <div className="flex-1 flex flex-col gap-2">
+                        {/* Dates - using custom DatePicker */}
+                        <div className="flex flex-col sm:flex-row gap-4">
+                            <div className="flex-1 flex flex-col gap-2 min-w-0 max-w-full">
                                 <div className="text-zinc-500 text-base font-normal font-['Inter'] leading-5">
                                     Starting Date
                                 </div>
-                                <div className="relative">
-                                    <input
-                                        type="date"
-                                        value={startDate}
-                                        onChange={(e) => setStartDate(e.target.value)}
-                                        disabled={isCreating}
-                                        className="w-full p-4 bg-gray-50 rounded-lg outline outline-1 outline-offset-[-1px] outline-zinc-200 text-neutral-600 text-base font-normal font-['Inter'] leading-6 focus:outline-2 focus:outline-sky-500 disabled:opacity-50 appearance-none [&::-webkit-calendar-picker-indicator]:hidden"
-                                    />
-                                    <Calendar size={20} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-                                </div>
+                                <DatePicker
+                                    value={startDate}
+                                    onChange={setStartDate}
+                                    placeholder="Select start date"
+                                    disabled={isCreating}
+                                />
                             </div>
-                            <div className="flex-1 flex flex-col gap-2">
+                            <div className="flex-1 flex flex-col gap-2 min-w-0 max-w-full">
                                 <div className="text-zinc-500 text-base font-normal font-['Inter'] leading-5">
                                     Ending Date
                                 </div>
-                                <div className="relative">
-                                    <input
-                                        type="date"
-                                        value={endDate}
-                                        onChange={(e) => setEndDate(e.target.value)}
-                                        disabled={isCreating}
-                                        className="w-full p-4 bg-gray-50 rounded-lg outline outline-1 outline-offset-[-1px] outline-zinc-200 text-neutral-600 text-base font-normal font-['Inter'] leading-6 focus:outline-2 focus:outline-sky-500 disabled:opacity-50 appearance-none [&::-webkit-calendar-picker-indicator]:hidden"
-                                    />
-                                    <Calendar size={20} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-                                </div>
+                                <DatePicker
+                                    value={endDate}
+                                    onChange={setEndDate}
+                                    placeholder="Select end date"
+                                    disabled={isCreating}
+                                />
                             </div>
                         </div>
 

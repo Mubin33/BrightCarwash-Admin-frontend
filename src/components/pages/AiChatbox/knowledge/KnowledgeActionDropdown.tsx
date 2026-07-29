@@ -1,18 +1,19 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Icon } from '@/components/ui/Icon';
-import { MoreHorizontal, Eye, Trash2 } from 'lucide-react';
+import { MoreHorizontal, Eye, Trash2, FileDown } from 'lucide-react';
 
 interface KnowledgeActionDropdownProps {
     onView: () => void;
     onDelete: () => void;
+    onExport: () => void;
     isDeleting: boolean;
 }
 
 export function KnowledgeActionDropdown({
     onView,
     onDelete,
+    onExport,
     isDeleting,
 }: KnowledgeActionDropdownProps) {
     const [isOpen, setIsOpen] = useState(false);
@@ -40,7 +41,7 @@ export function KnowledgeActionDropdown({
 
             {isOpen && (
                 <div className="absolute right-0 mt-1 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
-                    <button
+                    {/* <button
                         className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2 transition-colors"
                         onClick={() => {
                             setIsOpen(false);
@@ -49,6 +50,16 @@ export function KnowledgeActionDropdown({
                     >
                         <Eye size={16} />
                         View Document
+                    </button> */}
+                    <button
+                        className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2 transition-colors border-b border-gray-100"
+                        onClick={() => {
+                            setIsOpen(false);
+                            onExport();
+                        }}
+                    >
+                        <FileDown size={16} />
+                        Export File
                     </button>
                     <button
                         className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2 transition-colors"

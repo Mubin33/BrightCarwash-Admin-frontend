@@ -103,11 +103,17 @@ export const heroApi = createApi({
 		>({
 			queryFn: async ({ key, data }) => {
 				try {
+					// Ensure section_type is included in the payload
+					const payload = {
+						section_type: 'hero', // Add this
+						...data,
+					};
+
 					const json = await fetchFromBackend<SectionSingleResponse>(
 						`/admin/sections/${key}`,
 						{
 							method: 'PATCH',
-							body: JSON.stringify(data),
+							body: JSON.stringify(payload),
 						},
 					);
 					return { data: json.data };
