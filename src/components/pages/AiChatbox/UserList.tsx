@@ -1,5 +1,5 @@
 import { ChatUser } from "@/types/aiChatbox";
-import { CircleAlert } from "lucide-react";
+import { CheckLine, CircleAlert } from "lucide-react";
 
 type Props = {
   selectedUser: string;
@@ -27,27 +27,36 @@ export default function UserList({ selectedUser, onSelectUser, users }: Props) {
                 <h3 className="font-medium text-slate-900 capitalize truncate">
                   {user?.name}
                 </h3>
-                <div className="relative inline-flex items-center group">
-                  {user?.human_escalation_required === false && (
-                    <>
-                      <CircleAlert
-                        size={16}
-                        className="text-red-500 cursor-pointer"
-                      />
-
-                      {/* Tooltip */}
-                      <div className="pointer-events-none absolute bottom-full  mb-3  -top-2 right-6 opacity-0 scale-95 transition-all duration-200 group-hover:opacity-100 group-hover:scale-100 z-50">
-                        <div className="relative whitespace-nowrap rounded-lg bg-gray-900 px-3 py-2 text-xs text-white shadow-xl">
-                          Need Inquiry
-                          {/* Arrow */}
-                          <div className="absolute -right-2 top-1/2 -translate-y-1/2 border-4 border-transparent border-t-gray-900 -rotate-90" />
-                        </div>
-                      </div>
-                    </>
+                <div className="flex items-center justify-between gap-2 ">
+                  {user?.human_escalation_required === true && (
+                    <button className="text-xs border border-green-500 bg-green-50 p-1 rounded-md">
+                      <CheckLine size={12} className="text-green-500" />
+                    </button>
                   )}
+                  <div className="relative inline-flex items-center group gap-2">
+                    {user?.human_escalation_required === true && (
+                      <>
+                        <CircleAlert
+                          size={16}
+                          className="text-red-500 cursor-pointer"
+                        />
+
+                        {/* Tooltip */}
+                        <div className="pointer-events-none absolute bottom-full  mb-3  -top-2 right-6 opacity-0 scale-95 transition-all duration-200 group-hover:opacity-100 group-hover:scale-100 z-50">
+                          <div className="relative whitespace-nowrap rounded-lg bg-gray-900 px-3 py-2 text-xs text-white shadow-xl">
+                            Need Inquiry
+                            {/* Arrow */}
+                            <div className="absolute -right-2 top-1/2 -translate-y-1/2 border-4 border-transparent border-t-gray-900 -rotate-90" />
+                          </div>
+                        </div>
+                      </>
+                    )}
+                  </div>
                 </div>
               </div>
-              <p className="text-sm text-gray-500 truncate">{user?.email}</p>
+              <div>
+                <p className="text-sm text-gray-500 truncate">{user?.email}</p>
+              </div>
             </div>
           </div>
         </button>
