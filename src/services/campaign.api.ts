@@ -31,6 +31,10 @@ function transformCampaign(apiCampaign: any): Campaign {
 			leadGroup: {
 				name: apiCampaign.emailConfig?.leadGroup?.name || '',
 			},
+			// ✅ CRITICAL: Map these fields from the API response
+			leadGroupId: apiCampaign.emailConfig?.leadGroupId || null,
+			templateId: apiCampaign.emailConfig?.templateId || null,
+			htmlContent: apiCampaign.emailConfig?.htmlContent || '',
 		},
 		analytics: {
 			PENDING: apiCampaign.analytics?.PENDING || 0,

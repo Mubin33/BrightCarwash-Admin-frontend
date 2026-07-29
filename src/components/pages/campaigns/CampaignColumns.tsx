@@ -90,15 +90,33 @@ function buildActions(
 	row: Campaign,
 	{ onEdit, onDelete, onLaunch, onStatusAction }: CampaignColumnsParams
 ) {
-	const isLocked = row.status === "SCHEDULED" || row.status === "COMPLETED";
+	const isLocked = row.status === "SCHEDULED" || row.status === "COMPLETED" || row.status === "RUNNING"
 
-	const items: { label: string; onClick: () => void; variant?: 'danger'; disabled?: boolean; permission?: string }[] = [
-		{ label: "Edit", onClick: () => onEdit(row), disabled: isLocked, permission: PERMISSIONS.campaign.update },
-		{ label: "Delete", onClick: () => onDelete(row), variant: "danger" as const, disabled: isLocked, permission: PERMISSIONS.campaign.delete },
-	];
+	const items: { label: string; onClick: () => void; variant?: 'danger'; disabled?: boolean; permission?: string }[] = [];
+	items.push({
+		label: "Edit",
+		onClick: () => onEdit(row),
+		disabled: isLocked,
+		permission: PERMISSIONS.campaign.update,
+	});
+
+	// Delete - locked for SCHEDULED, COMPLETED, RUNNING
+	items.push({
+		label: "Delete",
+		onClick: () => onDelete(row),
+		variant: "danger" as const,
+		disabled: isLocked,
+		permission: PERMISSIONS.campaign.delete,
+	});
+
 
 	if (row.status === "DRAFT" && onLaunch) {
-		items.splice(1, 0, { label: "Launch", onClick: () => onLaunch(row), disabled: false, permission: PERMISSIONS.campaign.update });
+		items.splice(1, 0, {
+			label: "Launch",
+			onClick: () => onLaunch(row),
+			disabled: false,
+			permission: PERMISSIONS.campaign.update,
+		});
 	}
 
 	if (row.status === "ACTIVE" && onStatusAction) {
@@ -110,7 +128,6 @@ function buildActions(
 			permission: PERMISSIONS.campaign.update,
 		});
 	}
-
 	if (row.status === "SUSPENDED" && onStatusAction) {
 		items.splice(1, 0, {
 			label: "Restart",

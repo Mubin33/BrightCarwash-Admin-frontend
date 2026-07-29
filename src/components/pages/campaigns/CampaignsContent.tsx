@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import { useRouter } from "next/navigation";
 import { useGetCampaignsQuery } from "@/services/campaign.api";
@@ -17,6 +17,13 @@ export function CampaignsContent() {
 	const actions = useCampaignActions();
 
 	const handleEdit = (campaign: any) => {
+		// For draft campaigns, navigate to create with edit=true and campaign ID
+		if (campaign.status === "DRAFT") {
+			router.push(`/campaigns/create?edit=true&id=${campaign.id}`);
+			return;
+		}
+
+		// For other campaigns, use the existing flow
 		const params = new URLSearchParams({
 			id: campaign.id,
 			name: campaign.name,
@@ -67,4 +74,3 @@ export function CampaignsContent() {
 		</div>
 	);
 }
-

@@ -44,7 +44,10 @@ const campaignCreationSlice = createSlice({
     name: 'campaignCreation',
     initialState,
     reducers: {
-        resetCampaignCreation: () => initialState,
+        resetCampaignCreation: () => {
+            console.log('🔄 Resetting campaign creation state to initial');
+            return initialState;
+        },
 
         setCampaignName: (state, action: PayloadAction<string>) => {
             state.campaignName = action.payload;
@@ -74,6 +77,13 @@ const campaignCreationSlice = createSlice({
 
         setTemplateId: (state, action: PayloadAction<string | null>) => {
             state.templateId = action.payload;
+            if (action.payload) {
+                state.filled.design = true;
+                state.designFilled = true;
+            } else {
+                state.filled.design = false;
+                state.designFilled = false;
+            }
         },
 
         setDesignFilled: (state, action: PayloadAction<boolean>) => {
@@ -94,8 +104,16 @@ const campaignCreationSlice = createSlice({
         },
 
         loadCampaignForEdit: (state, action: PayloadAction<Partial<CampaignCreationState>>) => {
+            console.log('📝 Loading campaign for edit:', action.payload);
+
+            // Reset first to clear any previous state
+            Object.assign(state, initialState);
+
+            // Then apply the edit data
             Object.assign(state, action.payload);
             state.isEdit = true;
+
+            console.log('📝 State after load:', state);
         },
     },
 });

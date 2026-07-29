@@ -4,7 +4,7 @@ export type CampaignChannelType = "EMAIL" | "SMS" | "PUSH";
 
 
 export const TYPE_FILTERS: CampaignType[] = ["All Campaign", "E-mail Template"];
-export const STATUS_FILTERS: CampaignStatus[] = ["ACTIVE", "COMPLETED", "DRAFT", "SCHEDULED", "SUSPENDED"];
+export const STATUS_FILTERS: CampaignStatus[] = ["ACTIVE", "COMPLETED", "DRAFT", "RUNNING", "SCHEDULED", "SUSPENDED"];
 
 
 export const CHANNEL_TO_TYPE: Record<CampaignChannelType, "E-mail Template"> = {
@@ -30,6 +30,9 @@ export interface CampaignEmailConfig {
 	leadGroup: {
 		name: string;
 	};
+	leadGroupId?: string | null;
+	templateId?: string | null;
+	htmlContent?: string;
 }
 
 
