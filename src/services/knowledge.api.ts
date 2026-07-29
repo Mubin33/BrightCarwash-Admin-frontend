@@ -22,7 +22,7 @@ export const knowledgeApi = createApi({
             queryFn: async () => {
                 try {
                     const response = await axios.get<KnowledgeListResponse>(
-                        `${API_BASE}/api/v1/admin/kb/`,
+                        `${API_BASE}/admin/kb/`,
                         {
                             headers: {
                                 'Content-Type': 'application/json',
@@ -46,7 +46,7 @@ export const knowledgeApi = createApi({
             queryFn: async (id) => {
                 try {
                     const response = await axios.get<KnowledgeDetailResponse>(
-                        `${API_BASE}/api/v1/admin/kb/${id}/`,
+                        `${API_BASE}/admin/kb/${id}/`,
                         {
                             headers: {
                                 'Content-Type': 'application/json',
@@ -73,7 +73,7 @@ export const knowledgeApi = createApi({
                     formData.append('file', file);
 
                     const response = await axios.post<KnowledgeUploadResponse>(
-                        `${API_BASE}/api/v1/admin/kb/upload/`,
+                        `${API_BASE}/admin/kb/upload/`,
                         formData,
                         {
                             headers: {
@@ -98,7 +98,7 @@ export const knowledgeApi = createApi({
             queryFn: async (id) => {
                 try {
                     const response = await axios.delete<KnowledgeDeleteResponse>(
-                        `${API_BASE}/api/v1/admin/kb/${id}/`,
+                        `${API_BASE}/admin/kb/${id}/`,
                         {
                             headers: {
                                 'Content-Type': 'application/json',
