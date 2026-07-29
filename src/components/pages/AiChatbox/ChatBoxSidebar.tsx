@@ -5,6 +5,7 @@ import { ChatUser } from "@/types/aiChatbox";
 type Props = {
   selectedUser: string;
   onSelectUser: (userId: string) => void;
+  onResolve?: () => void;
   users: ChatUser[];
   isLoading: boolean;
   isLoadingMore: boolean;
@@ -17,6 +18,7 @@ type Props = {
 export default function Sidebar({
   selectedUser,
   onSelectUser,
+  onResolve,
   users,
   isLoading,
   isLoadingMore,
@@ -50,6 +52,7 @@ export default function Sidebar({
             <UserList
               selectedUser={selectedUser}
               onSelectUser={onSelectUser}
+              onResolve={onResolve}
               users={users}
             />
           ) : (

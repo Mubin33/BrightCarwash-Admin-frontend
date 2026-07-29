@@ -180,6 +180,11 @@ export default function AiChatbox() {
   const selectedSession =
     sessions.find((session) => session.id === selectedSessionId) || null;
 
+  const refreshUsers = useCallback(() => {
+    requestVersion.current += 1;
+    void loadUsers(undefined, debouncedSearch, true);
+  }, [debouncedSearch, loadUsers]);
+
   const sidebar = (
     <Sidebar
       selectedUser={activeUserId}
@@ -200,6 +205,7 @@ export default function AiChatbox() {
           void loadUsers(nextCursor, debouncedSearch, false);
         }
       }}
+      onResolve={refreshUsers}
       onSelectUser={(id: string) => {
         setSelectedUserId(id);
         setSelectedSessionId(null);

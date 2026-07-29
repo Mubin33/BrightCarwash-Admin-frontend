@@ -6,10 +6,11 @@ import { CheckLine, CircleAlert } from "lucide-react";
 type Props = {
   selectedUser: string;
   onSelectUser: (userId: string) => void;
+  onResolve?: () => void;
   users: ChatUser[];
 };
 
-export default function UserList({ selectedUser, onSelectUser, users }: Props) {
+export default function UserList({ selectedUser, onSelectUser, onResolve, users }: Props) {
   const [solveInquiry] = useSolveInquiryMutation();
 
   const handleSolveInquiry = async (
@@ -20,6 +21,7 @@ export default function UserList({ selectedUser, onSelectUser, users }: Props) {
 
     try {
       await solveInquiry({ userId: user.id }).unwrap();
+      onResolve?.();
     } catch (error) {
       console.error("Error solving inquiry:", error);
     }
