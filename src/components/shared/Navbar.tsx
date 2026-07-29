@@ -59,7 +59,7 @@ export function Navbar({ onMenuClick }: NavbarProps) {
 						<div className="rounded-full overflow-hidden w-7 h-7 shrink-0">
 							{!avatarError ? (
 								<Image
-									src={user?.avatar_url || user?.avatar || "/images/avatar-placeholder.png"}
+									src={user?.avatar_url || user?.avatar}
 									alt={fullName}
 									width={28}
 									height={28}
