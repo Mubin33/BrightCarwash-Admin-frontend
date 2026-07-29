@@ -5,9 +5,9 @@ import { usePathname } from "next/navigation";
 import { useAppSelector } from "@/lib/store";
 import { Icon } from "@/components/ui/Icon";
 import { Button } from "@/components/ui/Button";
-import Image from "next/image";
 import type { NavbarProps } from "@/types/navigation";
 import Notification from "./Notification";
+import Image from "next/image";
 
 const pageTitles: Record<string, string> = {
 	"/dashboard": "Welcome back",
@@ -36,6 +36,9 @@ export function Navbar({ onMenuClick }: NavbarProps) {
 		: user?.firstName || 'User';
 	const initials = user?.firstName?.charAt(0) || 'U';
 
+	// Safely get avatar URL with proper null/undefined handling
+	const avatarUrl = user?.avatar_url || user?.avatar;
+
 	return (
 		<header className="flex w-full h-18 px-3 sm:px-4 lg:px-6 py-5 justify-between items-center border-b border-[#DFE1E7] bg-white sticky top-0 z-30">
 			<div className="flex items-center gap-2 sm:gap-4 flex-1 min-w-0">
@@ -57,15 +60,21 @@ export function Navbar({ onMenuClick }: NavbarProps) {
 				<div className="flex p-1.5 items-center gap-2 lg:gap-4 rounded-lg border border-[#E8E8E9] bg-white">
 					<div className="flex items-center gap-2">
 						<div className="rounded-full overflow-hidden w-7 h-7 shrink-0">
-							{!avatarError ? (
-								<Image
-									src={user?.avatar_url || user?.avatar}
-									alt={fullName}
-									width={28}
-									height={28}
-									className="w-full h-full object-cover"
-									onError={() => setAvatarError(true)}
-								/>
+							{avatarUrl ? (
+								!avatarError ? (
+									<Image
+										src={avatarUrl}
+										alt={fullName}
+										width={28}
+										height={28}
+										className="w-full h-full object-cover"
+										onError={() => setAvatarError(true)}
+									/>
+								) : (
+									<div className="w-7 h-7 rounded-full bg-[#B23730] text-white flex items-center justify-center font-inter text-xs font-medium">
+										{initials}
+									</div>
+								)
 							) : (
 								<div className="w-7 h-7 rounded-full bg-[#B23730] text-white flex items-center justify-center font-inter text-xs font-medium">
 									{initials}
