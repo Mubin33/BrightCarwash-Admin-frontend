@@ -1,4 +1,4 @@
-import { RefreshCw } from "lucide-react";
+import { ArrowLeft, RefreshCw } from "lucide-react";
 import { ChatSession } from "@/types/aiChatbox";
 
 type Props = {
@@ -7,6 +7,7 @@ type Props = {
   sessions: ChatSession[];
   isLoading: boolean;
   onRefresh: () => void;
+  onBack?: () => void;
 };
 
 const statusColors: Record<string, string> = {
@@ -21,14 +22,25 @@ export default function ChatSessionList({
   sessions,
   isLoading,
   onRefresh,
+  onBack,
 }: Props) {
   return (
     <div className="flex min-h-0 flex-col overflow-hidden rounded-xl border border-[#DFE1E7] bg-[#F8FAFB]">
       <div className="flex items-center justify-between border-b border-[#DFE1E7] p-4.5 bg-white">
-        <div>
+        <div className="flex items-center gap-2">
+          {onBack && (
+            <button
+              type="button"
+              onClick={onBack}
+              aria-label="Back to users"
+              className="rounded-full bg-gray-100 p-1.5 transition hover:bg-gray-200"
+            >
+              <ArrowLeft size={16} />
+            </button>
+          )}
           <h3 className="font-medium">Chat Sessions</h3>
         </div>
-        <button onClick={onRefresh} className="cursor-pointer p-1.5 rounded-md border border-[#DFE1E7] bg-[#F8FAFB]">
+        <button type="button" onClick={onRefresh} aria-label="Refresh sessions" className="cursor-pointer p-1.5 rounded-md border border-[#DFE1E7] bg-[#F8FAFB]">
           <RefreshCw size={16} className="text-gray-500" />
         </button>
       </div>

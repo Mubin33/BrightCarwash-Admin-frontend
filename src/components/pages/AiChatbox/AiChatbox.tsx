@@ -19,6 +19,7 @@ import {
 } from "@/services/ai-Chatbox.api";
 
 const USERS_PAGE_SIZE = 20;
+type MobileView = "users" | "sessions" | "chat";
 
 const formatDate = (date?: string | null) =>
   date
@@ -56,6 +57,7 @@ export default function AiChatbox() {
   const [selectedSessionId, setSelectedSessionId] = useState<string | null>(
     null,
   );
+  const [mobileView, setMobileView] = useState<MobileView>("users");
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [apiUsers, setApiUsers] = useState<ApiUser[]>([]);
@@ -178,51 +180,86 @@ export default function AiChatbox() {
   const selectedSession =
     sessions.find((session) => session.id === selectedSessionId) || null;
 
+  const sidebar = (
+    <Sidebar
+      selectedUser={activeUserId}
+      users={users}
+      isLoading={isUsersLoading}
+      isLoadingMore={isUsersFetching && apiUsers.length > 0}
+      search={search}
+      hasMore={Boolean(nextCursor) && search.trim() === debouncedSearch}
+      onSearchChange={(value) => {
+        requestVersion.current += 1;
+        setSearch(value);
+        setSelectedUserId("");
+        setSelectedSessionId(null);
+        setMobileView("users");
+      }}
+      onLoadMore={() => {
+        if (nextCursor && !isUsersFetching) {
+          void loadUsers(nextCursor, debouncedSearch, false);
+        }
+      }}
+      onSelectUser={(id: string) => {
+        setSelectedUserId(id);
+        setSelectedSessionId(null);
+        setMobileView("sessions");
+      }}
+    />
+  );
+
+  const sessionList = (onBack?: () => void) => (
+    <ChatSessionList
+      selectedSession={selectedSessionId}
+      onSelectSession={(id) => {
+        setSelectedSessionId(id);
+        setMobileView("chat");
+      }}
+      sessions={sessions}
+      isLoading={isSessionsLoading}
+      onRefresh={refetchSessions}
+      onBack={onBack}
+    />
+  );
+
+  const chatWindow = (onCloseSession: () => void) =>
+    selectedUser && selectedSession ? (
+      <ChatWindow
+        user={selectedUser}
+        messages={messages}
+        isLoading={isMessagesFetching}
+        onCloseSession={onCloseSession}
+      />
+    ) : null;
+
   return (
-    <div className="h-[80vh]">
+    <div className="min-h-[75dvh] flex flex-col lg:h-[86vh]">
       <h2 className="mb-8 text-2xl font-semibold">Overview of AI Chats</h2>
 
-      <div className="grid h-full min-h-0 grid-cols-[400px_1fr] gap-4">
-        <Sidebar
-          selectedUser={activeUserId}
-          users={users}
-          isLoading={isUsersLoading}
-          isLoadingMore={isUsersFetching && apiUsers.length > 0}
-          search={search}
-          hasMore={Boolean(nextCursor) && search.trim() === debouncedSearch}
-          onSearchChange={(value) => {
-            requestVersion.current += 1;
-            setSearch(value);
-            setSelectedUserId("");
-            setSelectedSessionId(null);
-          }}
-          onLoadMore={() => {
-            if (nextCursor && !isUsersFetching) {
-              void loadUsers(nextCursor, debouncedSearch, false);
-            }
-          }}
-          onSelectUser={(id: string) => {
-            setSelectedUserId(id);
-            setSelectedSessionId(null);
-          }}
-        />
-
-        {selectedSession && selectedUser ? (
-          <ChatWindow
-            user={selectedUser}
-            messages={messages}
-            isLoading={isMessagesFetching}
-            onCloseSession={() => setSelectedSessionId(null)}
-          />
-        ) : (
-          <ChatSessionList
-            selectedSession={selectedSessionId}
-            onSelectSession={setSelectedSessionId}
-            sessions={sessions}
-            isLoading={isSessionsLoading}
-            onRefresh={refetchSessions}
-          />
+      <div className="flex-1 min-h-0 lg:hidden flex flex-col gap-4">
+        {mobileView === "users" && (
+          <div className="flex-1 min-h-0">{sidebar}</div>
         )}
+        {mobileView === "sessions" && (
+          <div className="flex-1 min-h-0">
+            {sessionList(() => setMobileView("users"))}
+          </div>
+        )}
+        {mobileView === "chat" && (
+          <div className="flex-1 min-h-0">
+            {chatWindow(() => {
+              setSelectedSessionId(null);
+              setMobileView("sessions");
+            })}
+          </div>
+        )}
+      </div>
+
+      <div className="hidden h-full min-h-0 grid-cols-[400px_1fr] gap-4 lg:grid">
+        {sidebar}
+        {selectedSession
+          ? chatWindow(() => setSelectedSessionId(null))
+          : sessionList()}
       </div>
     </div>
   );
