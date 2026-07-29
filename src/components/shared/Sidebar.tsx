@@ -14,7 +14,7 @@ import type { RootState } from '@/lib/store';
 import type { SidebarProps, NavItem } from '@/types/navigation';
 import { useGetBusinessProfileQuery } from '@/services/settings.api';
 
-const STORAGE_URL = process.env.NEXT_PUBLIC_STORAGE_URL?.replace(/\/$/, '');
+const STORAGE_URL = process.env.NEXT_PUBLIC_STORAGE_URL;
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL?.replace(/\/$/, '');
 
 function filterItemsByPermission(
