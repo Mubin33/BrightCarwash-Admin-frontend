@@ -8,7 +8,6 @@ type Props = {
 };
 
 export default function UserList({ selectedUser, onSelectUser, users }: Props) {
-  console.log("++++++++++++>>>>", users);
   return (
     <div className="space-y-2">
       {users?.map((user) => (
