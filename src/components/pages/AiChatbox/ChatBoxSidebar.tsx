@@ -43,11 +43,19 @@ export default function Sidebar({
         </div>
         <div className="min-h-0 flex-1 overflow-y-auto custom-scroll">
           {isLoading ? (
-            <div className="p-4 text-center text-sm text-gray-500">Loading users...</div>
+            <div className="p-4 text-center text-sm text-gray-500">
+              Loading users...
+            </div>
           ) : users.length ? (
-            <UserList selectedUser={selectedUser} onSelectUser={onSelectUser} users={users} />
+            <UserList
+              selectedUser={selectedUser}
+              onSelectUser={onSelectUser}
+              users={users}
+            />
           ) : (
-            <div className="p-4 text-center text-sm text-gray-500">No users available.</div>
+            <div className="p-4 text-center text-sm text-gray-500">
+              No users available.
+            </div>
           )}
         </div>
         {hasMore && (
