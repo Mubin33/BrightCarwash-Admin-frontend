@@ -41,6 +41,7 @@ export const chatboxApis = createApi({
           };
         }
       },
+      providesTags: ["Chatbox"],
     }),
     getUserSessions: builder.query<ApiResponse<ApiSession[]>, string>({
       queryFn: async (userId) => {
@@ -95,6 +96,40 @@ export const chatboxApis = createApi({
         }
       },
     }),
+
+    solveInquiry: builder.mutation<
+      ApiResponse<ApiUser>,
+      {
+        userId: string;
+      }
+    >({
+      queryFn: async (data) => {
+        try {
+          const response = await axios.post(
+            `${API_BASE}/admin/users/${data.userId}/resolve/`,
+            {},
+            {
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${getAccessToken()}`,
+              },
+            },
+          );
+          return { data: response.data };
+        } catch (error) {
+          return {
+            error: {
+              status: "FETCH_ERROR",
+              error:
+                error instanceof Error
+                  ? error.message
+                  : "Unable to solve inquiry",
+            },
+          };
+        }
+      },
+      invalidatesTags: ["Chatbox"],
+    }),
   }),
 });
 
@@ -103,4 +138,5 @@ export const {
   useLazyGetUsersQuery,
   useGetUserSessionsQuery,
   useGetSessionChatsQuery,
+  useSolveInquiryMutation,
 } = chatboxApis;

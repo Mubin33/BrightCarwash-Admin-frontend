@@ -1,3 +1,5 @@
+import { MouseEvent } from "react";
+import { useSolveInquiryMutation } from "@/services/ai-Chatbox.api";
 import { ChatUser } from "@/types/aiChatbox";
 import { CheckLine, CircleAlert } from "lucide-react";
 
@@ -8,13 +10,36 @@ type Props = {
 };
 
 export default function UserList({ selectedUser, onSelectUser, users }: Props) {
+  const [solveInquiry] = useSolveInquiryMutation();
+
+  const handleSolveInquiry = async (
+    event: MouseEvent<HTMLButtonElement>,
+    user: ChatUser,
+  ) => {
+    event.stopPropagation();
+
+    try {
+      await solveInquiry({ userId: user.id }).unwrap();
+    } catch (error) {
+      console.error("Error solving inquiry:", error);
+    }
+  };
+
   return (
     <div className="space-y-2">
       {users?.map((user) => (
-        <button
+        <div
           key={user.id}
+          role="button"
+          tabIndex={0}
           onClick={() => onSelectUser(user.id)}
-          className={`w-full rounded-2xl border p-3.5 text-left transition 
+          onKeyDown={(event) => {
+            if (event.key === "Enter" || event.key === " ") {
+              event.preventDefault();
+              onSelectUser(user.id);
+            }
+          }}
+          className={`w-full rounded-2xl border p-3.5 text-left transition cursor-pointer
             ${
               selectedUser === user?.id
                 ? "border-2 border-blue-500"
@@ -29,7 +54,11 @@ export default function UserList({ selectedUser, onSelectUser, users }: Props) {
                 </h3>
                 <div className="flex items-center justify-between gap-2 ">
                   {user?.human_escalation_required === true && (
-                    <button className="text-xs border border-green-500 bg-green-50 p-1 rounded-md">
+                    <button
+                      type="button"
+                      onClick={(event) => handleSolveInquiry(event, user)}
+                      className="text-xs border border-green-500 bg-green-50 p-1 rounded-md"
+                    >
                       <CheckLine size={12} className="text-green-500" />
                     </button>
                   )}
@@ -59,7 +88,7 @@ export default function UserList({ selectedUser, onSelectUser, users }: Props) {
               </div>
             </div>
           </div>
-        </button>
+        </div>
       ))}
     </div>
   );
