@@ -29,8 +29,8 @@ export default function UserList({ selectedUser, onSelectUser, users }: Props) {
                   {user?.name}
                 </h3>
                 <span className="text-xs text-gray-400">
-                  {user?.human_escalation_required === true ? (
-                    <p title="Need Inquiry" className="text-red-500">
+                  {user?.human_escalation_required === false ? (
+                    <p title="Need Inquiry" id="tooltip" className="text-red-500">
                       <CircleAlert />
                     </p>
                   ) : (

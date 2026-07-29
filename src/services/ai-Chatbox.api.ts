@@ -19,7 +19,7 @@ export const chatboxApis = createApi({
     getUsers: builder.query<ApiResponse<ApiUser[]>, GetUsersParams>({
       queryFn: async ({ cursor, pageSize = 20, search }) => {
         try {
-          const response = await axios.get(`${API_BASE}/api/v1/admin/users/`, {
+          const response = await axios.get(`${API_BASE}/admin/users/`, {
             params: {
               page_size: pageSize,
               ...(cursor ? { cursor } : {}),
@@ -46,7 +46,7 @@ export const chatboxApis = createApi({
       queryFn: async (userId) => {
         try {
           const response = await axios.get(
-            `${API_BASE}/api/v1/admin/users/${userId}/sessions/`,
+            `${API_BASE}/admin/users/${userId}/sessions/`,
             {
               headers: {
                 "Content-Type": "application/json",
@@ -73,7 +73,7 @@ export const chatboxApis = createApi({
       queryFn: async (sessionId) => {
         try {
           const response = await axios.get(
-            `${API_BASE}/api/v1/admin/sessions/${sessionId}/`,
+            `${API_BASE}/admin/sessions/${sessionId}/`,
             {
               headers: {
                 "Content-Type": "application/json",
