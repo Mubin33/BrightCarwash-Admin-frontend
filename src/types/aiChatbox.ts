@@ -2,6 +2,11 @@ export type ApiResponse<T> = {
   success: boolean;
   message: string;
   data: T;
+  meta?: {
+    next?: string | null;
+    previous?: string | null;
+    page_size?: number;
+  };
 };
 
 export type ChatUser = {
@@ -9,6 +14,7 @@ export type ChatUser = {
   name: string;
   email: string;
   lastActive: string;
+  human_escalation_required:boolean;
 };
 
 export type ChatSession = {
@@ -30,6 +36,13 @@ export type ApiUser = {
   email?: string | null;
   created_at?: string | null;
   updated_at?: string | null;
+  human_escalation_required: boolean;
+};
+
+export type GetUsersParams = {
+  cursor?: string;
+  pageSize?: number;
+  search?: string;
 };
 
 export type ApiSession = {

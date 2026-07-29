@@ -62,7 +62,7 @@ export default function ChatBubble({ sender, text, time }: Props) {
         ) : null}
         <div
           className={`max-w-md  px-3 py-2.5 text-sm leading-[160%]
-        ${isUser ? "bg-[#0f2746] text-white rounded-l-2xl rounded-tr-2xl" : "bg-white text-slate-900 border border-slate-200 rounded-r-2xl rounded-tl-2xl"}`}
+        ${isUser ? "bg-[#0f2746] text-white rounded-l-2xl rounded-tr-2xl " : "bg-white text-slate-900 border border-slate-200 rounded-r-2xl rounded-tl-2xl"}`}
         >
           {isRichText ? (
             safeHtml ? (
