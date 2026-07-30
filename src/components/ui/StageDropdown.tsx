@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
@@ -108,8 +108,8 @@ export function StageDropdown({
 
 	const currentOption = stages.find((s) => s.value === currentStage);
 	const currentColor = currentOption?.color || defaultColor;
-	const hasIcon = currentOption ? hasCustomIcon(currentOption) : false;
-	const iconUrl = hasIcon && currentOption?.icon ? getStageIconUrl(currentOption.icon) : null;
+	const currentHasIcon = currentOption ? hasCustomIcon(currentOption) : false;
+	const currentIconUrl = currentHasIcon && currentOption?.icon ? getStageIconUrl(currentOption.icon) : null;
 	const tintedBg = hexToTintedBg(currentColor);
 
 	const handleCreated = () => {
@@ -126,10 +126,10 @@ export function StageDropdown({
 					className='inline-flex py-1.5 pl-2 pr-1 justify-center items-center gap-1 rounded text-sm capitalize cursor-pointer'
 					style={{ backgroundColor: tintedBg, color: currentColor }}
 				>
-					{hasIcon && iconUrl ? (
+					{currentHasIcon && currentIconUrl ? (
 						<div className="w-3.5 h-3.5 flex items-center justify-center">
 							<Image
-								src={iconUrl}
+								src={currentIconUrl}
 								alt="stage icon"
 								width={14}
 								height={14}
@@ -139,7 +139,12 @@ export function StageDropdown({
 							/>
 						</div>
 					) : (
-						<Icon name={getDefaultStageIcon(currentOption?.label || '')} width={14} height={14} color={currentColor} />
+						<Icon
+							name={getDefaultStageIcon(currentOption?.label || '')}
+							width={14}
+							height={14}
+							color={currentColor}
+						/>
 					)}
 					{currentOption?.label || currentStage}
 					<ChevronDown size={12} style={{ color: currentColor, opacity: 0.7 }} />
@@ -180,6 +185,10 @@ export function StageDropdown({
 												className="object-contain"
 												unoptimized
 												crossOrigin="anonymous"
+												onError={(e) => {
+													// Fallback to default icon on error
+													const defaultIcon = getDefaultStageIcon(stage.label);
+												}}
 											/>
 										</div>
 									) : (

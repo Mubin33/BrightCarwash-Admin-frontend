@@ -74,9 +74,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
 
   const { data: businessProfile } = useGetBusinessProfileQuery();
   const businessLogo = businessProfile?.logo;
-  console.log('Business Profile:', businessProfile);
-  console.log('STORAGE_URL:', STORAGE_URL);
-  console.log('Business Logo:', businessLogo);
+
 
   const filteredConfig = NAVIGATION_CONFIG.map((section) => ({
     ...section,
@@ -117,34 +115,29 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
     });
   };
 
-  // Build the full logo URL
+
   const getLogoUrl = () => {
     if (!businessLogo) {
-      console.log('No business logo found in profile');
       return null;
     }
-
-    // If the logo already starts with http, return it as-is
     if (businessLogo.startsWith('http://') || businessLogo.startsWith('https://')) {
       return businessLogo;
     }
 
-    // If the logo already contains /public/storage, prepend only the base URL
+
     if (businessLogo.includes('/public/storage')) {
       const base = API_BASE_URL?.replace('/api', '') || '';
       return `${base}${businessLogo}`;
     }
 
-    // If STORAGE_URL is not set, log a warning
+
     if (!STORAGE_URL) {
-      console.warn('STORAGE_URL is not set');
       return null;
     }
 
-    // Ensure the logo path starts with a slash if STORAGE_URL doesn't end with one
+
     const logoPath = businessLogo.startsWith('/') ? businessLogo : `/${businessLogo}`;
     const fullUrl = `${STORAGE_URL}${logoPath}`;
-    console.log('Generated logo URL:', fullUrl);
     return fullUrl;
   };
 
@@ -174,11 +167,10 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                 priority
                 className='object-contain w-auto h-16'
                 onError={() => {
-                  console.error('Failed to load logo from URL:', logoUrl);
                   setLogoError(true);
                 }}
                 onLoad={() => {
-                  console.log('Logo loaded successfully from:', logoUrl);
+
                   setLogoError(false);
                 }}
               />

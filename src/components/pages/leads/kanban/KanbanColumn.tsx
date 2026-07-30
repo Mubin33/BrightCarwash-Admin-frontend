@@ -12,6 +12,7 @@ import type { StageOption } from '@/components/ui/StageDropdown';
 import Image from 'next/image';
 import { toast } from 'react-toastify';
 import { deleteStage } from '@/services/stage.service';
+import { getDefaultStageIcon, getStageIconUrl } from '@/lib/stage-utils';
 
 interface KanbanColumnProps {
 	id: string;
@@ -38,10 +39,12 @@ export function KanbanColumn({
 	onStageDeleted
 }: KanbanColumnProps) {
 	const [modalOpen, setModalOpen] = useState(false);
+	const [iconError, setIconError] = useState(false);
 	const badgeTint = borderColor + '26';
 
-
 	const isIconUrl = icon && (icon.startsWith('http://') || icon.startsWith('https://'));
+	const normalizedIconUrl = isIconUrl ? getStageIconUrl(icon) : null;
+	const shouldShowIcon = isIconUrl && normalizedIconUrl && !iconError;
 
 	return (
 		<>
@@ -57,20 +60,21 @@ export function KanbanColumn({
 					}}
 				>
 					<div className='flex items-center gap-2'>
-						{isIconUrl ? (
+						{shouldShowIcon ? (
 							<div className="w-[18px] h-[18px] flex items-center justify-center">
 								<Image
-									src={icon}
+									src={normalizedIconUrl}
 									alt={title}
 									width={18}
 									height={18}
 									className="object-contain"
 									unoptimized
 									crossOrigin="anonymous"
+									onError={() => setIconError(true)}
 								/>
 							</div>
 						) : (
-							<Icon name={icon} width={18} height={18} color={borderColor} />
+							<Icon name={getDefaultStageIcon(title)} width={18} height={18} color={borderColor} />
 						)}
 						<span
 							className='text-sm font-semibold capitalize leading-none tracking-tight'

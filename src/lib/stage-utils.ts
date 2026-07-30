@@ -27,10 +27,12 @@ export function getDefaultStageIcon(stageName: string): string {
     };
     return nameToIcon[stageName.toLowerCase()] || 'kanban-new';
 }
-
 export function getStageIconUrl(icon: string): string {
+    if (!icon) return '';
+
     if (icon.startsWith('http://') || icon.startsWith('https://')) {
-        return icon;
+        // ✅ Fix double slash in URL
+        return icon.replace(/(https?:\/\/[^\/]+)\/+/g, '$1/');
     }
     return `/icons/svgs/${icon}.svg`;
 }

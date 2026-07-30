@@ -5,7 +5,7 @@ import { DragDropContext, type DropResult } from '@hello-pangea/dnd';
 import { KanbanColumn } from '@/components/pages/leads/kanban/KanbanColumn';
 import type { Lead } from '@/types/leads';
 import type { StageOption } from '@/components/ui/StageDropdown';
-import { getDefaultStageIcon } from '@/lib/stage-utils';
+import { getDefaultStageIcon, getStageIconUrl } from '@/lib/stage-utils';
 
 interface KanbanBoardProps {
 	leads: Lead[];
