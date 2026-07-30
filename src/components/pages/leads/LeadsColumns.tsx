@@ -1,4 +1,3 @@
-import Image from 'next/image';
 import { StageDropdown, type StageOption } from '@/components/ui/StageDropdown';
 import { ActionsDropdown } from '@/components/ui/ActionsDropdown';
 import type { Column } from '@/components/ui/DataTable';

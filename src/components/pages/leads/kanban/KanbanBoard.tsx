@@ -5,7 +5,7 @@ import { DragDropContext, type DropResult } from '@hello-pangea/dnd';
 import { KanbanColumn } from '@/components/pages/leads/kanban/KanbanColumn';
 import type { Lead } from '@/types/leads';
 import type { StageOption } from '@/components/ui/StageDropdown';
-import { getDefaultStageIcon, getStageIconUrl } from '@/lib/stage-utils';
+import { getDefaultStageIcon } from '@/lib/stage-utils';
 
 interface KanbanBoardProps {
 	leads: Lead[];
@@ -53,8 +53,9 @@ export function KanbanBoard({
 				className='flex gap-4 overflow-x-auto pb-4 adm-kanban-board h-full'
 			>
 				{stages.map((stage) => {
-
+					// Pass the icon as-is to KanbanColumn, it will handle rendering
 					const icon = stage.icon || getDefaultStageIcon(stage.label);
+
 					return (
 						<KanbanColumn
 							key={stage.stageId}

@@ -3,16 +3,14 @@
 import { useState } from 'react';
 import { Droppable, Draggable } from '@hello-pangea/dnd';
 import { Plus, Trash2 } from 'lucide-react';
-import { Icon } from '@/components/ui/Icon';
+import { StageIcon } from '@/components/ui/StageIcon';
 import { Button } from '@/components/ui/Button';
 import { KanbanCard } from '@/components/pages/leads/kanban/KanbanCard';
 import { AddLeadModal } from '@/components/pages/leads/kanban/AddLeadModal';
 import type { Lead } from '@/types/leads';
 import type { StageOption } from '@/components/ui/StageDropdown';
-import Image from 'next/image';
 import { toast } from 'react-toastify';
 import { deleteStage } from '@/services/stage.service';
-import { getDefaultStageIcon, getStageIconUrl } from '@/lib/stage-utils';
 
 interface KanbanColumnProps {
 	id: string;
@@ -39,12 +37,7 @@ export function KanbanColumn({
 	onStageDeleted
 }: KanbanColumnProps) {
 	const [modalOpen, setModalOpen] = useState(false);
-	const [iconError, setIconError] = useState(false);
 	const badgeTint = borderColor + '26';
-
-	const isIconUrl = icon && (icon.startsWith('http://') || icon.startsWith('https://'));
-	const normalizedIconUrl = isIconUrl ? getStageIconUrl(icon) : null;
-	const shouldShowIcon = isIconUrl && normalizedIconUrl && !iconError;
 
 	return (
 		<>
@@ -60,22 +53,12 @@ export function KanbanColumn({
 					}}
 				>
 					<div className='flex items-center gap-2'>
-						{shouldShowIcon ? (
-							<div className="w-[18px] h-[18px] flex items-center justify-center">
-								<Image
-									src={normalizedIconUrl}
-									alt={title}
-									width={18}
-									height={18}
-									className="object-contain"
-									unoptimized
-									crossOrigin="anonymous"
-									onError={() => setIconError(true)}
-								/>
-							</div>
-						) : (
-							<Icon name={getDefaultStageIcon(title)} width={18} height={18} color={borderColor} />
-						)}
+						<StageIcon
+							icon={icon}
+							stageName={title}
+							size={18}
+							color={borderColor}
+						/>
 						<span
 							className='text-sm font-semibold capitalize leading-none tracking-tight'
 							style={{ color: borderColor }}
@@ -90,29 +73,31 @@ export function KanbanColumn({
 						</span>
 					</div>
 
-					<Button
-						variant='icon'
-						onClick={() => setModalOpen(true)}
-						className='flex p-1.5 items-center rounded-lg border border-transparent text-[#777980] cursor-pointer hover:bg-white/70 hover:border-[#D0D5DD] hover:text-[#1B1B1B] transition-all duration-200'
-					>
-						<Plus size={18} />
-					</Button>
-					<Button
-						variant='icon'
-						onClick={async () => {
-							if (!confirm(`Delete stage "${title}"?`)) return;
-							try {
-								await deleteStage(stageId);
-								toast.success(`Stage "${title}" deleted`);
-								onStageDeleted();
-							} catch {
-								toast.error('Failed to delete stage');
-							}
-						}}
-						className='flex p-1.5 items-center rounded-lg border border-transparent text-[#777980] cursor-pointer hover:bg-white/70 hover:border-[#D0D5DD] hover:text-[#FF4345] transition-all duration-200'
-					>
-						<Trash2 size={18} />
-					</Button>
+					<div className="flex items-center gap-1">
+						<Button
+							variant='icon'
+							onClick={() => setModalOpen(true)}
+							className='flex p-1.5 items-center rounded-lg border border-transparent text-[#777980] cursor-pointer hover:bg-white/70 hover:border-[#D0D5DD] hover:text-[#1B1B1B] transition-all duration-200'
+						>
+							<Plus size={18} />
+						</Button>
+						<Button
+							variant='icon'
+							onClick={async () => {
+								if (!confirm(`Delete stage "${title}"?`)) return;
+								try {
+									await deleteStage(stageId);
+									toast.success(`Stage "${title}" deleted`);
+									onStageDeleted();
+								} catch {
+									toast.error('Failed to delete stage');
+								}
+							}}
+							className='flex p-1.5 items-center rounded-lg border border-transparent text-[#777980] cursor-pointer hover:bg-white/70 hover:border-[#D0D5DD] hover:text-[#FF4345] transition-all duration-200'
+						>
+							<Trash2 size={18} />
+						</Button>
+					</div>
 				</div>
 
 				<Droppable droppableId={id}>

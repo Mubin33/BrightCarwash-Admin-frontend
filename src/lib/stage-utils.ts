@@ -27,18 +27,16 @@ export function getDefaultStageIcon(stageName: string): string {
     };
     return nameToIcon[stageName.toLowerCase()] || 'kanban-new';
 }
+
 export function getStageIconUrl(icon: string): string {
     if (!icon) return '';
-
+    // If it's already a URL, return it as-is
     if (icon.startsWith('http://') || icon.startsWith('https://')) {
-        const url = new URL(icon);
-        const path = url.pathname.replace(/^\/+/, '');
-        console.log(`/api/stage-icon/${path}`)
-        return `/api/stage-icon/${path}`;
+        return icon;
     }
+    // Otherwise, treat as local icon path
     return `/icons/svgs/${icon}.svg`;
 }
-
 export function hexToTintedBg(hex: string): string {
     const r = parseInt(hex.slice(1, 3), 16);
     const g = parseInt(hex.slice(3, 5), 16);

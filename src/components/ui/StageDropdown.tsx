@@ -3,11 +3,10 @@
 import { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { ChevronDown } from 'lucide-react';
-import { Icon } from '@/components/ui/Icon';
 import { Button } from '@/components/ui/Button';
 import { CreateStageModal } from '@/components/pages/leads/CreateStageModal';
-import Image from 'next/image';
-import { getStageIconUrl, getDefaultStageIcon } from '@/lib/stage-utils';
+import { StageIcon } from '@/components/ui/StageIcon';
+import { getDefaultStageIcon } from '@/lib/stage-utils';
 
 export interface StageOption {
 	value: string;
@@ -37,10 +36,6 @@ function hexToTintedBg(hex: string): string {
 	const g = parseInt(hex.slice(3, 5), 16);
 	const b = parseInt(hex.slice(5, 7), 16);
 	return `rgba(${r}, ${g}, ${b}, 0.12)`;
-}
-
-function hasCustomIcon(stage: StageOption): boolean {
-	return !!stage.icon;
 }
 
 export function StageDropdown({
@@ -108,8 +103,6 @@ export function StageDropdown({
 
 	const currentOption = stages.find((s) => s.value === currentStage);
 	const currentColor = currentOption?.color || defaultColor;
-	const currentHasIcon = currentOption ? hasCustomIcon(currentOption) : false;
-	const currentIconUrl = currentHasIcon && currentOption?.icon ? getStageIconUrl(currentOption.icon) : null;
 	const tintedBg = hexToTintedBg(currentColor);
 
 	const handleCreated = () => {
@@ -126,27 +119,12 @@ export function StageDropdown({
 					className='inline-flex py-1.5 pl-2 pr-1 justify-center items-center gap-1 rounded text-sm capitalize cursor-pointer'
 					style={{ backgroundColor: tintedBg, color: currentColor }}
 				>
-					{/* {currentHasIcon && currentIconUrl ? (
-						<div className="w-3.5 h-3.5 flex items-center justify-center">
-							<Image
-								src={currentIconUrl}
-								alt="stage icon"
-								width={14}
-								height={14}
-								className="object-contain"
-								unoptimized
-								crossOrigin="anonymous"
-							/>
-						</div>
-					) : (
-						<Icon
-							name={getDefaultStageIcon(currentOption?.label || '')}
-							width={14}
-							height={14}
-							color={currentColor}
-						/>
-					)} */}
-					<img src="https://s3.us-east-1.amazonaws.com/bright-side-car-wash/gallery/1785400478475-399c5e510231a8.png" alt="" />
+					<StageIcon
+						icon={currentOption?.icon || null}
+						stageName={currentOption?.label || currentStage}
+						size={14}
+						color={currentColor}
+					/>
 					{currentOption?.label || currentStage}
 					<ChevronDown size={12} style={{ color: currentColor, opacity: 0.7 }} />
 				</div>
@@ -159,9 +137,6 @@ export function StageDropdown({
 					>
 						{stages.map((stage) => {
 							const isSelected = stage.value === currentStage;
-							const stageHasIcon = hasCustomIcon(stage);
-							const stageIconUrl = stageHasIcon && stage.icon ? getStageIconUrl(stage.icon) : null;
-							const stageDefaultIcon = getDefaultStageIcon(stage.label);
 
 							return (
 								<Button
@@ -176,30 +151,13 @@ export function StageDropdown({
 										: 'text-[#1B1B1B] hover:bg-[#F8FAFB]'
 										}`}
 								>
-									{stageHasIcon && stageIconUrl ? (
-										<div className="w-3.5 h-3.5 flex items-center justify-center">
-											<Image
-												src={stageIconUrl}
-												alt="stage icon"
-												width={14}
-												height={14}
-												className="object-contain"
-												unoptimized
-												crossOrigin="anonymous"
-												onError={(e) => {
-													// Fallback to default icon on error
-													const defaultIcon = getDefaultStageIcon(stage.label);
-												}}
-											/>
-										</div>
-									) : (
-										<Icon
-											name={stageDefaultIcon}
-											width={14}
-											height={14}
-											color={isSelected ? '#FFFFFF' : stage.color || defaultColor}
-										/>
-									)}
+									<StageIcon
+										icon={stage.icon}
+										stageName={stage.label}
+										size={14}
+										color={isSelected ? '#FFFFFF' : stage.color || defaultColor}
+									/>
+
 									{stage.label}
 								</Button>
 							);
