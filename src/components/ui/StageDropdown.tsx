@@ -126,7 +126,7 @@ export function StageDropdown({
 					className='inline-flex py-1.5 pl-2 pr-1 justify-center items-center gap-1 rounded text-sm capitalize cursor-pointer'
 					style={{ backgroundColor: tintedBg, color: currentColor }}
 				>
-					{currentHasIcon && currentIconUrl ? (
+					{/* {currentHasIcon && currentIconUrl ? (
 						<div className="w-3.5 h-3.5 flex items-center justify-center">
 							<Image
 								src={currentIconUrl}
@@ -145,7 +145,8 @@ export function StageDropdown({
 							height={14}
 							color={currentColor}
 						/>
-					)}
+					)} */}
+					<img src="https://s3.us-east-1.amazonaws.com/bright-side-car-wash/gallery/1785400478475-399c5e510231a8.png" alt="" />
 					{currentOption?.label || currentStage}
 					<ChevronDown size={12} style={{ color: currentColor, opacity: 0.7 }} />
 				</div>

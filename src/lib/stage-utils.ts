@@ -31,8 +31,10 @@ export function getStageIconUrl(icon: string): string {
     if (!icon) return '';
 
     if (icon.startsWith('http://') || icon.startsWith('https://')) {
-        // ✅ Fix double slash in URL
-        return icon.replace(/(https?:\/\/[^\/]+)\/+/g, '$1/');
+        const url = new URL(icon);
+        const path = url.pathname.replace(/^\/+/, '');
+        console.log(`/api/stage-icon/${path}`)
+        return `/api/stage-icon/${path}`;
     }
     return `/icons/svgs/${icon}.svg`;
 }

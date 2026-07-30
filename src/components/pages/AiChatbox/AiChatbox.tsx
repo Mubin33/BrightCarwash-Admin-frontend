@@ -129,7 +129,7 @@ export default function AiChatbox() {
     [apiUsers],
   );
 
-  const activeUserId = selectedUserId || users[0]?.id || "";
+  const activeUserId = selectedUserId || users?.[0]?.id || "";
 
   const {
     data: sessionsResponse,
