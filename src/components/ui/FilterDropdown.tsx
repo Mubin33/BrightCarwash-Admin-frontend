@@ -79,7 +79,7 @@ export function FilterDropdown({
 				width: fullWidth ? `${rect.width}px` : 'auto',
 				minWidth: fullWidth ? 'auto' : '160px',
 				maxHeight: `${dropdownHeight}px`,
-				zIndex: '200',
+				zIndex: '9999',
 			});
 		}
 	}, [open, fullWidth, dropdownOffsetX, maxHeight]);
@@ -135,8 +135,8 @@ export function FilterDropdown({
 								setOpen(false);
 							}}
 							className={`flex w-full py-2.5 px-4 items-center text-sm text-left cursor-pointer transition-colors ${!value
-									? 'bg-[#0098E8] text-white'
-									: 'text-[#1B1B1B] hover:bg-[#F8FAFB]'
+								? 'bg-[#0098E8] text-white'
+								: 'text-[#1B1B1B] hover:bg-[#F8FAFB]'
 								}`}
 						>
 							{label}
@@ -151,8 +151,8 @@ export function FilterDropdown({
 									setOpen(false);
 								}}
 								className={`flex w-full py-2.5 px-4 items-center text-sm text-left cursor-pointer transition-colors capitalize ${value === option.value
-										? 'bg-[#0098E8] text-white'
-										: 'text-[#1B1B1B] hover:bg-[#F8FAFB]'
+									? 'bg-[#0098E8] text-white'
+									: 'text-[#1B1B1B] hover:bg-[#F8FAFB]'
 									}`}
 							>
 								{option.label}

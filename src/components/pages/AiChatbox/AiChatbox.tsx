@@ -24,18 +24,18 @@ type MobileView = "users" | "sessions" | "chat";
 const formatDate = (date?: string | null) =>
   date
     ? new Intl.DateTimeFormat("en-US", {
-        month: "short",
-        day: "2-digit",
-        year: "numeric",
-      }).format(new Date(date))
+      month: "short",
+      day: "2-digit",
+      year: "numeric",
+    }).format(new Date(date))
     : "—";
 
 const formatTime = (date?: string | null) =>
   date
     ? new Intl.DateTimeFormat("en-US", {
-        hour: "numeric",
-        minute: "2-digit",
-      }).format(new Date(date))
+      hour: "numeric",
+      minute: "2-digit",
+    }).format(new Date(date))
     : "";
 
 const getList = <T,>(data: unknown, keys: string[]): T[] => {
@@ -97,14 +97,14 @@ export default function AiChatbox() {
         setApiUsers((currentUsers) => {
           if (replace) return response.data;
 
-          const existingIds = new Set(currentUsers.map((user) => user.user_id));
+          const existingIds = new Set(currentUsers?.map((user) => user.user_id));
           return [
             ...currentUsers,
             ...response.data.filter((user) => !existingIds.has(user.user_id)),
           ];
         });
         setNextCursor(nextPageCursor);
-      } catch {}
+      } catch { }
     },
     [getUsers],
   );
@@ -119,7 +119,7 @@ export default function AiChatbox() {
 
   const users = useMemo<ChatUser[]>(
     () =>
-      apiUsers.map((user) => ({
+      apiUsers?.map((user) => ({
         id: user.user_id,
         name: user.name || "Unknown user",
         email: user.email || "No email address",
@@ -138,7 +138,7 @@ export default function AiChatbox() {
   } = useGetUserSessionsQuery(activeUserId, { skip: !activeUserId });
   const sessions = useMemo<ChatSession[]>(
     () =>
-      getList<ApiSession>(sessionsResponse?.data, ["sessions", "results"]).map(
+      getList<ApiSession>(sessionsResponse?.data, ["sessions", "results"])?.map(
         (session) => ({
           id: session.session_id,
           date: formatDate(session.updated_at || session.created_at),
@@ -163,7 +163,7 @@ export default function AiChatbox() {
         "messages",
         "conversation",
         "results",
-      ]).map((message) => ({
+      ])?.map((message) => ({
         sender:
           message.role === "user" || message.sender === "user" ? "user" : "bot",
         text: message.content || message.message || message.text || "",

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
 import { FilterDropdown } from "@/components/ui/FilterDropdown";
@@ -32,6 +32,10 @@ export function EditMemberRoleModal({ isOpen, onClose, member, roles }: EditMemb
 
     const roleOptions = roles.map((r) => ({ value: r.name, label: r.name }));
 
+    useEffect(() => {
+        console.log('🔍 EditMemberRoleModal - roles received:', roles);
+        console.log('🔍 EditMemberRoleModal - roleOptions:', roleOptions);
+    }, [roles]);
     return (
         <Modal isOpen={isOpen} onClose={onClose} title={`Edit Role — ${member?.name || member?.email || ""}`} size="sm">
             <div className="flex flex-col gap-4">
@@ -44,6 +48,8 @@ export function EditMemberRoleModal({ isOpen, onClose, member, roles }: EditMemb
                         value={selectedRole}
                         onChange={(val: string) => setSelectedRole(val)}
                         fullWidth
+                        scrollable={roleOptions.length > 5} // ✅ Enable scroll after 5 items
+                        maxHeight={200} // ✅ Limit height
                     />
                 </div>
                 <div className="flex gap-3 justify-end pt-2 border-t border-[#E8E8E9]">

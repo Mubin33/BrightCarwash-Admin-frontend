@@ -88,7 +88,6 @@ export const teamApi = createApi({
         resendInvite: builder.mutation<{ success: boolean }, string>({
             queryFn: async (email) => {
                 try {
-
                     const token = getAccessToken();
                     const response = await fetch(
                         `${APP_CONFIG.API_BASE_URL}/auth/resend-invite`,
