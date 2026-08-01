@@ -7,6 +7,9 @@ interface MetricCardProps {
 
 export function MetricCard({ data }: MetricCardProps) {
   const isPositive = data.changeDirection === "up";
+  const isNone = data.changeDirection === "none";
+
+  const isPercentage = /^[+-]?\d*\.?\d+\s*%?$/.test(data.changePercent.trim());
 
   return (
     <div className="flex p-2.5 sm:p-3 flex-col items-start gap-2 sm:gap-3 w-full rounded-lg border border-[#DFE1E7] bg-white">
@@ -22,13 +25,20 @@ export function MetricCard({ data }: MetricCardProps) {
 
       <div className="flex justify-between items-center w-full gap-2">
         <div className="flex items-center gap-1">
-          <Icon
+          {!isNone && <Icon
             name={isPositive ? "rise" : "fall"}
             width={14}
             height={14}
             className="sm:w-4 sm:h-4"
-          />
-          <span className={`text-xs sm:text-sm font-medium ${isPositive ? "text-[#006F1F]" : "text-[#FF4345]"}`}>
+          />}
+          <span className={`text-xs sm:text-sm font-medium ${isNone
+              ? "text-[#777980]"
+              : isPositive && isPercentage
+                ? "text-[#006F1F]"
+                : isPositive && !isPercentage
+                  ? "text-[#777980]"
+                  : "text-[#FF4345]"
+            }`}>
             {isPositive}
             {data.changePercent}
           </span>

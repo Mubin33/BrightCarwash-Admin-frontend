@@ -49,7 +49,10 @@ export function AddMemberModal({ isOpen, onClose, roles, onMemberAdded }: AddMem
                 if (!res.ok) throw new Error("Failed to invite");
                 toast.success(`Invitation sent to ${email}`);
             }
-            setFirstName(""); setLastName(""); setEmail(""); setRoleName(roles[0]?.name || "");
+            setFirstName("");
+            setLastName("");
+            setEmail("");
+            setRoleName(roles[0]?.name || "");
             onClose();
             onMemberAdded();
         } catch {
@@ -66,19 +69,37 @@ export function AddMemberModal({ isOpen, onClose, roles, onMemberAdded }: AddMem
                 <div className="grid grid-cols-2 gap-3">
                     <div>
                         <label className="block text-sm font-medium text-[#1B1B1B] mb-1.5">First Name *</label>
-                        <input type="text" value={firstName} onChange={(e) => setFirstName(e.target.value)} required placeholder="First name"
-                            className="w-full px-4 py-2.5 border border-[#DFE1E7] rounded-lg bg-white text-[#1B1B1B] placeholder-[#777980] font-inter text-sm outline-none focus:border-[#0098E8] focus:ring-2 focus:ring-[#0098E8]/10 transition-all" />
+                        <input
+                            type="text"
+                            value={firstName}
+                            onChange={(e) => setFirstName(e.target.value)}
+                            required
+                            placeholder="First name"
+                            className="w-full px-4 py-2.5 border border-[#DFE1E7] rounded-lg bg-white text-[#1B1B1B] placeholder-[#777980] font-inter text-sm outline-none focus:border-[#0098E8] focus:ring-2 focus:ring-[#0098E8]/10 transition-all"
+                        />
                     </div>
                     <div>
                         <label className="block text-sm font-medium text-[#1B1B1B] mb-1.5">Last Name *</label>
-                        <input type="text" value={lastName} onChange={(e) => setLastName(e.target.value)} required placeholder="Last name"
-                            className="w-full px-4 py-2.5 border border-[#DFE1E7] rounded-lg bg-white text-[#1B1B1B] placeholder-[#777980] font-inter text-sm outline-none focus:border-[#0098E8] focus:ring-2 focus:ring-[#0098E8]/10 transition-all" />
+                        <input
+                            type="text"
+                            value={lastName}
+                            onChange={(e) => setLastName(e.target.value)}
+                            required
+                            placeholder="Last name"
+                            className="w-full px-4 py-2.5 border border-[#DFE1E7] rounded-lg bg-white text-[#1B1B1B] placeholder-[#777980] font-inter text-sm outline-none focus:border-[#0098E8] focus:ring-2 focus:ring-[#0098E8]/10 transition-all"
+                        />
                     </div>
                 </div>
                 <div>
                     <label className="block text-sm font-medium text-[#1B1B1B] mb-1.5">Email *</label>
-                    <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required placeholder="email@example.com"
-                        className="w-full px-4 py-2.5 border border-[#DFE1E7] rounded-lg bg-white text-[#1B1B1B] placeholder-[#777980] font-inter text-sm outline-none focus:border-[#0098E8] focus:ring-2 focus:ring-[#0098E8]/10 transition-all" />
+                    <input
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        required
+                        placeholder="email@example.com"
+                        className="w-full px-4 py-2.5 border border-[#DFE1E7] rounded-lg bg-white text-[#1B1B1B] placeholder-[#777980] font-inter text-sm outline-none focus:border-[#0098E8] focus:ring-2 focus:ring-[#0098E8]/10 transition-all"
+                    />
                 </div>
                 <div>
                     <label className="block text-sm font-medium text-[#1B1B1B] mb-1.5">Role</label>
@@ -88,6 +109,8 @@ export function AddMemberModal({ isOpen, onClose, roles, onMemberAdded }: AddMem
                         value={roleName}
                         onChange={(val: string) => setRoleName(val)}
                         fullWidth
+                        scrollable={roleOptions.length > 5}
+                        maxHeight={200}
                     />
                 </div>
                 <div className="flex gap-3 justify-end pt-2 border-t border-[#E8E8E9]">

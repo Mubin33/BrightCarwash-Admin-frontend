@@ -3,7 +3,7 @@ export interface MetricCard {
   heading: string;
   value: string;
   changePercent: string;
-  changeDirection: "up" | "down";
+  changeDirection?: "up" | "down" | "none";
   vsLabel: string;
 }
 

@@ -23,10 +23,10 @@ export const reportsApi = createApi({
         getStageSummary: builder.query<StageSummaryData, { stageName: string; startDate: string; endDate: string }>({
             queryFn: async (params) => {
                 try {
-                    if (APP_CONFIG.MOCK_MODE) {
-                        await delay(APP_CONFIG.MOCK_DELAY_MS);
-                        return { data: mockStageSummary };
-                    }
+                    // if (APP_CONFIG.MOCK_MODE) {
+                    //     await delay(APP_CONFIG.MOCK_DELAY_MS);
+                    //     return { data: mockStageSummary };
+                    // }
                     const { data } = await axiosInstance.get('/admin/reports/leads/stage-summary', { params });
                     return { data: data.data };
                 } catch (error) {

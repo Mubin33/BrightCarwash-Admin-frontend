@@ -48,8 +48,8 @@ export function EditMemberRoleModal({ isOpen, onClose, member, roles }: EditMemb
                         value={selectedRole}
                         onChange={(val: string) => setSelectedRole(val)}
                         fullWidth
-                        scrollable={roleOptions.length > 5} // ✅ Enable scroll after 5 items
-                        maxHeight={200} // ✅ Limit height
+                        scrollable={roleOptions.length > 5}
+                        maxHeight={200}
                     />
                 </div>
                 <div className="flex gap-3 justify-end pt-2 border-t border-[#E8E8E9]">
