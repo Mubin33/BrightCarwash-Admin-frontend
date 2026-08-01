@@ -2,19 +2,24 @@ import type { StageOption } from "@/components/ui/StageDropdown";
 import type { Stage } from "@/types/stage";
 
 export function mapStagesToOptions(stages: Stage[]): StageOption[] {
+    // ✅ Keep the slug as value (for backward compatibility), but also store the name
     const nameToValue: Record<string, string> = {
         "new lead": "new",
         contracted: "contracted",
         converted: "converted",
         lost: "lost",
     };
-    return stages.map((s) => ({
-        value: nameToValue[s.name.toLowerCase()] ?? s.name.toLowerCase().replace(/\s+/g, "_"),
-        label: s.name,
-        color: s.color,
-        stageId: s.id,
-        icon: s.icon,
-    }));
+
+    return stages.map((s) => {
+        const normalized = s.name.toLowerCase().replace(/\s+/g, "_");
+        return {
+            value: nameToValue[normalized] ?? normalized,
+            label: s.name,  // ← Actual stage name for display
+            color: s.color,
+            stageId: s.id,
+            icon: s.icon,
+        };
+    });
 }
 
 export function getDefaultStageIcon(stageName: string): string {
@@ -30,13 +35,12 @@ export function getDefaultStageIcon(stageName: string): string {
 
 export function getStageIconUrl(icon: string): string {
     if (!icon) return '';
-    // If it's already a URL, return it as-is
     if (icon.startsWith('http://') || icon.startsWith('https://')) {
         return icon;
     }
-    // Otherwise, treat as local icon path
     return `/icons/svgs/${icon}.svg`;
 }
+
 export function hexToTintedBg(hex: string): string {
     const r = parseInt(hex.slice(1, 3), 16);
     const g = parseInt(hex.slice(3, 5), 16);

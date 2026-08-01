@@ -23,8 +23,6 @@ export function useLeadAssignment(
                     month: "short",
                     year: "numeric",
                 });
-
-
                 const displayName = memberName || "a team member";
 
                 const newActivity: ActivityItem = {

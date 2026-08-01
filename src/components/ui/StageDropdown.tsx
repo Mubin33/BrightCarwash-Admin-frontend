@@ -9,17 +9,17 @@ import { StageIcon } from '@/components/ui/StageIcon';
 import { getDefaultStageIcon } from '@/lib/stage-utils';
 
 export interface StageOption {
-	value: string;
-	label: string;
+	value: string;      // ✅ Slug (e.g., "new", "post_lead")
+	label: string;      // ✅ Actual stage name (e.g., "New", "Post Lead")
 	color: string;
 	stageId: string;
 	icon?: string | null;
 }
 
 interface StageDropdownProps {
-	currentStage: string;
+	currentStage: string;  // ✅ This is the slug (e.g., "new", "post_lead")
 	stages: StageOption[];
-	onSelect: (stageName: string) => void;
+	onSelect: (stageName: string) => void;  // ✅ Passes the stage name (label)
 	onStageCreated?: () => void;
 }
 
@@ -101,6 +101,7 @@ export function StageDropdown({
 		}
 	}, [open, stages.length]);
 
+	// ✅ Find the stage by value (slug) or fallback
 	const currentOption = stages.find((s) => s.value === currentStage);
 	const currentColor = currentOption?.color || defaultColor;
 	const tintedBg = hexToTintedBg(currentColor);
@@ -143,6 +144,7 @@ export function StageDropdown({
 									key={stage.stageId}
 									variant='icon'
 									onClick={() => {
+										// ✅ Pass the actual stage name (label) to parent
 										onSelect(stage.label);
 										setOpen(false);
 									}}
@@ -152,12 +154,11 @@ export function StageDropdown({
 										}`}
 								>
 									<StageIcon
-										icon={stage.icon}
+										icon={stage.icon || null}
 										stageName={stage.label}
 										size={14}
 										color={isSelected ? '#FFFFFF' : stage.color || defaultColor}
 									/>
-
 									{stage.label}
 								</Button>
 							);

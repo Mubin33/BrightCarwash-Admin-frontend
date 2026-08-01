@@ -14,7 +14,7 @@ import { getStages } from "@/services/stage.service";
 import { mapStagesToOptions } from "@/lib/stage-utils";
 import type { StageOption } from "@/components/ui/StageDropdown";
 import { toast } from "react-toastify";
-import { EditLeadModal } from "@/components/ui/EditLeadModal";
+import { EditLeadModal } from "@/components/pages/lead-detail/EditLeadModal";
 import { getAccessToken } from "@/lib/auth-client";
 import { APP_CONFIG } from "@/configs/app.config";
 
