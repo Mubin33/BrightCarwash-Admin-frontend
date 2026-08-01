@@ -4,22 +4,22 @@ const nextConfig: NextConfig = {
 	reactStrictMode: true,
 	allowedDevOrigins: [
 		'10.10.33.10',
-		'https://tooth-availability-coupons-stays.trycloudflare.com',
+		'https://universities-domestic-technologies-broker.trycloudflare.com',
+		'https://karma-usr-dealers-msg.trycloudflare.com',
+
 	],
 	images: {
 		unoptimized: true,
 		remotePatterns: [
 			{
-				protocol: 'https',
-				hostname: 'tooth-availability-coupons-stays.trycloudflare.com',
+				protocol: "https",
+				hostname: "karma-usr-dealers-msg.trycloudflare.com",
+				pathname: "/**",
 			},
 			{
-				protocol: 'https',
-				hostname: 's3.us-east-1.amazonaws.com',
-			},
-			{
-				protocol: 'https',
-				hostname: '*.s3.amazonaws.com',
+				protocol: "https",
+				hostname: "universities-domestic-technologies-broker.trycloudflare.com",
+				pathname: "/**",
 			},
 		],
 	},
