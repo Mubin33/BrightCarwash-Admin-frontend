@@ -13,12 +13,12 @@ interface KanbanCardProps {
 	onDelete: (lead: Lead) => void;
 }
 
-const depositStatusStyles: Record<string, string> = {
-	PAID: 'text-[#006F1F] border-[#DFE1E7] bg-white',
-	PENDING: 'text-[#FFAF00] border-[#DFE1E7] bg-white',
-	REFUNDED: 'text-[#FF4345] border-[#DFE1E7] bg-white',
-	NONE: 'text-[#777980] border-[#DFE1E7] bg-white',
-};
+// const depositStatusStyles: Record<string, string> = {
+// 	PAID: 'text-[#006F1F] border-[#DFE1E7] bg-white',
+// 	PENDING: 'text-[#FFAF00] border-[#DFE1E7] bg-white',
+// 	REFUNDED: 'text-[#FF4345] border-[#DFE1E7] bg-white',
+// 	NONE: 'text-[#777980] border-[#DFE1E7] bg-white',
+// };
 export function KanbanCard({ lead, onDelete }: KanbanCardProps) {
 	const formatDate = (dateStr: string): string => {
 		const d = new Date(dateStr);
@@ -72,11 +72,11 @@ export function KanbanCard({ lead, onDelete }: KanbanCardProps) {
 			</div>
 
 			<div className='flex items-center gap-2 flex-wrap'>
-				<span
+				{/* <span
 					className={`inline-flex py-1 px-2 justify-center items-center gap-1 rounded border text-xs capitalize ${depositStatusStyles[lead.depositStatus] || depositStatusStyles.NONE}`}
 				>
 					{lead.depositStatus}
-				</span>
+				</span> */}
 				<span className='inline-flex py-1 px-2 justify-center items-center gap-1 rounded border border-[#DFE1E7] bg-white text-xs text-[#1B1B1B] capitalize'>
 					{lead.source}
 				</span>

@@ -5,7 +5,7 @@ export function LoginLayout() {
 	return (
 		<AuthLayout
 			title='Hi, welcome back again!'
-			subtitle="Login with your email and password that you have been created before, or you can create account if you don't have Asanah account."
+			subtitle="Login with your email and password that you have been created before, or you can create account if you don't have Access account."
 			videoSrc='/video/video2.mp4'
 		>
 			<LoginForm />
