@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import { useState, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -8,9 +8,9 @@ import type { ComposeEmailFormState } from "@/types/email-list";
 
 const initialState: ComposeEmailFormState = {
     from: "",
-    to: [],
-    cc: [],
-    bcc: [],
+    to: "",
+    cc: "",
+    bcc: "",
     subject: "",
     body: "",
     files: [],
@@ -26,7 +26,7 @@ export function useComposeEmail() {
 
     const [form, setForm] = useState<ComposeEmailFormState>({
         ...initialState,
-        to: emailFromUrl ? [emailFromUrl] : [],
+        to: emailFromUrl || "",
     });
 
     const [sendEmail, { isLoading: isSending }] = useSendEmailMutation();
@@ -36,22 +36,6 @@ export function useComposeEmail() {
         value: ComposeEmailFormState[K]
     ) => {
         setForm((prev) => ({ ...prev, [key]: value }));
-    }, []);
-
-    const addEmail = useCallback((field: "to" | "cc" | "bcc", email: string) => {
-        const trimmed = email.trim();
-        if (!trimmed) return;
-        setForm((prev) => {
-            if (prev[field].includes(trimmed)) return prev;
-            return { ...prev, [field]: [...prev[field], trimmed] };
-        });
-    }, []);
-
-    const removeEmail = useCallback((field: "to" | "cc" | "bcc", email: string) => {
-        setForm((prev) => ({
-            ...prev,
-            [field]: prev[field].filter((e) => e !== email),
-        }));
     }, []);
 
     const addFiles = useCallback((newFiles: FileList) => {
@@ -73,28 +57,53 @@ export function useComposeEmail() {
     }, []);
 
     const handleSend = useCallback(async () => {
-        if (form.to.length === 0) {
-            toast.warning("Please add at least one recipient");
+        // ✅ Validate single email
+        if (!form.to || !form.to.trim()) {
+            toast.warning("Please enter a recipient email address");
             return;
         }
+
+        // ✅ Validate email format
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(form.to.trim())) {
+            toast.warning("Please enter a valid email address");
+            return;
+        }
+
+        // ✅ Validate CC if provided
+        if (form.cc && form.cc.trim() && !emailRegex.test(form.cc.trim())) {
+            toast.warning("Please enter a valid CC email address");
+            return;
+        }
+
+        // ✅ Validate BCC if provided
+        if (form.bcc && form.bcc.trim() && !emailRegex.test(form.bcc.trim())) {
+            toast.warning("Please enter a valid BCC email address");
+            return;
+        }
+
         if (!form.subject.trim()) {
             toast.warning("Please enter a subject");
             return;
         }
-        if (!form.body.trim()) {
+
+        if (!form.body.trim() || form.body === "<p></p>") {
             toast.warning("Please enter email body");
             return;
         }
 
         try {
-            await sendEmail({
-                to: form.to.join(","),
-                cc: form.cc.length > 0 ? form.cc : undefined,
-                bcc: form.bcc.length > 0 ? form.bcc : undefined,
+            // ✅ Send as per SendEmailRequest types
+            const payload = {
+                to: form.to.trim(),  // ✅ Single string, not array
+                cc: form.cc.trim() ? [form.cc.trim()] : undefined,  // ✅ Array or undefined
+                bcc: form.bcc.trim() ? [form.bcc.trim()] : undefined,  // ✅ Array or undefined
                 subject: form.subject,
                 body: form.body,
                 files: form.files.length > 0 ? form.files : undefined,
-            }).unwrap();
+            };
+
+            await sendEmail(payload).unwrap();
 
             toast.success("Email sent successfully!");
             router.push("/marketing/email-list");
@@ -107,8 +116,6 @@ export function useComposeEmail() {
         form,
         isSending,
         updateField,
-        addEmail,
-        removeEmail,
         addFiles,
         removeFile,
         toggleCcBcc,

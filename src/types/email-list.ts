@@ -4,8 +4,8 @@ export interface EmailLog {
     sender_name: string;
     sender_mail: string;
     to: string;
-    cc: string[];
-    bcc: string[];
+    cc: string;
+    bcc: string;
     subject: string;
     body: string;
     files: string[];
@@ -40,9 +40,9 @@ export interface EmailLogListResponse {
 
 export interface ComposeEmailFormState {
     from: string;
-    to: string[];
-    cc: string[];
-    bcc: string[];
+    to: string;
+    cc: string;
+    bcc: string;
     subject: string;
     body: string;
     files: File[];

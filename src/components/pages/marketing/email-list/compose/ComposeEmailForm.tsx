@@ -7,8 +7,6 @@ import type { ComposeEmailFormState } from "@/types/email-list";
 interface ComposeEmailFormProps {
     form: ComposeEmailFormState;
     updateField: <K extends keyof ComposeEmailFormState>(key: K, value: ComposeEmailFormState[K]) => void;
-    addEmail: (field: "to" | "cc" | "bcc", email: string) => void;
-    removeEmail: (field: "to" | "cc" | "bcc", email: string) => void;
     addFiles: (files: FileList) => void;
     removeFile: (index: number) => void;
     toggleCcBcc: () => void;
@@ -17,29 +15,40 @@ interface ComposeEmailFormProps {
 const labelClass = "text-[#777980] font-inter text-sm font-medium w-[100px] shrink-0";
 const inputClass = "w-full px-4 py-2.5 border border-[#DFE1E7] rounded-lg bg-white text-[#1B1B1B] placeholder-[#777980] font-inter text-sm outline-none focus:border-[#0098E8] transition-all";
 
-function EmailInput({
-    emails,
+// ✅ Single Email Input - adds only on Enter or valid blur
+function SingleEmailInput({
+    email,
     placeholder,
-    onAdd,
-    onRemove,
+    onChange,
 }: {
-    emails: string[];
+    email: string;
     placeholder: string;
-    onAdd: (email: string) => void;
-    onRemove: (email: string) => void;
+    onChange: (value: string) => void;
 }) {
     const inputRef = useRef<HTMLInputElement>(null);
-    const [inputValue, setInputValue] = useState("");
+    const [inputValue, setInputValue] = useState(email || "");
+    const [touched, setTouched] = useState(false);
 
     const isValidEmail = (email: string) => {
         return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
     };
 
+    const handleInputChange = (value: string) => {
+        setInputValue(value);
+        setTouched(true);
+        // ✅ Don't update parent on every keystroke - only when adding
+    };
+
     const handleAddEmail = () => {
-        const email = inputValue.trim();
-        if (email && isValidEmail(email) && !emails.includes(email)) {
-            onAdd(email);
+        const trimmed = inputValue.trim();
+        // ✅ Only add if valid email
+        if (trimmed && isValidEmail(trimmed)) {
+            onChange(trimmed);
             setInputValue("");
+            setTouched(false);
+        } else if (trimmed && !isValidEmail(trimmed)) {
+            // ❌ Don't add invalid email, show visual feedback instead
+            setTouched(true);
         }
     };
 
@@ -48,72 +57,100 @@ function EmailInput({
             e.preventDefault();
             handleAddEmail();
         }
-        // ✅ Remove comma and space triggers - only one email allowed
+        // ✅ Allow backspace to clear input normally
+        if (e.key === "Backspace" && inputValue === "" && email) {
+            onChange("");
+        }
     };
 
     const handleBlur = () => {
-        handleAddEmail();
+        // ✅ Only add on blur if there's a valid email
+        const trimmed = inputValue.trim();
+        if (trimmed && isValidEmail(trimmed)) {
+            onChange(trimmed);
+            setInputValue("");
+            setTouched(false);
+        } else if (trimmed && !isValidEmail(trimmed)) {
+            // ❌ Invalid email - keep in input but mark as error
+            setTouched(true);
+        }
     };
 
-    return (
-        <div
-            className="flex flex-wrap items-center gap-1.5 px-3 py-2 border border-[#DFE1E7] rounded-lg bg-white cursor-text min-h-[44px]"
-            onClick={() => inputRef.current?.focus()}
-        >
-            {emails.map((email) => (
-                <span
-                    key={email}
-                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-[#EBF5FF] text-[#0098E8] font-inter text-xs"
-                >
+    const handleRemove = () => {
+        onChange("");
+        setInputValue("");
+        setTouched(false);
+    };
+
+    // If there's an email, show the chip
+    if (email) {
+        return (
+            <div className="flex flex-wrap items-center gap-1.5 px-3 py-2 border border-[#DFE1E7] rounded-lg bg-white cursor-text min-h-[44px] border-[#0098E8]">
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-[#EBF5FF] text-[#0098E8] font-inter text-xs">
                     {email}
                     <button
                         type="button"
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            onRemove(email);
-                        }}
+                        onClick={handleRemove}
                         className="hover:text-[#FF4345] transition-colors"
                     >
                         <X size={12} />
                     </button>
                 </span>
-            ))}
+            </div>
+        );
+    }
+
+    // Show input when no email
+    return (
+        <div
+            className={`flex flex-wrap items-center gap-1.5 px-3 py-2 border rounded-lg bg-white cursor-text min-h-[44px] ${touched && inputValue && !isValidEmail(inputValue)
+                ? 'border-[#FF4345]'
+                : 'border-[#DFE1E7]'
+                }`}
+            onClick={() => inputRef.current?.focus()}
+        >
             <input
                 ref={inputRef}
                 type="text"
                 value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
+                onChange={(e) => handleInputChange(e.target.value)}
                 onKeyDown={handleKeyDown}
                 onBlur={handleBlur}
-                placeholder={emails.length === 0 ? placeholder : ""}
-                className="flex-1 min-w-[120px] border-none outline-none text-sm text-[#1B1B1B] placeholder-[#777980] font-inter bg-transparent"
+                placeholder={placeholder}
+                className={`flex-1 min-w-[120px] border-none outline-none text-sm font-inter bg-transparent ${touched && inputValue && !isValidEmail(inputValue)
+                    ? 'text-[#FF4345] placeholder:text-[#FF4345]'
+                    : 'text-[#1B1B1B] placeholder-[#777980]'
+                    }`}
             />
+            {/* ✅ Show validation hint */}
+            {touched && inputValue && !isValidEmail(inputValue) && (
+                <span className="text-[10px] text-[#FF4345] whitespace-nowrap">
+                    Invalid email
+                </span>
+            )}
         </div>
     );
 }
 
 export function ComposeEmailForm({
     form,
-    addEmail,
-    removeEmail,
+    updateField,
     addFiles,
     removeFile,
     toggleCcBcc,
-    updateField
 }: ComposeEmailFormProps) {
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     return (
         <div className="flex flex-col gap-4">
-            {/* To */}
+            {/* To - Single email */}
             <div className="flex items-start gap-4">
                 <label className={labelClass}>To</label>
                 <div className="flex-1 flex flex-col gap-1">
-                    <EmailInput
-                        emails={form.to}
+                    <SingleEmailInput
+                        email={form.to}
                         placeholder="Type email and press Enter"
-                        onAdd={(email) => addEmail("to", email)}
-                        onRemove={(email) => removeEmail("to", email)}
+                        onChange={(value) => updateField("to", value)}
                     />
                     <button
                         type="button"
@@ -125,31 +162,29 @@ export function ComposeEmailForm({
                 </div>
             </div>
 
-            {/* Cc */}
+            {/* Cc - Single email */}
             {form.showCcBcc && (
                 <div className="flex items-start gap-4">
                     <label className={labelClass}>Cc</label>
                     <div className="flex-1">
-                        <EmailInput
-                            emails={form.cc}
+                        <SingleEmailInput
+                            email={form.cc}
                             placeholder="Type email and press Enter"
-                            onAdd={(email) => addEmail("cc", email)}
-                            onRemove={(email) => removeEmail("cc", email)}
+                            onChange={(value) => updateField("cc", value)}
                         />
                     </div>
                 </div>
             )}
 
-            {/* Bcc */}
+            {/* Bcc - Single email */}
             {form.showCcBcc && (
                 <div className="flex items-start gap-4">
                     <label className={labelClass}>Bcc</label>
                     <div className="flex-1">
-                        <EmailInput
-                            emails={form.bcc}
+                        <SingleEmailInput
+                            email={form.bcc}
                             placeholder="Type email and press Enter"
-                            onAdd={(email) => addEmail("bcc", email)}
-                            onRemove={(email) => removeEmail("bcc", email)}
+                            onChange={(value) => updateField("bcc", value)}
                         />
                     </div>
                 </div>
