@@ -71,7 +71,7 @@ export function ServiceMixChart({ data }: Props) {
   return (
     <div className="p-4 rounded-lg border border-[#DFE1E7] bg-white flex flex-col gap-3 h-full">
       <h3 className="text-[#1A1C21] font-inter text-lg font-semibold shrink-0">
-        Status Distribution
+        Service Distribution
       </h3>
       <div className="flex flex-row lg:flex-col items-center justify-center lg:justify-start gap-4 flex-1 min-h-0">
         {/* Donut */}
