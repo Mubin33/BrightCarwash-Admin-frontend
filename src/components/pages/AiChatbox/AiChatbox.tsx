@@ -151,7 +151,6 @@ export default function AiChatbox() {
       ),
     [sessionsResponse],
   );
-
   const { data: messagesResponse, isFetching: isMessagesFetching } =
     useGetSessionChatsQuery(selectedSessionId ?? "", {
       skip: !selectedSessionId,
