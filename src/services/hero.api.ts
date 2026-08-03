@@ -103,9 +103,8 @@ export const heroApi = createApi({
 		>({
 			queryFn: async ({ key, data }) => {
 				try {
-					// Ensure section_type is included in the payload
 					const payload = {
-						section_type: 'hero', // Add this
+						section_type: 'hero',
 						...data,
 					};
 

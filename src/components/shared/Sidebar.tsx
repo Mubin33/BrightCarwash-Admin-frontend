@@ -170,7 +170,6 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                   setLogoError(true);
                 }}
                 onLoad={() => {
-
                   setLogoError(false);
                 }}
               />

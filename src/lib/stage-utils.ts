@@ -2,7 +2,6 @@ import type { StageOption } from "@/components/ui/StageDropdown";
 import type { Stage } from "@/types/stage";
 
 export function mapStagesToOptions(stages: Stage[]): StageOption[] {
-    // ✅ Keep the slug as value (for backward compatibility), but also store the name
     const nameToValue: Record<string, string> = {
         "new lead": "new",
         contracted: "contracted",
@@ -14,7 +13,7 @@ export function mapStagesToOptions(stages: Stage[]): StageOption[] {
         const normalized = s.name.toLowerCase().replace(/\s+/g, "_");
         return {
             value: nameToValue[normalized] ?? normalized,
-            label: s.name,  // ← Actual stage name for display
+            label: s.name,
             color: s.color,
             stageId: s.id,
             icon: s.icon,

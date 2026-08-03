@@ -36,7 +36,6 @@ export function Navbar({ onMenuClick }: NavbarProps) {
 		: user?.firstName || 'User';
 	const initials = user?.firstName?.charAt(0) || 'U';
 
-	// Safely get avatar URL with proper null/undefined handling
 	const avatarUrl = user?.avatar_url || user?.avatar;
 
 	return (
