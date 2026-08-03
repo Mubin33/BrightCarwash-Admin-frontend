@@ -60,7 +60,7 @@ export default function ChatSessionList({
                   : "border-gray-200 hover:border-slate-400 hover:bg-slate-50"
               }`}
             >
-              <div className="mb-2 flex items-center justify-between gap-3">
+              <div className="flex items-center justify-between gap-3">
                 <div className="font-medium text-slate-900">{session.date}</div>
                 <span
                   className={`rounded px-2 py-1 text-xs font-semibold ${statusColors[session.label]}`}
@@ -69,7 +69,7 @@ export default function ChatSessionList({
                 </span>
               </div>
 
-              <p className="text-sm text-slate-600">{session.preview}</p>
+              {/* <p className="mt-2 text-sm text-slate-600">{session.preview}</p> */}
             </button>
           ))
         ) : (
