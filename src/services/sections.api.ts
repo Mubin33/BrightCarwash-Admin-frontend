@@ -103,6 +103,30 @@ export const sectionApi = createApi({
       invalidatesTags: ["Sections"],
     }),
 
+    // Reorder sections (bulk update sort_order)
+    reorderSections: builder.mutation<{ success: boolean }, { sections: { section_key: string; sort_order: number }[] }>( {
+      queryFn: async ({ sections }) => {
+        try {
+          const promises = sections.map((s) =>
+            fetchFromBackend(`/admin/sections/${s.section_key}`, {
+              method: 'PATCH',
+              body: JSON.stringify({ sort_order: s.sort_order }),
+            }),
+          );
+          await Promise.all(promises);
+          return { data: { success: true } };
+        } catch (error) {
+          return {
+            error: {
+              status: 500,
+              data: error instanceof Error ? error.message : 'Failed to reorder sections',
+            },
+          };
+        }
+      },
+      invalidatesTags: ['Sections'],
+    }),
+
     deleteSection: builder.mutation({
       queryFn: async (body) => {
         try {
@@ -135,5 +159,6 @@ export const {
   useGetSectionsQuery,
   useGetSectionDetailsQuery,
   useUpdateSectionMutation,
+  useReorderSectionsMutation,
   useDeleteSectionMutation,
 } = sectionApi;

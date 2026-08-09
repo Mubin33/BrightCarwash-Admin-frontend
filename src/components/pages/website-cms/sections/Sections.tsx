@@ -11,6 +11,7 @@ import {
   useDeleteSectionMutation,
   useGetSectionsQuery,
   useUpdateSectionMutation,
+  useReorderSectionsMutation,
 } from "@/services/sections.api";
 import type { Section } from "@/types/section";
 import { toast } from "react-toastify";
@@ -45,6 +46,7 @@ export default function Sections() {
   } = useGetSectionsQuery(undefined);
   const [deleteSection] = useDeleteSectionMutation();
   const [updateSection] = useUpdateSectionMutation();
+  const [reorderSections] = useReorderSectionsMutation();
 
   useEffect(() => {
     setLocalSections(sections);
@@ -126,24 +128,39 @@ export default function Sections() {
   const handleDragEnd = async (result: DropResult) => {
     if (!result.destination) return;
 
-    const items = Array.from(filteredSections);
-    const [reorderedItem] = items.splice(result.source.index, 1);
-    items.splice(result.destination.index, 0, reorderedItem);
+    const draggedId = result.draggableId;
 
-    const updatedItems = items.map((item, index) => ({
-      ...item,
-      sort_order: index + 1,
-    }));
+    // find source index in full list
+    const sourceIndexLocal = localSections.findIndex((s) => s.section_key === draggedId);
+    if (sourceIndexLocal === -1) return;
+
+    // visible order mapping
+    const visibleIds = filteredSections.map((s) => s.section_key);
+    const destIndexVisible = result.destination.index;
+    const destId = visibleIds[destIndexVisible];
+
+    // operate on full list
+    const items = Array.from(localSections);
+    const [moved] = items.splice(sourceIndexLocal, 1);
+
+    let insertIndexLocal = items.length;
+    if (typeof destId !== "undefined") {
+      const idxAfterRemoval = items.findIndex((s) => s.section_key === destId);
+      insertIndexLocal = idxAfterRemoval === -1 ? items.length : idxAfterRemoval;
+    } else if (visibleIds.length > 0) {
+      const lastVisible = visibleIds[visibleIds.length - 1];
+      const lastIdx = items.findIndex((s) => s.section_key === lastVisible);
+      insertIndexLocal = lastIdx === -1 ? items.length : lastIdx + 1;
+    }
+
+    items.splice(insertIndexLocal, 0, moved);
+
+    const updatedItems = items.map((item, idx) => ({ ...item, sort_order: idx + 1 }));
 
     setLocalSections(updatedItems);
 
     try {
-      await Promise.all(
-        updatedItems.map((item) =>
-          // send flattened body so backend receives sort_order at root
-          updateSection({ key: item.section_key, sort_order: item.sort_order }).unwrap(),
-        ),
-      );
+      await reorderSections({ sections: updatedItems.map((it) => ({ section_key: it.section_key, sort_order: it.sort_order })) }).unwrap();
       toast.success("Section order updated successfully");
       refetch();
     } catch {
