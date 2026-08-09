@@ -172,7 +172,8 @@ export function StepTwoActions({
 			router.push('/campaigns');
 		} catch (error: any) {
 			console.error('Save draft error:', error);
-			toast.error(error?.data?.message || 'Failed to save draft');
+			toast.error(error?.data?.message || 'Failed to save drafts');
+			console.log(error)
 		} finally {
 			setIsSavingDraft(false);
 		}

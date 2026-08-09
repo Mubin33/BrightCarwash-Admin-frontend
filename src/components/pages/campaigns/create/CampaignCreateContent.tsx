@@ -76,7 +76,7 @@ export function CampaignCreateContent() {
 	// Load draft campaign data for editing
 	useEffect(() => {
 		if (isEdit && campaignData) {
-			console.log('📦 Loading campaign data for edit:', campaignData);
+			console.log('Loading campaign data for edit:', campaignData);
 
 			const tags = campaignData.tags || [];
 
@@ -85,8 +85,8 @@ export function CampaignCreateContent() {
 			const subject = campaignData.emailConfig?.subject || '';
 			const templateIdFromConfig = campaignData.emailConfig?.templateId || null;
 
-			console.log('🔍 Extracted - templateId:', templateIdFromConfig);
-			console.log('🔍 Extracted - leadGroupId:', leadGroupId);
+			console.log('Extracted - templateId:', templateIdFromConfig);
+			console.log('Extracted - leadGroupId:', leadGroupId);
 
 			// Check which fields are filled
 			const filled = {
@@ -105,7 +105,7 @@ export function CampaignCreateContent() {
 				filled: filled,
 				isEdit: true,
 				campaignId: campaignData.id || null,
-				selectedTemplateName: '', // Will be set when templateData loads
+				selectedTemplateName: '', 
 			}));
 
 			if (templateIdFromConfig) {
@@ -150,7 +150,6 @@ export function CampaignCreateContent() {
 		}
 	};
 
-	// Fallback: if templateId exists but templateData didn't load, fetch directly
 	useEffect(() => {
 		if (campaignData?.emailConfig?.templateId && !templateData && !isLoadingTemplate) {
 			console.log('🔄 Fallback: fetching template name directly');
