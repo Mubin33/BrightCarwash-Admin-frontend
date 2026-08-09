@@ -127,16 +127,16 @@ export const sectionApi = createApi({
       invalidatesTags: ['Sections'],
     }),
 
-    deleteSection: builder.mutation({
+     deleteSection: builder.mutation<{ success: boolean }, { key: string }>({
       queryFn: async (body) => {
         try {
-          const json = await fetchFromBackend<any>(
+          await fetchFromBackend<any>(
             `/admin/sections/${body.key}`,
             {
               method: "DELETE",
             },
           );
-          return { data: json.data };
+          return { data: { success: true } };
         } catch (error) {
           return {
             error: {
