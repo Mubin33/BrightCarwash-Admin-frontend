@@ -216,14 +216,7 @@ export default function Sections() {
       </div>
 
       <div className="rounded-xl border border-[#DFE1E7] overflow-hidden bg-white">
-        <div className="grid grid-cols-[52px_minmax(160px,1.5fr)_1.1fr_0.8fr_0.8fr_0.9fr] gap-4 px-4 py-4 bg-[#F8FAFB] text-[#777980] text-sm font-medium">
-          <div />
-          <div>Section</div>
-          <div>Title</div>
-          <div>Sort Order</div>
-          <div>Status</div>
-          <div className="text-right">Actions</div>
-        </div>
+        
 
         {isLoading ? (
           <div className="p-6 text-sm text-[#777980]">Loading sections...</div>
