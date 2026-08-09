@@ -22,6 +22,23 @@ interface StepTwoActionsProps {
 	};
 }
 
+const getErrorMessage = (error: any, defaultMessage: string): string => {
+	const data = error?.data;
+	if (Array.isArray(data)) {
+		return data.join('\n');
+	}
+	if (typeof data === 'string' && data.trim()) {
+		return data;
+	}
+	if (typeof data?.message === 'string' && data.message.trim()) {
+		return data.message;
+	}
+	if (typeof error?.message === 'string' && error.message.trim()) {
+		return error.message;
+	}
+	return defaultMessage;
+};
+
 export function StepTwoActions({
 	allFilled,
 	campaignData,
@@ -39,8 +56,6 @@ export function StepTwoActions({
 	const [isSavingDraft, setIsSavingDraft] = useState(false);
 	const [scheduleModalOpen, setScheduleModalOpen] = useState(false);
 
-	// Debug: Log the edit state
-	console.log('🔍 StepTwoActions - isEdit:', isEdit, 'campaignId:', campaignId);
 
 	const buildPayload = (overrides: Partial<CreateCampaignRequest> = {}): CreateCampaignRequest => ({
 		name: campaignData?.name || '',
@@ -73,13 +88,11 @@ export function StepTwoActions({
 		try {
 			let campaign;
 			if (isEdit && campaignId) {
-				console.log('📝 Updating existing campaign:', campaignId);
 				campaign = await updateCampaign({
 					id: campaignId,
 					data: buildPayload({ scheduledAt: null })
 				}).unwrap();
 			} else {
-				console.log('📝 Creating new campaign');
 				campaign = await createCampaign(buildPayload({ scheduledAt: null })).unwrap();
 			}
 			await launchCampaign(campaign.id).unwrap();
@@ -87,7 +100,7 @@ export function StepTwoActions({
 			router.push('/campaigns');
 		} catch (error: any) {
 			console.error('Send error:', error);
-			toast.error(error?.data?.message || 'Failed to send campaign');
+			toast.error(getErrorMessage(error, 'Failed to send campaign'));
 		} finally {
 			setIsSending(false);
 		}
@@ -120,13 +133,11 @@ export function StepTwoActions({
 		try {
 			let campaign;
 			if (isEdit && campaignId) {
-				console.log('📝 Updating existing campaign with schedule:', campaignId);
 				campaign = await updateCampaign({
 					id: campaignId,
 					data: buildPayload({ scheduledAt })
 				}).unwrap();
 			} else {
-				console.log('📝 Creating new campaign with schedule');
 				campaign = await createCampaign(buildPayload({ scheduledAt })).unwrap();
 			}
 			await launchCampaign(campaign.id).unwrap();
@@ -134,7 +145,7 @@ export function StepTwoActions({
 			router.push("/campaigns");
 		} catch (error: any) {
 			console.error("Schedule error:", error);
-			toast.error(error?.data?.message || "Failed to schedule campaign");
+			toast.error(getErrorMessage(error, "Failed to schedule campaign"));
 		} finally {
 			setIsScheduling(false);
 		}
@@ -153,27 +164,22 @@ export function StepTwoActions({
 			return;
 		}
 
-		console.log('💾 Saving draft - isEdit:', isEdit, 'campaignId:', campaignId);
-
 		setIsSavingDraft(true);
 		try {
 			if (isEdit && campaignId) {
-				console.log('📝 UPDATING draft campaign:', campaignId);
 				await updateCampaign({
 					id: campaignId,
 					data: buildPayload({ scheduledAt: null })
 				}).unwrap();
 				toast.success('Campaign updated as draft!');
 			} else {
-				console.log('📝 CREATING new draft campaign');
 				await createCampaign(buildPayload({ scheduledAt: null })).unwrap();
 				toast.success('Campaign saved as draft!');
 			}
 			router.push('/campaigns');
 		} catch (error: any) {
 			console.error('Save draft error:', error);
-			toast.error(error?.data?.message || 'Failed to save drafts');
-			console.log(error)
+			toast.error(getErrorMessage(error, 'Failed to save draft'));
 		} finally {
 			setIsSavingDraft(false);
 		}

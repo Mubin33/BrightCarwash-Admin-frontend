@@ -37,7 +37,6 @@ export function CampaignCreateContent() {
 	// Reset state when NOT editing (new campaign)
 	useEffect(() => {
 		if (!isEdit && stepFromUrl !== "3") {
-			console.log('🔄 Resetting campaign creation state for new campaign');
 			dispatch(resetCampaignCreation());
 			setCurrentStep(1);
 		}
@@ -47,7 +46,6 @@ export function CampaignCreateContent() {
 	useEffect(() => {
 		return () => {
 			if (!isEdit) {
-				console.log('🧹 Cleaning up campaign creation state');
 				dispatch(resetCampaignCreation());
 			}
 		};
@@ -76,7 +74,6 @@ export function CampaignCreateContent() {
 	// Load draft campaign data for editing
 	useEffect(() => {
 		if (isEdit && campaignData) {
-			console.log('Loading campaign data for edit:', campaignData);
 
 			const tags = campaignData.tags || [];
 
@@ -84,9 +81,6 @@ export function CampaignCreateContent() {
 			const leadGroupName = campaignData.emailConfig?.leadGroup?.name || '';
 			const subject = campaignData.emailConfig?.subject || '';
 			const templateIdFromConfig = campaignData.emailConfig?.templateId || null;
-
-			console.log('Extracted - templateId:', templateIdFromConfig);
-			console.log('Extracted - leadGroupId:', leadGroupId);
 
 			// Check which fields are filled
 			const filled = {
@@ -120,7 +114,6 @@ export function CampaignCreateContent() {
 	// Set template name when template data loads
 	useEffect(() => {
 		if (templateData && templateData.name) {
-			console.log('📝 Setting template name:', templateData.name);
 			dispatch(setSelectedTemplateName(templateData.name));
 		}
 	}, [templateData, dispatch]);
@@ -141,7 +134,6 @@ export function CampaignCreateContent() {
 				const data = await response.json();
 				const templateName = data.data?.name || '';
 				if (templateName) {
-					console.log('📝 Fetched template name via API:', templateName);
 					dispatch(setSelectedTemplateName(templateName));
 				}
 			}
@@ -152,7 +144,6 @@ export function CampaignCreateContent() {
 
 	useEffect(() => {
 		if (campaignData?.emailConfig?.templateId && !templateData && !isLoadingTemplate) {
-			console.log('🔄 Fallback: fetching template name directly');
 			fetchTemplateName(campaignData.emailConfig.templateId);
 		}
 	}, [campaignData, templateData, isLoadingTemplate]);
