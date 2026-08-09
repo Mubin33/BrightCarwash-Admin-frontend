@@ -1,9 +1,10 @@
+import Sections from '@/components/pages/website-cms/sections/Sections'
 import React from 'react'
 
 export default function SectionsPage() {
   return (
     <div>
-      <h1>Sections</h1>
+      <Sections />
     </div>
   )
 }

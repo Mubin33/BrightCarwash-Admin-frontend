@@ -17,6 +17,7 @@ import { newsApi } from '@/services/news.api';
 import { categoryApi } from '@/services/category.api';
 import { testimonialApi } from '@/services/testimonial.api';
 import { heroApi } from '@/services/hero.api';
+import { sectionApi } from '@/services/sections.api';
 import { emailListApi } from '@/services/email-list.api';
 import { settingsApi } from '@/services/settings.api';
 import { notificationApi } from '@/services/notification.api';
@@ -43,6 +44,7 @@ export const store = configureStore({
 		[categoryApi.reducerPath]: categoryApi.reducer,
 		[testimonialApi.reducerPath]: testimonialApi.reducer,
 		[heroApi.reducerPath]: heroApi.reducer,
+		[sectionApi.reducerPath]: sectionApi.reducer,
 		[emailListApi.reducerPath]: emailListApi.reducer,
 		[settingsApi.reducerPath]: settingsApi.reducer,
 		[notificationApi.reducerPath]: notificationApi.reducer,
@@ -68,6 +70,7 @@ export const store = configureStore({
 			categoryApi.middleware,
 			testimonialApi.middleware,
 			heroApi.middleware,
+			sectionApi.middleware,
 			emailListApi.middleware,
 			settingsApi.middleware,
 			notificationApi.middleware,

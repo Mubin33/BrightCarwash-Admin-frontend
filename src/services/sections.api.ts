@@ -1,18 +1,22 @@
 import { createApi } from "@reduxjs/toolkit/query/react";
 import { fetchFromBackend } from "./faq.api";
+import type { Section } from '@/types/section';
 
-export const SectionApi = createApi({
+export const sectionApi = createApi({
   reducerPath: "sectionApi",
   baseQuery: async () => ({ data: null }),
-  tagTypes: ["FAQs"],
+  tagTypes: ["Sections"],
   endpoints: (builder) => ({
     createSection: builder.mutation({
       queryFn: async (body) => {
         try {
-          const json = await fetchFromBackend<any>("/admin/section", {
-            method: "POST",
-            body: JSON.stringify(body),
-          });
+          const json = await fetchFromBackend<any>(
+            `/admin/sections/${body.key}`,
+            {
+              method: "PATCH",
+              body: JSON.stringify(body),
+            },
+          );
           return { data: json.data };
         } catch (error) {
           return {
@@ -26,16 +30,16 @@ export const SectionApi = createApi({
           };
         }
       },
-      invalidatesTags: ["FAQs"],
+      invalidatesTags: ["Sections"],
     }),
 
-    getSections: builder.query({
+    getSections: builder.query<Section[], void>({
       queryFn: async () => {
         try {
           const json = await fetchFromBackend<any>(`/admin/sections`, {
             method: "GET",
           });
-          return { data: json.data };
+          return { data: json.data?.data || [] };
         } catch (error) {
           return {
             error: {
@@ -48,7 +52,7 @@ export const SectionApi = createApi({
           };
         }
       },
-      providesTags: ["FAQs"],
+      providesTags: ["Sections"],
     }),
 
     getSectionDetails: builder.query({
@@ -70,6 +74,7 @@ export const SectionApi = createApi({
           };
         }
       },
+      providesTags: (_result, _error, key) => [{ type: 'Sections', id: key }],
     }),
 
     updateSection: builder.mutation({
@@ -95,7 +100,7 @@ export const SectionApi = createApi({
           };
         }
       },
-      invalidatesTags: ["FAQs"],
+      invalidatesTags: ["Sections"],
     }),
 
     deleteSection: builder.mutation({
@@ -120,7 +125,7 @@ export const SectionApi = createApi({
           };
         }
       },
-      invalidatesTags: ["FAQs"],
+      invalidatesTags: ["Sections"],
     }),
   }),
 });
@@ -131,4 +136,4 @@ export const {
   useGetSectionDetailsQuery,
   useUpdateSectionMutation,
   useDeleteSectionMutation,
-} = SectionApi;
+} = sectionApi;
