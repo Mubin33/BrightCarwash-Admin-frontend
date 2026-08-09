@@ -140,10 +140,8 @@ export default function Sections() {
     try {
       await Promise.all(
         updatedItems.map((item) =>
-          updateSection({
-            key: item.section_key,
-            data: { sort_order: item.sort_order },
-          }).unwrap(),
+          // send flattened body so backend receives sort_order at root
+          updateSection({ key: item.section_key, sort_order: item.sort_order }).unwrap(),
         ),
       );
       toast.success("Section order updated successfully");

@@ -131,10 +131,11 @@ export function SectionModal({
     };
 
     try {
-      if (section) {
+        if (section) {
         await updateSection({
+          // send flattened payload so backend receives fields at root
           key: section.section_key,
-          data: payload,
+          ...payload,
         }).unwrap();
         toast.success("Section updated successfully");
       } else {
@@ -297,7 +298,7 @@ export function SectionModal({
             </div> */}
 
             <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-              <div className="flex flex-col gap-2">
+              {/* <div className="flex flex-col gap-2">
                 <label
                   htmlFor="section-sort-order"
                   className="text-[#777980] font-inter text-base font-normal leading-[130%]"
@@ -314,7 +315,7 @@ export function SectionModal({
                     className="w-full bg-transparent border-none outline-none text-[#4A4C56] font-inter text-base font-normal leading-[150%]"
                   />
                 </div>
-              </div>
+              </div> */}
               <div className="md:col-span-2 flex flex-col gap-2">
                 <label className="text-[#777980] font-inter text-base font-normal leading-[130%]">
                   Status
