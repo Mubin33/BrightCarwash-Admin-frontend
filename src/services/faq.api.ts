@@ -3,7 +3,7 @@ import type { FAQ, CreateFAQRequest, UpdateFAQRequest, FAQListResponse, FAQSingl
 import { getAccessToken } from '@/lib/auth-client';
 import { APP_CONFIG } from '@/configs/app.config';
 
-async function fetchFromBackend<T>(url: string, options?: RequestInit): Promise<T> {
+export async  function fetchFromBackend<T>(url: string, options?: RequestInit): Promise<T> {
     const token = getAccessToken();
     const res = await fetch(`${APP_CONFIG.API_BASE_URL}${url}`, {
         ...options,

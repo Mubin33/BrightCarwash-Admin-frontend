@@ -59,7 +59,6 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
     NAVIGATION_CONFIG.forEach((section) => {
       section.items.forEach((item) => {
         if (item.subItems?.some((sub) => {
-          // For root paths like "/ai-chatbox", only match exact path
           if (sub.href === '/ai-chatbox') {
             return pathname === sub.href;
           }
@@ -84,7 +83,6 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
   function isActive(href: string): boolean {
     if (href === '/dashboard') return pathname === '/dashboard';
     if (href === '') return false;
-    // For root paths like "/ai-chatbox", only match exact path
     if (href === '/ai-chatbox') {
       return pathname === href;
     }
@@ -95,7 +93,6 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
     if (!subItems) return false;
     return subItems.some((item) => {
       if (item.href === '') return false;
-      // For root paths like "/ai-chatbox", only match exact path
       if (item.href === '/ai-chatbox') {
         return pathname === item.href;
       }
@@ -153,7 +150,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
       )}
 
       <aside
-        className={`w-[250px] h-screen fixed top-0 left-0 flex flex-col py-4 sm:py-6 pl-4 sm:pl-6 pr-0 border-r border-[#ECEFF3] bg-[#0B1220] z-50 transition-transform duration-300 ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}
+        className={`w-62.5 h-screen fixed top-0 left-0 flex flex-col py-4 sm:py-6 pl-4 sm:pl-6 pr-0 border-r border-[#ECEFF3] bg-[#0B1220] z-50 transition-transform duration-300 ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}
       >
         {/* Logo - fixed at top */}
         <div className='flex flex-col items-center w-full shrink-0 mb-4 pr-3 sm:pr-4'>
@@ -209,7 +206,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                           {hasSubItems ? (
                             <button
                               onClick={() => toggleExpand(item.id)}
-                              className={`flex flex-1 py-2.5 sm:py-[14px] px-3 sm:px-4 items-center justify-between rounded-lg font-inter text-sm sm:text-base font-normal leading-[124%] tracking-[0.08px] no-underline transition-colors duration-200 cursor-pointer ${isExpanded ? 'bg-white/5 text-white' : 'text-white/80 hover:bg-white/5'}`}
+                              className={`flex flex-1 py-2.5 sm:py-3.5 px-3 sm:px-4 items-center justify-between rounded-lg font-inter text-sm sm:text-base font-normal leading-[124%] tracking-[0.08px] no-underline transition-colors duration-200 cursor-pointer ${isExpanded ? 'bg-white/5 text-white' : 'text-white/80 hover:bg-white/5'}`}
                             >
                               <div className='flex items-center gap-2 sm:gap-3'>
                                 <Icon
@@ -229,7 +226,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                             <Link
                               href={item.href}
                               onClick={onClose}
-                              className={`flex-1 flex py-2.5 sm:py-[14px] px-3 sm:px-4 items-center gap-2 sm:gap-3 rounded-lg font-inter text-sm sm:text-base font-normal leading-[124%] tracking-[0.08px] no-underline transition-colors duration-200 cursor-pointer ${isParentActive ? 'bg-[#B23730] text-white' : 'text-white/80 hover:bg-white/5'}`}
+                              className={`flex-1 flex py-2.5 sm:py-3.5 px-3 sm:px-4 items-center gap-2 sm:gap-3 rounded-lg font-inter text-sm sm:text-base font-normal leading-[124%] tracking-[0.08px] no-underline transition-colors duration-200 cursor-pointer ${isParentActive ? 'bg-[#B23730] text-white' : 'text-white/80 hover:bg-white/5'}`}
                             >
                               <Icon
                                 name={item.icon}
@@ -260,7 +257,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                                   className='relative flex items-center min-h-10'
                                 >
                                   <svg
-                                    className='absolute -left-[11px] top-0'
+                                    className='absolute -left-2.75 top-0'
                                     width='20'
                                     height='40'
                                     viewBox='0 0 20 40'
@@ -316,7 +313,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         <Button
           variant='sidebar'
           onClick={logout}
-          className='flex mr-4 py-2.5 sm:py-[14px] px-3 sm:px-4 items-center gap-2 sm:gap-3 self-stretch rounded-lg bg-[#FFE6E6] border-none text-[#FF4345] font-inter text-sm sm:text-base font-normal leading-[124%] tracking-[0.08px] cursor-pointer shrink-0 mt-4'
+          className='flex mr-4 py-2.5 sm:py-3.5 px-3 sm:px-4 items-center gap-2 sm:gap-3 self-stretch rounded-lg bg-[#FFE6E6] border-none text-[#FF4345] font-inter text-sm sm:text-base font-normal leading-[124%] tracking-[0.08px] cursor-pointer shrink-0 mt-4'
         >
           <Icon
             name='logout'
