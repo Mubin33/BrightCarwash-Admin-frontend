@@ -35,7 +35,7 @@ export function SectionModal({
   section,
   onSuccess,
 }: SectionModalProps) {
-  const [sectionKey, setSectionKey] = useState("");
+  const [sectionKey, setSectionKey] = useState("wash_with_a_purpose");
   const [sectionType, setSectionType] = useState("hero");
   const [title, setTitle] = useState("");
   const [subtitle, setSubtitle] = useState("");
@@ -133,7 +133,7 @@ export function SectionModal({
     try {
         if (section) {
         await updateSection({
-          // send flattened payload so backend receives fields at root
+          
           key: section.section_key,
           ...payload,
         }).unwrap();
