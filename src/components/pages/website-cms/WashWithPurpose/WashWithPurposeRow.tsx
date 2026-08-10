@@ -9,6 +9,7 @@ import type { WashWithPurposeFaq } from "@/services/washWithPurpose.api";
 interface WashWithPurposeRowProps {
   faq: WashWithPurposeFaq;
   index: number;
+  isDragDisabled: boolean;
   onEdit: (faq: WashWithPurposeFaq) => void;
   onDelete: (id: string) => void;
 }
@@ -16,6 +17,7 @@ interface WashWithPurposeRowProps {
 export function WashWithPurposeRow({
   faq,
   index,
+  isDragDisabled,
   onEdit,
   onDelete,
 }: WashWithPurposeRowProps) {
@@ -23,7 +25,7 @@ export function WashWithPurposeRow({
   const canDelete = usePermission(PERMISSIONS.faq.delete);
 
   return (
-    <Draggable draggableId={faq.id} index={index}>
+    <Draggable draggableId={faq.id} index={index} isDragDisabled={isDragDisabled}>
       {(provided) => (
         <div
           ref={provided.innerRef}

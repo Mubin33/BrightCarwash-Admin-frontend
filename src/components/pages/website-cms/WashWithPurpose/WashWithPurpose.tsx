@@ -22,18 +22,10 @@ const STATUS_OPTIONS = [
   { value: "draft", label: "Draft" },
 ];
 
-const SORT_OPTIONS = [
-  { value: "display_order_asc", label: "Display order: Low to high" },
-  { value: "display_order_desc", label: "Display order: High to low" },
-  { value: "question_asc", label: "Question: A → Z" },
-  { value: "question_desc", label: "Question: Z → A" },
-];
-
 export default function WashWithPurpose() {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchInput, setSearchInput] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [sortFilter, setSortFilter] = useState("display_order_asc");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingFaq, setEditingFaq] = useState<WashWithPurposeFaq | null>(null);
   const [localFaqs, setLocalFaqs] = useState<WashWithPurposeFaq[]>([]);
@@ -43,13 +35,12 @@ export default function WashWithPurpose() {
   const [reorderFaqs] = useReorderFaqMutation();
 
   useEffect(() => {
-    setLocalFaqs(faqs);
+    setLocalFaqs([...faqs].sort((a, b) => a.display_order - b.display_order));
   }, [faqs]);
 
   const filteredFaqs = useMemo(() => {
     let items = [...localFaqs];
 
-    // Search filter
     if (searchQuery.trim()) {
       const query = searchQuery.trim().toLowerCase();
       items = items.filter((faq) =>
@@ -59,26 +50,16 @@ export default function WashWithPurpose() {
       );
     }
 
-    // Status filter
     if (statusFilter === "published") {
       items = items.filter((faq) => faq.is_publish);
     } else if (statusFilter === "draft") {
       items = items.filter((faq) => !faq.is_publish);
     }
 
-    // Sort
-    if (sortFilter === "display_order_asc") {
-      items.sort((a, b) => a.display_order - b.display_order);
-    } else if (sortFilter === "display_order_desc") {
-      items.sort((a, b) => b.display_order - a.display_order);
-    } else if (sortFilter === "question_asc") {
-      items.sort((a, b) => a.question.localeCompare(b.question));
-    } else if (sortFilter === "question_desc") {
-      items.sort((a, b) => b.question.localeCompare(a.question));
-    }
-
     return items;
-  }, [localFaqs, searchQuery, statusFilter, sortFilter]);
+  }, [localFaqs, searchQuery, statusFilter]);
+
+  const isReorderingEnabled = !searchQuery.trim() && statusFilter === "all";
 
   const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
@@ -118,34 +99,19 @@ export default function WashWithPurpose() {
   };
 
   const handleDragEnd = async (result: DropResult) => {
-    if (!result.destination) return;
+    const { destination, source } = result;
+    if (
+      !isReorderingEnabled ||
+      !destination ||
+      destination.index === source.index
+    )
+      return;
 
-    const draggedId = result.draggableId;
+    const reorderedFaqs = [...filteredFaqs];
+    const [moved] = reorderedFaqs.splice(source.index, 1);
+    reorderedFaqs.splice(destination.index, 0, moved);
 
-    const sourceIndexLocal = localFaqs.findIndex((s) => s.id === draggedId);
-    if (sourceIndexLocal === -1) return;
-
-    const visibleIds = filteredFaqs.map((s) => s.id);
-    const destIndexVisible = result.destination.index;
-    const destId = visibleIds[destIndexVisible];
-
-    const items = Array.from(localFaqs);
-    const [moved] = items.splice(sourceIndexLocal, 1);
-
-    let insertIndexLocal = items.length;
-    if (typeof destId !== "undefined") {
-      const idxAfterRemoval = items.findIndex((s) => s.id === destId);
-      insertIndexLocal =
-        idxAfterRemoval === -1 ? items.length : idxAfterRemoval;
-    } else if (visibleIds.length > 0) {
-      const lastVisible = visibleIds[visibleIds.length - 1];
-      const lastIdx = items.findIndex((s) => s.id === lastVisible);
-      insertIndexLocal = lastIdx === -1 ? items.length : lastIdx + 1;
-    }
-
-    items.splice(insertIndexLocal, 0, moved);
-
-    const updatedItems = items.map((item, idx) => ({
+    const updatedItems = reorderedFaqs.map((item, idx) => ({
       ...item,
       display_order: idx + 1,
     }));
@@ -153,14 +119,12 @@ export default function WashWithPurpose() {
     setLocalFaqs(updatedItems);
 
     try {
-      // Prepare reorder data
       const reorderData = updatedItems.map((it) => ({
         id: it.id,
         display_order: it.display_order,
       }));
 
       await reorderFaqs(reorderData).unwrap();
-      toast.success("FAQ order updated successfully");
       refetch();
     } catch {
       toast.error("Failed to update FAQ order");
@@ -231,7 +195,7 @@ export default function WashWithPurpose() {
           </div>
         ) : (
           <DragDropContext onDragEnd={handleDragEnd}>
-            <Droppable droppableId="faqs">
+            <Droppable droppableId="faqs" isDropDisabled={!isReorderingEnabled}>
               {(provided) => (
                 <div ref={provided.innerRef} {...provided.droppableProps}>
                   {filteredFaqs.map((faq, index) => (
@@ -239,6 +203,7 @@ export default function WashWithPurpose() {
                       key={faq.id}
                       faq={faq}
                       index={index}
+                      isDragDisabled={!isReorderingEnabled}
                       onEdit={openEditModal}
                       onDelete={handleDelete}
                     />
