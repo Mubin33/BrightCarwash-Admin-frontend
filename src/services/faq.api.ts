@@ -14,13 +14,19 @@ export async function fetchFromBackend<T>(
   options?: RequestInit,
 ): Promise<T> {
   const token = getAccessToken();
+  const headers = new Headers(options?.headers);
+
+  headers.set("Authorization", `Bearer ${token}`);
+
+  // The browser must set the multipart boundary when sending FormData.
+  // Explicitly setting application/json makes file uploads unreadable by the API.
+  if (!(options?.body instanceof FormData) && !headers.has("Content-Type")) {
+    headers.set("Content-Type", "application/json");
+  }
+
   const res = await fetch(`${APP_CONFIG.API_BASE_URL}${url}`, {
     ...options,
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-      ...options?.headers,
-    },
+    headers,
   });
   if (!res.ok) throw new Error(`Request failed: ${res.status}`);
 
@@ -30,7 +36,7 @@ export async function fetchFromBackend<T>(
   }
   try {
     return JSON.parse(text) as T;
-  } catch (err) {
+  } catch {
     throw new Error("Failed to parse JSON response");
   }
 }

@@ -5,88 +5,80 @@ import { DragDropContext, Droppable, DropResult } from "@hello-pangea/dnd";
 import { Button } from "@/components/ui/Button";
 import { Icon } from "@/components/ui/Icon";
 import { FilterDropdown } from "@/components/ui/FilterDropdown";
-import { SectionModal } from "./SectionModal";
-import { SectionRow } from "./SectionRow";
-import {
-  useDeleteSectionMutation,
-  useGetSectionsQuery,
-  useUpdateSectionMutation,
-  useReorderSectionsMutation,
-} from "@/services/sections.api";
-import type { Section } from "@/types/section";
 import { toast } from "react-toastify";
 import { PERMISSIONS } from "@/lib/permissions";
+import { WashWithPurposeRow } from "./WashWithPurposeRow";
+import { WashWithPurposeModal } from "./WashWithPurposeModal";
+import {
+  useGetFaqsQuery,
+  useDeleteFaqMutation,
+  useReorderFaqMutation,
+  type WashWithPurposeFaq,
+} from "@/services/washWithPurpose.api";
 
 const STATUS_OPTIONS = [
   { value: "all", label: "All Status" },
-  { value: "active", label: "Active" },
-  { value: "inactive", label: "Inactive" },
+  { value: "published", label: "Published" },
+  { value: "draft", label: "Draft" },
 ];
 
 const SORT_OPTIONS = [
-  { value: "sort_order_desc", label: "Sort order: High to low" },
-  { value: "sort_order_asc", label: "Sort order: Low to high" },
-  { value: "section_key_asc", label: "Section key: A → Z" },
-  { value: "section_key_desc", label: "Section key: Z → A" },
+  { value: "display_order_asc", label: "Display order: Low to high" },
+  { value: "display_order_desc", label: "Display order: High to low" },
+  { value: "question_asc", label: "Question: A → Z" },
+  { value: "question_desc", label: "Question: Z → A" },
 ];
 
-export default function Sections() {
+export default function WashWithPurpose() {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchInput, setSearchInput] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [sortFilter, setSortFilter] = useState("sort_order_desc");
+  const [sortFilter, setSortFilter] = useState("display_order_asc");
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingSection, setEditingSection] = useState<Section | null>(null);
-  const [localSections, setLocalSections] = useState<Section[]>([]);
+  const [editingFaq, setEditingFaq] = useState<WashWithPurposeFaq | null>(null);
+  const [localFaqs, setLocalFaqs] = useState<WashWithPurposeFaq[]>([]);
 
-  const {
-    data: sections = [],
-    isLoading,
-    refetch,
-  } = useGetSectionsQuery(undefined);
-  const [deleteSection] = useDeleteSectionMutation();
-  const [updateSection] = useUpdateSectionMutation();
-  const [reorderSections] = useReorderSectionsMutation();
+  const { data: faqs = [], isLoading, refetch } = useGetFaqsQuery();
+  const [deleteFaq] = useDeleteFaqMutation();
+  const [reorderFaqs] = useReorderFaqMutation();
 
   useEffect(() => {
-    setLocalSections(sections);
-  }, [sections]);
+    setLocalFaqs(faqs);
+  }, [faqs]);
 
-  const filteredSections = useMemo(() => {
-    let items = [...localSections];
+  const filteredFaqs = useMemo(() => {
+    let items = [...localFaqs];
 
+    // Search filter
     if (searchQuery.trim()) {
       const query = searchQuery.trim().toLowerCase();
-      items = items.filter((section) =>
-        [
-          section.section_key,
-          section.section_type,
-          section.content.title,
-          section.content.subtitle,
-        ]
+      items = items.filter((faq) =>
+        [faq.question, faq.ans]
           .filter(Boolean)
           .some((value) => value?.toLowerCase().includes(query)),
       );
     }
 
-    if (statusFilter === "active") {
-      items = items.filter((section) => section.is_active);
-    } else if (statusFilter === "inactive") {
-      items = items.filter((section) => !section.is_active);
+    // Status filter
+    if (statusFilter === "published") {
+      items = items.filter((faq) => faq.is_publish);
+    } else if (statusFilter === "draft") {
+      items = items.filter((faq) => !faq.is_publish);
     }
 
-    if (sortFilter === "sort_order_asc") {
-      items.sort((a, b) => a.sort_order - b.sort_order);
-    } else if (sortFilter === "sort_order_desc") {
-      items.sort((a, b) => b.sort_order - a.sort_order);
-    } else if (sortFilter === "section_key_asc") {
-      items.sort((a, b) => a.section_key.localeCompare(b.section_key));
-    } else if (sortFilter === "section_key_desc") {
-      items.sort((a, b) => b.section_key.localeCompare(a.section_key));
+    // Sort
+    if (sortFilter === "display_order_asc") {
+      items.sort((a, b) => a.display_order - b.display_order);
+    } else if (sortFilter === "display_order_desc") {
+      items.sort((a, b) => b.display_order - a.display_order);
+    } else if (sortFilter === "question_asc") {
+      items.sort((a, b) => a.question.localeCompare(b.question));
+    } else if (sortFilter === "question_desc") {
+      items.sort((a, b) => b.question.localeCompare(a.question));
     }
 
     return items;
-  }, [localSections, searchQuery, statusFilter, sortFilter]);
+  }, [localFaqs, searchQuery, statusFilter, sortFilter]);
 
   const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
@@ -99,29 +91,29 @@ export default function Sections() {
   };
 
   const openNewModal = () => {
-    setEditingSection(null);
+    setEditingFaq(null);
     setIsModalOpen(true);
   };
 
-  const openEditModal = (section: Section) => {
-    setEditingSection(section);
+  const openEditModal = (faq: WashWithPurposeFaq) => {
+    setEditingFaq(faq);
     setIsModalOpen(true);
   };
 
   const closeModal = () => {
     setIsModalOpen(false);
-    setEditingSection(null);
+    setEditingFaq(null);
   };
 
-  const handleDelete = async (section_key: string) => {
-    if (!confirm("Are you sure you want to delete this section?")) return;
+  const handleDelete = async (id: string) => {
+    if (!confirm("Are you sure you want to delete this FAQ?")) return;
 
     try {
-      await deleteSection({ key: section_key }).unwrap();
-      toast.success("Section deleted successfully");
+      await deleteFaq(id).unwrap();
+      toast.success("FAQ deleted successfully");
       refetch();
     } catch {
-      toast.error("Failed to delete section");
+      toast.error("Failed to delete FAQ");
     }
   };
 
@@ -130,42 +122,49 @@ export default function Sections() {
 
     const draggedId = result.draggableId;
 
-    // find source index in full list
-    const sourceIndexLocal = localSections.findIndex((s) => s.section_key === draggedId);
+    const sourceIndexLocal = localFaqs.findIndex((s) => s.id === draggedId);
     if (sourceIndexLocal === -1) return;
 
-    // visible order mapping
-    const visibleIds = filteredSections.map((s) => s.section_key);
+    const visibleIds = filteredFaqs.map((s) => s.id);
     const destIndexVisible = result.destination.index;
     const destId = visibleIds[destIndexVisible];
 
-    // operate on full list
-    const items = Array.from(localSections);
+    const items = Array.from(localFaqs);
     const [moved] = items.splice(sourceIndexLocal, 1);
 
     let insertIndexLocal = items.length;
     if (typeof destId !== "undefined") {
-      const idxAfterRemoval = items.findIndex((s) => s.section_key === destId);
-      insertIndexLocal = idxAfterRemoval === -1 ? items.length : idxAfterRemoval;
+      const idxAfterRemoval = items.findIndex((s) => s.id === destId);
+      insertIndexLocal =
+        idxAfterRemoval === -1 ? items.length : idxAfterRemoval;
     } else if (visibleIds.length > 0) {
       const lastVisible = visibleIds[visibleIds.length - 1];
-      const lastIdx = items.findIndex((s) => s.section_key === lastVisible);
+      const lastIdx = items.findIndex((s) => s.id === lastVisible);
       insertIndexLocal = lastIdx === -1 ? items.length : lastIdx + 1;
     }
 
     items.splice(insertIndexLocal, 0, moved);
 
-    const updatedItems = items.map((item, idx) => ({ ...item, sort_order: idx + 1 }));
+    const updatedItems = items.map((item, idx) => ({
+      ...item,
+      display_order: idx + 1,
+    }));
 
-    setLocalSections(updatedItems);
+    setLocalFaqs(updatedItems);
 
     try {
-      await reorderSections({ sections: updatedItems.map((it) => ({ section_key: it.section_key, sort_order: it.sort_order })) }).unwrap();
-      toast.success("Section order updated successfully");
+      // Prepare reorder data
+      const reorderData = updatedItems.map((it) => ({
+        id: it.id,
+        display_order: it.display_order,
+      }));
+
+      await reorderFaqs(reorderData).unwrap();
+      toast.success("FAQ order updated successfully");
       refetch();
     } catch {
-      toast.error("Failed to update section order");
-      setLocalSections(sections);
+      toast.error("Failed to update FAQ order");
+      setLocalFaqs(faqs);
     }
   };
 
@@ -179,20 +178,20 @@ export default function Sections() {
       <div className="flex justify-between flex-wrap gap-4">
         <div>
           <h2 className="text-[#1D1F2C] font-inter text-xl font-semibold leading-[100%]">
-            Website Sections
+            Wash with Purpose FAQs
           </h2>
           <p className="mt-1 text-sm text-[#777980]">
-            Manage sections using the same list and editor flow as FAQ.
+            Manage FAQs with icon upload and drag & drop reordering.
           </p>
         </div>
 
         <Button
           onClick={openNewModal}
-          permission={PERMISSIONS.section.create}
+          permission={PERMISSIONS.faq.create}
           className="w-auto! flex items-center gap-2 rounded-md bg-[#0098E8] px-4 py-2 text-white hover:bg-[#0088D8] transition-colors"
         >
           <Icon name="plus" width={16} height={16} color="white" />
-          Add Section
+          Add FAQ
         </Button>
       </div>
 
@@ -200,7 +199,7 @@ export default function Sections() {
         <div className="relative flex-1 min-w-55 max-w-105">
           <input
             type="text"
-            placeholder="Search sections..."
+            placeholder="Search FAQs..."
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
             onKeyDown={handleSearchKeyDown}
@@ -221,33 +220,24 @@ export default function Sections() {
           value={statusFilter}
           onChange={setStatusFilter}
         />
-
-        <FilterDropdown
-          label="Sort by"
-          options={SORT_OPTIONS}
-          value={sortFilter}
-          onChange={setSortFilter}
-        />
       </div>
 
       <div className="rounded-xl border border-[#DFE1E7] overflow-hidden bg-white">
-        
-
         {isLoading ? (
-          <div className="p-6 text-sm text-[#777980]">Loading sections...</div>
-        ) : filteredSections.length === 0 ? (
+          <div className="p-6 text-sm text-[#777980]">Loading FAQs...</div>
+        ) : filteredFaqs.length === 0 ? (
           <div className="p-12 text-center text-sm text-[#777980]">
-            No sections found. Adjust filters or add a new section.
+            No FAQs found. Adjust filters or add a new FAQ.
           </div>
         ) : (
           <DragDropContext onDragEnd={handleDragEnd}>
-            <Droppable droppableId="sections">
+            <Droppable droppableId="faqs">
               {(provided) => (
                 <div ref={provided.innerRef} {...provided.droppableProps}>
-                  {filteredSections.map((section, index) => (
-                    <SectionRow
-                      key={section.section_key}
-                      section={section}
+                  {filteredFaqs.map((faq, index) => (
+                    <WashWithPurposeRow
+                      key={faq.id}
+                      faq={faq}
                       index={index}
                       onEdit={openEditModal}
                       onDelete={handleDelete}
@@ -261,10 +251,10 @@ export default function Sections() {
         )}
       </div>
 
-      <SectionModal
+      <WashWithPurposeModal
         isOpen={isModalOpen}
         onClose={closeModal}
-        section={editingSection}
+        faq={editingFaq}
         onSuccess={handleSuccess}
       />
     </div>
