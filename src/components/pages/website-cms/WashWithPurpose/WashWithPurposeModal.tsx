@@ -37,7 +37,6 @@ export function WashWithPurposeModal({
   const [createFaq] = useCreateFaqMutation();
   const [updateFaq] = useUpdateFaqMutation();
 
-  // Reset form when modal opens with FAQ data
   useEffect(() => {
     if (faq) {
       setQuestion(faq.question || "");

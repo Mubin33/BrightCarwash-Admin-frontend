@@ -41,10 +41,10 @@ export function WashWithPurposeRow({
 
           <div className="flex-1 p-4 flex flex-col gap-1 border-r border-[#E8E8E9] min-w-0">
             <span className="text-sm font-medium text-[#1B1B1B] truncate">
-              {faq.question || "-"}
+              {faq?.question || "-"}
             </span>
             <span className="text-sm text-[#25272B] truncate">
-              {faq.ans || "-"}
+              {faq?.ans || "-"}
             </span>
           </div>
 
@@ -52,7 +52,7 @@ export function WashWithPurposeRow({
             <span
               className={`inline-flex py-1 px-3 justify-center items-center rounded-full text-xs font-medium ${faq.is_publish ? "bg-[#DCF7EA] text-[#006F1F]" : "bg-[#F1F1F1] text-[#777980]"}`}
             >
-              {faq.is_publish ? "Published" : "Draft"}
+              {faq?.is_publish ? "Published" : "Draft"}
             </span>
           </div>
 
