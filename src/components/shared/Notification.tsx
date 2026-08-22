@@ -38,7 +38,6 @@ export default function Notification() {
   useEffect(() => {
     if (!socket) return;
     socket.on('new_in_app_notification', (data) => {
-      console.log('new_in_app_notification', data);
       setCount((prev: number) => prev + 1);
     });
     return () => {

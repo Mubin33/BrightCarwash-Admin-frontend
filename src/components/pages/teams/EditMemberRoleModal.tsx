@@ -33,8 +33,7 @@ export function EditMemberRoleModal({ isOpen, onClose, member, roles }: EditMemb
     const roleOptions = roles.map((r) => ({ value: r.name, label: r.name }));
 
     useEffect(() => {
-        console.log('🔍 EditMemberRoleModal - roles received:', roles);
-        console.log('🔍 EditMemberRoleModal - roleOptions:', roleOptions);
+        
     }, [roles]);
     return (
         <Modal isOpen={isOpen} onClose={onClose} title={`Edit Role — ${member?.name || member?.email || ""}`} size="sm">
