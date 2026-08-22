@@ -144,8 +144,8 @@ export function FAQContent() {
             {/* Filters */}
             <div className="flex items-center gap-2 flex-1 min-w-0 flex-wrap self-stretch">
                 {/* Search Input with Button */}
-                <div className="flex flex-1 min-w-[200px] max-w-[400px]">
-                    <div className="relative flex-1 min-w-[200px] max-w-[400px]">
+                <div className="flex flex-1 min-w-50 max-w-100">
+                    <div className="relative flex-1 min-w-50 max-w-100">
                         <input
                             type="text"
                             placeholder="Search FAQs..."

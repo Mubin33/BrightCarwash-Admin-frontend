@@ -97,8 +97,7 @@ export function TeamsContent() {
         }
     };
     useEffect(() => {
-        console.log('📋 All roles from API:', roles);
-        console.log('📋 Number of roles:', roles.length);
+       
     }, [roles]);
     if (isLoading) return <div className="h-75 bg-gray-100 rounded-lg animate-pulse w-full" />;
     if (error) return <div className="flex items-center justify-center py-12 text-[#FF4345] font-inter">Failed to load team members.</div>;

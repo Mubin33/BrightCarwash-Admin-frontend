@@ -46,7 +46,10 @@ export function AddMemberModal({ isOpen, onClose, roles, onMemberAdded }: AddMem
                     },
                     body: JSON.stringify({ firstName, lastName, email, role: roleName }),
                 });
-                if (!res.ok) throw new Error("Failed to invite");
+                if (!res.ok) {
+                    const payload: unknown = await res.json().catch(() => null);
+                    throw new Error(getErrorMessage(payload));
+                }
                 toast.success(`Invitation sent to ${email}`);
             }
             setFirstName("");
@@ -55,8 +58,8 @@ export function AddMemberModal({ isOpen, onClose, roles, onMemberAdded }: AddMem
             setRoleName(roles[0]?.name || "");
             onClose();
             onMemberAdded();
-        } catch {
-            toast.error("Failed to add member");
+        } catch (error: unknown) {
+            toast.error(error instanceof Error ? error.message : "Failed to add member");
         } finally {
             setIsSubmitting(false);
         }
@@ -120,4 +123,17 @@ export function AddMemberModal({ isOpen, onClose, roles, onMemberAdded }: AddMem
             </form>
         </Modal>
     );
+}
+
+function getErrorMessage(payload: unknown): string {
+    if (
+        typeof payload === "object" &&
+        payload !== null &&
+        "message" in payload &&
+        typeof payload.message === "string"
+    ) {
+        return payload.message;
+    }
+
+    return "Failed to add member";
 }
