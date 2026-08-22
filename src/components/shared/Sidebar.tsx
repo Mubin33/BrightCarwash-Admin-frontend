@@ -155,7 +155,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         {/* Logo - fixed at top */}
         <div className='flex flex-col items-center w-full shrink-0 mb-4 pr-3 sm:pr-4'>
           {logoUrl && !logoError ? (
-            <div className='flex justify-center items-center w-full'>
+            <Link href="/dashboard" className='flex justify-center items-center w-full'>
               <Image
                 src={logoUrl}
                 alt='Logo'
@@ -170,7 +170,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                   setLogoError(false);
                 }}
               />
-            </div>
+            </Link>
           ) : (
             // Empty div to maintain spacing when logo is not available
             <div className='h-16 w-full' />

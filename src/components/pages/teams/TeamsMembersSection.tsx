@@ -64,7 +64,7 @@ export function TeamsMembersSection({
                     Teams
                 </h2>
                 <div className="flex items-center gap-3">
-                    <div className="relative min-w-[260px]">
+                    <div className="relative min-w-65">
                         <input
                             type="text"
                             placeholder="Search members..."
