@@ -39,6 +39,12 @@ export const PERMISSIONS = {
         update: 'faq:update' as const,
         delete: 'faq:delete' as const,
     },
+    section: {
+        read: 'section:read' as const,
+        create: 'section:create' as const,
+        update: 'section:update' as const,
+        delete: 'section:delete' as const,
+    },
     gallery: {
         read: 'gallery:read' as const,
         create: 'gallery:create' as const,
