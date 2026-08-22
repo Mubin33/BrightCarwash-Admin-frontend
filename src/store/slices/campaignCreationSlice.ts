@@ -45,7 +45,6 @@ const campaignCreationSlice = createSlice({
     initialState,
     reducers: {
         resetCampaignCreation: () => {
-            console.log('🔄 Resetting campaign creation state to initial');
             return initialState;
         },
 
@@ -104,16 +103,11 @@ const campaignCreationSlice = createSlice({
         },
 
         loadCampaignForEdit: (state, action: PayloadAction<Partial<CampaignCreationState>>) => {
-            console.log('📝 Loading campaign for edit:', action.payload);
-
             // Reset first to clear any previous state
             Object.assign(state, initialState);
-
             // Then apply the edit data
             Object.assign(state, action.payload);
             state.isEdit = true;
-
-            console.log('📝 State after load:', state);
         },
     },
 });
