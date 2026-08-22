@@ -38,6 +38,7 @@ export const NAVIGATION_CONFIG: NavSection[] = [
           { id: "cms-news-blog", label: "News & Blog", icon: "news", href: "/website-cms/news-blog", permission: PERMISSIONS.news_and_events.read },
           { id: "cms-gallery", label: "Gallery", icon: "gallery", href: "/website-cms/gallery", permission: PERMISSIONS.gallery.read },
           { id: "cms-faq", label: "FAQ", icon: "faq", href: "/website-cms/faq", permission: PERMISSIONS.faq.read },
+          { id: "cms-wash-with-purpose", label: "Others FAQ", icon: "faq", href: "/website-cms/wash-with-purpose", permission: PERMISSIONS.section.read },
         ]
       },
       {

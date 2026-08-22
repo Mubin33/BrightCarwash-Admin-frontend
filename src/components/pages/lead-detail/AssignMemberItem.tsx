@@ -37,8 +37,8 @@ export function AssignMemberItem({
             <div className="flex items-center gap-3 flex-1">
                 <div className="w-8 h-8 rounded-full overflow-hidden border border-white shrink-0">
                     <Image
-                        src={member.avatar || "/images/avatar-placeholder.png"}
-                        alt={member.name || member.email}
+                        src={member?.avatar || "/images/avatar-placeholder1.png"}
+                        alt={member?.name || member?.email}
                         width={32}
                         height={32}
                         className="object-cover"
@@ -46,12 +46,12 @@ export function AssignMemberItem({
                 </div>
                 <div className="flex justify-between items-center flex-1">
                     <span className="text-[#1B1B1B] font-inter text-sm font-medium">
-                        {member.name || member.email}
+                        {member?.name || member?.email}
                     </span>
                     <span
-                        className={`inline-flex py-1 px-2 rounded-md text-xs font-medium ${roleStyles[member.role] || roleStyles.Staff}`}
+                        className={`inline-flex py-1 px-2 rounded-md text-xs font-medium ${roleStyles[member?.role] || roleStyles.Staff}`}
                     >
-                        {member.role}
+                        {member?.role}
                     </span>
                 </div>
             </div>
