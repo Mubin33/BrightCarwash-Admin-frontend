@@ -118,7 +118,7 @@ export function FAQModal({ isOpen, onClose, faq, onSuccess }: FAQModalProps) {
 
             {/* Modal - Slides in from right */}
             <div
-                className={`fixed top-0 right-0 h-full w-full max-w-[560px] bg-white z-50 shadow-xl transition-transform duration-300 ease-out ${isVisible ? 'translate-x-0' : 'translate-x-full'
+                className={`fixed top-0 right-0 h-full w-full max-w-140 bg-white z-50 shadow-xl transition-transform duration-300 ease-out ${isVisible ? 'translate-x-0' : 'translate-x-full'
                     }`}
                 ref={modalRef}
             >
@@ -163,7 +163,7 @@ export function FAQModal({ isOpen, onClose, faq, onSuccess }: FAQModalProps) {
                             <label className="text-[#777980] font-inter text-base font-normal leading-[130%]">
                                 Answer
                             </label>
-                            <div className="flex items-start p-4 bg-[#F8FAFB] rounded-lg border border-[#DFE1E7] min-h-[120px]">
+                            <div className="flex items-start p-4 bg-[#F8FAFB] rounded-lg border border-[#DFE1E7] min-h-30">
                                 <textarea
                                     value={answer}
                                     onChange={(e) => setAnswer(e.target.value)}
