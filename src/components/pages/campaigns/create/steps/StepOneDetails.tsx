@@ -82,7 +82,7 @@ export function StepOneDetails({
 								placeholder={
 									tags.length === 0 ? 'Type and press Enter to add tags' : ''
 								}
-								className='flex-1 min-w-[80px] border-none outline-none text-sm text-[#1B1B1B] placeholder-[#777980] font-inter bg-transparent py-0'
+								className='flex-1 min-w-20 border-none outline-none text-sm text-[#1B1B1B] placeholder-[#777980] font-inter bg-transparent py-0'
 							/>
 							{/* ✅ Mobile-friendly: Show "Add" button on small screens */}
 							{tagInput.trim() && (

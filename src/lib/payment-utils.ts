@@ -8,7 +8,7 @@ export function centsToDollars(cents: number): string {
 
 
 export function formatCurrency(amount: number, currency: string = 'USD'): string {
-    const dollars = amount / 100;
+    const dollars = amount/100;
     return new Intl.NumberFormat('en-US', {
         style: 'currency',
         currency: currency,
@@ -36,7 +36,7 @@ export function mapStatsToMetrics(statsData: PaymentStatsData): MetricCard[] {
         {
             id: 'paid-deposits',
             heading: 'Paid Deposits',
-            value: formatCurrency(statsData.paidDeposits.value || 0),
+            value: String(statsData.paidDeposits.value || 0),
             changePercent: statsData.paidDeposits.percentage,
             changeDirection: statsData.paidDeposits.status === 'up' ? 'up' : 'down',
             vsLabel: 'vs last period',
@@ -44,7 +44,7 @@ export function mapStatsToMetrics(statsData: PaymentStatsData): MetricCard[] {
         {
             id: 'pending',
             heading: 'Pending',
-            value: formatCurrency(statsData.pending.value || 0),
+            value: String(statsData.pending.value || 0),
             changePercent: statsData.pending.percentage,
             changeDirection: statsData.pending.status === 'up' ? 'up' : 'down',
             vsLabel: 'vs last period',
@@ -52,7 +52,7 @@ export function mapStatsToMetrics(statsData: PaymentStatsData): MetricCard[] {
         {
             id: 'failed',
             heading: 'Failed',
-            value: formatCurrency(statsData.failed.value || 0),
+            value: String(statsData.failed.value || 0),
             changePercent: statsData.failed.percentage,
             changeDirection: statsData.failed.status === 'up' ? 'up' : 'down',
             vsLabel: 'vs last period',

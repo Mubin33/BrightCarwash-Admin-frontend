@@ -38,20 +38,27 @@ export function PaymentsContent() {
 		data: txData?.transactions || [],
 		columns: PAYMENT_EXPORT_COLUMNS,
 		filename: 'payments-export',
+		endpoint: '/payment-transaction/export/excel',
+		params: { search, status },
 	});
 
 	const metrics = stats ? mapStatsToMetrics(stats) : [];
 
-	const handleExportExcel = () => {
-		handleExport();
+	const handleExportExcel = async () => {
+		try {
+			await handleExport();
+			toast.success('Excel exported');
+		} catch (err: unknown) {
+			toast.error(err instanceof Error ? err.message : 'Excel export failed');
+		}
 	};
 
 	const handleExportCSV = async () => {
 		try {
 			await exportCSV(search, status);
 			toast.success('CSV exported');
-		} catch (err: any) {
-			toast.error(err.message || 'CSV export failed');
+		} catch (err: unknown) {
+			toast.error(err instanceof Error ? err.message : 'CSV export failed');
 		}
 	};
 
