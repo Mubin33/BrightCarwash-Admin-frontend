@@ -2,7 +2,6 @@
 
 import Image from 'next/image';
 import { X } from 'lucide-react';
-import { getFullImageUrl } from '@/lib/image-url';
 import { useEffect } from 'react';
 
 interface HeroBackgroundImageItemProps {
@@ -16,6 +15,14 @@ interface HeroBackgroundImageItemProps {
     dragHandleProps?: any;
 }
 
+const getFullImageUrl = (url: string) => {
+    if (!url) return '';
+    if (url.startsWith('http')) {
+        return url;
+    }
+    return `${process.env.NEXT_PUBLIC_STORAGE_URL}${url}`;
+};
+
 export function HeroBackgroundImageItem({
     url,
     index,
@@ -28,12 +35,6 @@ export function HeroBackgroundImageItem({
 }: HeroBackgroundImageItemProps) {
     const fullUrl = getFullImageUrl(url);
 
-    // DEBUG: Log the URLs
-    useEffect(() => {
-        console.log(`🔍 Image ${index} - Original URL:`, url);
-        console.log(`🔍 Image ${index} - Full URL:`, fullUrl);
-        console.log(`🔍 Image ${index} - URL starts with http:`, fullUrl.startsWith('http'));
-    }, [url, fullUrl, index]);
 
     const handleRemove = (e: React.MouseEvent) => {
         e.stopPropagation();
