@@ -1,0 +1,21 @@
+{
+  "default_branch": "main",
+  "branches": [
+    "alamin",
+    "main",
+    "origin",
+    "turabi"
+  ],
+  "parent": {
+    "alamin": "main",
+    "main": null,
+    "origin": "main",
+    "turabi": "main"
+  },
+  "order": [
+    "main",
+    "alamin",
+    "origin",
+    "turabi"
+  ]
+}
