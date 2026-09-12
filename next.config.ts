@@ -4,7 +4,7 @@ const nextConfig: NextConfig = {
 	reactStrictMode: true,
 	allowedDevOrigins: [
 		'10.10.33.10',
-		'https://universities-domestic-technologies-broker.trycloudflare.com',
+		'https://holiday-exposure-pocket-whilst.trycloudflare.com',
 		'https://karma-usr-dealers-msg.trycloudflare.com',
 
 	],
@@ -13,12 +13,12 @@ const nextConfig: NextConfig = {
 		remotePatterns: [
 			{
 				protocol: "https",
-				hostname: "karma-usr-dealers-msg.trycloudflare.com",
+				hostname: "holiday-exposure-pocket-whilst.trycloudflare.com",
 				pathname: "/**",
 			},
 			{
 				protocol: "https",
-				hostname: "universities-domestic-technologies-broker.trycloudflare.com",
+				hostname: "holiday-exposure-pocket-whilst.trycloudflare.com",
 				pathname: "/**",
 			},
 		],
