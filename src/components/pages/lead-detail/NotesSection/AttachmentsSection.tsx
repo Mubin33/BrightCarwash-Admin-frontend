@@ -204,12 +204,15 @@ export function AttachmentsSection({
                             {/* Actions - Download & Delete buttons */}
                             <div className="flex items-center gap-1 shrink-0">
                                 <button
-                                    onClick={() => onDownload?.(attachment.id)}
+                                    onClick={() => {
+                                        window.location.href = attachment.url;
+                                    }}
                                     className="p-2 rounded-lg text-[#777980] hover:bg-[#F8FAFB] hover:text-[#1B1B1B] transition-colors"
                                     aria-label="Download file"
                                 >
                                     <Download size={18} />
                                 </button>
+
                                 <button
                                     onClick={() => onDelete?.(attachment.id)}
                                     className="p-2 rounded-lg text-[#777980] hover:bg-[#FFE6E6] hover:text-[#FF4345] transition-colors"

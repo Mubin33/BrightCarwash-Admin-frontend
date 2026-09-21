@@ -21,7 +21,7 @@ export const formatNotificationTime = (date: string): string => {
 
   // Handle future dates
   if (isFuture(notificationDate)) {
-    return "In the future";
+    return "Just now";
   }
 
   // Handle today (less than 24 hours but show minutes/hours)

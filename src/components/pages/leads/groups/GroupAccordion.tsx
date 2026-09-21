@@ -22,6 +22,8 @@ interface GroupAccordionProps {
     onAddLead: (groupId: string) => void;
     onDeleteGroup: (groupId: string) => void;
     onGroupExpand?: (groupId: string) => void;
+    onExport?: (groupId: string, format: "xlsx" | "csv") => void;
+    exportDisabled?: boolean;
 }
 
 export function GroupAccordion({

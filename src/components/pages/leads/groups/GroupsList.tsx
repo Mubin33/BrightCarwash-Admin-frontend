@@ -21,6 +21,8 @@ interface GroupsListProps {
     onDeleteGroup: (groupId: string) => void;
     router: { push: (url: string) => void };
     onGroupExpand?: (groupId: string) => void;
+    onExport?: (groupId: string, format: "xlsx" | "csv") => void;
+    exportDisabled?: boolean;
 }
 
 export function GroupsList({
@@ -33,6 +35,8 @@ export function GroupsList({
     onDeleteGroup,
     router,
     onGroupExpand,
+    onExport,
+    exportDisabled,
 }: GroupsListProps) {
     if (groups.length === 0) {
         return (
@@ -53,6 +57,8 @@ export function GroupsList({
             onAddLead={onAddLead}
             onDeleteGroup={onDeleteGroup}
             onGroupExpand={onGroupExpand}
+            onExport={onExport}
+            exportDisabled={exportDisabled}
         />
     );
 }

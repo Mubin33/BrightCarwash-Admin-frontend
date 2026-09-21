@@ -72,6 +72,7 @@ export const LeadsTable = forwardRef<LeadsTableHandle, LeadsTableExternalProps>(
       setDepositFilter,
       uniqueSources,
       stages,
+      setStages,
       refreshStages,
       selectedIds,
       handleSelectRow,
@@ -235,6 +236,7 @@ export const LeadsTable = forwardRef<LeadsTableHandle, LeadsTableExternalProps>(
             <KanbanBoard
               leads={leads}
               stages={stages}
+              setStages={setStages}
               onStageChange={handleStageChange}
               onDeleteLead={handleDelete}
               onStageDeleted={refreshStages}

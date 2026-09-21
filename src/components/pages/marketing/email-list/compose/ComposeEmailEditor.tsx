@@ -79,7 +79,9 @@ export function ComposeEmailEditor({
   const [imageModalOpen, setImageModalOpen] = useState(false);
 
   const [linkUrl, setLinkUrl] = useState("");
-  const [imageUrl, setImageUrl] = useState("");
+const [imageUrl, setImageUrl] = useState("");
+const [imageError, setImageError] = useState("");
+const [isCheckingImage, setIsCheckingImage] = useState(false);
 
   const editor = useEditor({
     extensions: [
@@ -157,23 +159,118 @@ export function ComposeEmailEditor({
    * IMAGE
    * =========================
    */
+const handleAddImage = async () => {
+  const inputUrl = imageUrl.trim();
 
-  const handleAddImage = () => {
-    if (!imageUrl.trim()) {
+  if (!inputUrl) {
+    setImageError("Please enter an image URL.");
+    return;
+  }
+
+  let finalImageUrl = inputUrl;
+
+  try {
+    const parsedUrl = new URL(inputUrl);
+
+    // Only allow http/https URLs
+    if (parsedUrl.protocol !== "http:" && parsedUrl.protocol !== "https:") {
+      setImageError("Please enter a valid HTTP or HTTPS image URL.");
       return;
     }
 
+    /*
+     * ==========================================
+     * UNSPLASH PHOTO PAGE
+     * ==========================================
+     *
+     * Example:
+     * https://unsplash.com/photos/abc123
+     *
+     * becomes:
+     * https://unsplash.com/photos/abc123/download
+     */
+    if (
+      parsedUrl.hostname === "unsplash.com" ||
+      parsedUrl.hostname === "www.unsplash.com"
+    ) {
+      const pathParts = parsedUrl.pathname
+        .split("/")
+        .filter(Boolean);
+
+      if (pathParts[0] === "photos" && pathParts.length >= 2) {
+        const photoId = pathParts[pathParts.length - 1];
+
+        finalImageUrl = `https://unsplash.com/photos/${photoId}/download`;
+      }
+    }
+
+    setIsCheckingImage(true);
+    setImageError("");
+
+    /*
+     * ==========================================
+     * VALIDATE IMAGE URL
+     * ==========================================
+     *
+     * Browser will try to load the URL as an image.
+     * If it returns an actual image -> onload
+     * If it returns HTML / broken URL -> onerror
+     */
+    await new Promise<void>((resolve, reject) => {
+      const image = new window.Image();
+
+      image.onload = () => {
+        resolve();
+      };
+
+      image.onerror = () => {
+        reject(new Error("Unable to load image"));
+      };
+
+      image.src = finalImageUrl;
+    });
+
+    /*
+     * ==========================================
+     * INSERT IMAGE
+     * ==========================================
+     */
     editor
       .chain()
       .focus()
       .setImage({
-        src: imageUrl.trim(),
+        src: finalImageUrl,
       })
       .run();
 
     setImageUrl("");
+    setImageError("");
     setImageModalOpen(false);
-  };
+  } catch {
+    setImageError(
+      "This URL could not be loaded as an image. Please use a public image URL."
+    );
+  } finally {
+    setIsCheckingImage(false);
+  }
+};
+
+  // const handleAddImage = () => {
+  //   if (!imageUrl.trim()) {
+  //     return;
+  //   }
+
+  //   editor
+  //     .chain()
+  //     .focus()
+  //     .setImage({
+  //       src: imageUrl.trim(),
+  //     })
+  //     .run();
+
+  //   setImageUrl("");
+  //   setImageModalOpen(false);
+  // };
 
   /*
    * =========================
@@ -446,54 +543,78 @@ export function ComposeEmailEditor({
           IMAGE MODAL
       ======================================== */}
 
-      <Modal
-        isOpen={imageModalOpen}
-        onClose={() => {
+    <Modal
+  isOpen={imageModalOpen}
+  onClose={() => {
+    setImageModalOpen(false);
+    setImageUrl("");
+    setImageError("");
+  }}
+  title="Insert Image"
+  size="sm"
+>
+  <div className="flex flex-col gap-4 py-2">
+    <div>
+      <label className="block text-sm font-medium text-[#1B1B1B] mb-1.5">
+        Image URL
+      </label>
+
+      <input
+        type="url"
+        value={imageUrl}
+        onChange={(e) => {
+          setImageUrl(e.target.value);
+          setImageError("");
+        }}
+        placeholder="https://example.com/image.jpg"
+        className={`w-full px-4 py-2.5 border rounded-lg text-sm outline-none bg-white ${
+          imageError
+            ? "border-[#FF4345] focus:border-[#FF4345]"
+            : "border-[#DFE1E7] focus:border-[#0098E8]"
+        }`}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            handleAddImage();
+          }
+        }}
+      />
+
+      <p className="mt-1.5 text-xs text-[#777980]">
+        Paste a direct image URL or a public image page such as Unsplash.
+      </p>
+
+      {imageError && (
+        <p className="mt-1.5 text-xs text-[#FF4345]">
+          {imageError}
+        </p>
+      )}
+    </div>
+
+    <div className="flex gap-3 justify-end pt-2 border-t border-[#E8E8E9]">
+      <Button
+        type="button"
+        variant="outline"
+        onClick={() => {
           setImageModalOpen(false);
           setImageUrl("");
+          setImageError("");
         }}
-        title="Insert Image"
-        size="sm"
+        disabled={isCheckingImage}
       >
-        <div className="flex flex-col gap-4 py-2">
-          <div>
-            <label className="block text-sm font-medium text-[#1B1B1B] mb-1.5">
-              Image URL
-            </label>
+        Cancel
+      </Button>
 
-            <input
-              type="url"
-              value={imageUrl}
-              onChange={(e) => setImageUrl(e.target.value)}
-              placeholder="https://example.com/image.png"
-              className="w-full px-4 py-2.5 border border-[#DFE1E7] rounded-lg text-sm outline-none focus:border-[#0098E8] bg-white"
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  handleAddImage();
-                }
-              }}
-            />
-          </div>
-
-          <div className="flex gap-3 justify-end pt-2 border-t border-[#E8E8E9]">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => {
-                setImageModalOpen(false);
-                setImageUrl("");
-              }}
-            >
-              Cancel
-            </Button>
-
-            <Button type="button" onClick={handleAddImage}>
-              Insert Image
-            </Button>
-          </div>
-        </div>
-      </Modal>
+      <Button
+        type="button"
+        onClick={handleAddImage}
+        disabled={isCheckingImage}
+      >
+        {isCheckingImage ? "Checking..." : "Insert Image"}
+      </Button>
+    </div>
+  </div>
+</Modal>
     </>
   );
 }

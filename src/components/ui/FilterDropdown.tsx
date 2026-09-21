@@ -85,7 +85,7 @@ export function FilterDropdown({
 	}, [open, fullWidth, dropdownOffsetX, maxHeight]);
 
 	const selectedLabel = value
-		? options.find((o) => o.value === value)?.label || label
+		? options.find((o) => o.value === value)?.label.replace(/_/g, ' ') || label
 		: label;
 
 	const defaultBtnClass =
@@ -93,6 +93,8 @@ export function FilterDropdown({
 
 
 	const dropdownPositionClass = position === 'top' ? 'bottom-full' : '';
+
+	console.log("shiam", options);
 
 	return (
 		<div
@@ -150,12 +152,16 @@ export function FilterDropdown({
 									onChange(option.value);
 									setOpen(false);
 								}}
-								className={`flex w-full py-2.5 px-4 items-center text-sm text-left cursor-pointer transition-colors capitalize ${value === option.value
-									? 'bg-[#0098E8] text-white'
-									: 'text-[#1B1B1B] hover:bg-[#F8FAFB]'
+								className={`flex w-full py-2.5 px-4 items-center text-sm text-left cursor-pointer transition-colors capitalize ${option.value === "__create_new_stage__"
+									? "text-[#0098E8]" :
+
+
+									value === option.value
+										? 'bg-[#0098E8] text-white'
+										: 'text-[#1B1B1B] hover:bg-[#F8FAFB]'
 									}`}
 							>
-								{option.label}
+								{option.label.replace(/_/g, " ")}
 							</Button>
 						))}
 					</div>,

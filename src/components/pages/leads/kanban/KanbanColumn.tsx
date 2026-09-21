@@ -21,6 +21,7 @@ interface KanbanColumnProps {
   icon: string;
   items: Lead[];
   stages: StageOption[];
+  setStages: (stages: StageOption[]) => void;
   onDeleteLead: (lead: Lead) => void;
   onStageDeleted: () => void;
 }
@@ -33,6 +34,7 @@ export function KanbanColumn({
   items,
   stageId,
   stages,
+  setStages,
   onDeleteLead,
   onStageDeleted,
 }: KanbanColumnProps) {
@@ -149,6 +151,7 @@ export function KanbanColumn({
         stageId={stageId}
         borderColor={borderColor}
         stages={stages}
+        setStages={setStages}
       />
     </>
   );

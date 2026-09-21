@@ -1,236 +1,771 @@
-"use client";
+'use client';
 
-import { useState, useEffect, useMemo } from "react";
-import { Modal } from "@/components/ui/Modal";
-import { Button } from "@/components/ui/Button";
-import { FilterDropdown } from "@/components/ui/FilterDropdown";
+import {
+	useEffect,
+	useMemo,
+	useState,
+} from 'react';
+
+import { Modal } from '@/components/ui/Modal';
+import { Button } from '@/components/ui/Button';
+import { FilterDropdown } from '@/components/ui/FilterDropdown';
+import { TimePicker } from '../templates/TimePicker';
+
 
 interface ScheduleModalProps {
-    isOpen: boolean;
-    onClose: () => void;
-    onSchedule: (scheduledAt: string) => void;
-    isScheduling?: boolean;
+	isOpen: boolean;
+	onClose: () => void;
+	onSchedule: (scheduledAt: string) => void;
+	isScheduling?: boolean;
 }
 
-const labelClass = "text-[#777980] font-inter text-base font-normal leading-[130%]";
+const labelClass =
+	'text-[#777980] font-inter text-base font-normal leading-[130%]';
 
-function getDaysInMonth(year: number, month: number): number {
-    return new Date(year, month + 1, 0).getDate();
+function getCurrentTimeValue() {
+	const now = new Date();
+
+	return `${String(now.getHours()).padStart(2, '0')}:${String(
+		now.getMinutes(),
+	).padStart(2, '0')}`;
+}
+
+function getDaysInMonth(
+	year: number,
+	month: number,
+): number {
+	return new Date(
+		year,
+		month + 1,
+		0,
+	).getDate();
+}
+
+function formatTime(
+	hour: number,
+	minute: number,
+) {
+	return `${String(hour).padStart(
+		2,
+		'0',
+	)}:${String(minute).padStart(2, '0')}`;
 }
 
 export function ScheduleModal({
-    isOpen,
-    onClose,
-    onSchedule,
-    isScheduling = false,
+	isOpen,
+	onClose,
+	onSchedule,
+	isScheduling = false,
 }: ScheduleModalProps) {
-    const defaultDate = new Date();
-    defaultDate.setDate(defaultDate.getDate() + 7);
+	const defaultDate = new Date();
 
-    const [selectedMonth, setSelectedMonth] = useState(defaultDate.getMonth());
-    const [selectedDay, setSelectedDay] = useState(defaultDate.getDate());
-    const [selectedYear, setSelectedYear] = useState(defaultDate.getFullYear());
-    const [selectedHour, setSelectedHour] = useState(9);
-    const [selectedMinute, setSelectedMinute] = useState(0);
-    const [selectedPeriod, setSelectedPeriod] = useState<"AM" | "PM">("AM");
-    const [error, setError] = useState("");
+	defaultDate.setDate(
+		defaultDate.getDate() + 7,
+	);
 
-    useEffect(() => {
-        if (isOpen) {
-            const d = new Date();
-            d.setDate(d.getDate() + 7);
-            setSelectedMonth(d.getMonth());
-            setSelectedDay(d.getDate());
-            setSelectedYear(d.getFullYear());
-            setSelectedHour(9);
-            setSelectedMinute(0);
-            setSelectedPeriod("AM");
-            setError("");
-        }
-    }, [isOpen]);
+	const [selectedMonth, setSelectedMonth] =
+		useState(defaultDate.getMonth());
 
-    const months = [
-        "January", "February", "March", "April", "May", "June",
-        "July", "August", "September", "October", "November", "December",
-    ];
+	const [selectedDay, setSelectedDay] =
+		useState(defaultDate.getDate());
 
-    const monthOptions = useMemo(() => months.map((m, i) => ({ value: String(i), label: m })), []);
-    const dayOptions = useMemo(
-        () =>
-            Array.from({ length: getDaysInMonth(selectedYear, selectedMonth) }, (_, i) => ({
-                value: String(i + 1),
-                label: String(i + 1),
-            })),
-        [selectedYear, selectedMonth]
-    );
-    const yearOptions = useMemo(
-        () =>
-            Array.from({ length: 5 }, (_, i) => {
-                const y = new Date().getFullYear() + i;
-                return { value: String(y), label: String(y) };
-            }),
-        []
-    );
-    const hourOptions = useMemo(
-        () =>
-            Array.from({ length: 12 }, (_, i) => ({
-                value: String(i + 1),
-                label: String(i + 1).padStart(2, "0"),
-            })),
-        []
-    );
-    const minuteOptions = useMemo(
-        () => [
-            { value: "0", label: "00" },
-            { value: "15", label: "15" },
-            { value: "30", label: "30" },
-            { value: "45", label: "45" },
-        ],
-        []
-    );
-    const periodOptions = useMemo(
-        () => [
-            { value: "AM", label: "AM" },
-            { value: "PM", label: "PM" },
-        ],
-        []
-    );
+	const [selectedYear, setSelectedYear] =
+		useState(defaultDate.getFullYear());
 
-    const handleSchedule = () => {
-        const hour24 =
-            selectedPeriod === "PM" && selectedHour !== 12
-                ? selectedHour + 12
-                : selectedPeriod === "AM" && selectedHour === 12
-                    ? 0
-                    : selectedHour;
 
-        const scheduled = new Date(selectedYear, selectedMonth, selectedDay, hour24, selectedMinute);
+const [selectedTime, setSelectedTime] =
+	useState(getCurrentTimeValue());
 
-        if (scheduled <= new Date()) {
-            setError("Please select a future date and time");
-            return;
-        }
+	const [error, setError] = useState('');
 
-        onSchedule(scheduled.toISOString());
-    };
+useEffect(() => {
+	if (!isOpen) {
+		return;
+	}
 
-    const modalTitle = (
-        <div className="flex flex-col gap-1">
-            <span className="text-[#1D1F2C] font-inter text-2xl font-medium leading-[100%]">
-                Schedule Campaign
-            </span>
-            <span className="text-[#777980] font-inter text-sm font-normal leading-[132%]">
-                Choose when this campaign should be sent automatically.
-            </span>
-        </div>
-    );
+	const date = new Date();
 
-    const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+	date.setDate(date.getDate() + 7);
 
-    return (
-        <Modal
-            isOpen={isOpen}
-            onClose={onClose}
-            title={modalTitle}
-            size="md"
-            bodyClassName="py-3"
-        >
-            <div className="flex flex-col gap-4">
-                <div className="w-full h-px bg-[#DFE1E7]" />
+	setSelectedMonth(date.getMonth());
+	setSelectedDay(date.getDate());
+	setSelectedYear(date.getFullYear());
 
-                {/* Date Section */}
-                <div>
-                    <label className={labelClass}>Date</label>
-                    <div className="flex gap-2 mt-1.5">
-                        <FilterDropdown
-                            label="Month"
-                            options={monthOptions}
-                            value={String(selectedMonth)}
-                            onChange={(val) => {
-                                const newMonth = Number(val);
-                                setSelectedMonth(newMonth);
-                                const maxDay = getDaysInMonth(selectedYear, newMonth);
-                                if (selectedDay > maxDay) setSelectedDay(maxDay);
-                            }}
-                            fullWidth
-                            scrollable
-                        />
-                        <FilterDropdown
-                            label="Day"
-                            options={dayOptions}
-                            value={String(selectedDay)}
-                            onChange={(val) => setSelectedDay(Number(val))}
-                            fullWidth
-                            scrollable
-                        />
-                        <FilterDropdown
-                            label="Year"
-                            options={yearOptions}
-                            value={String(selectedYear)}
-                            onChange={(val) => setSelectedYear(Number(val))}
-                            fullWidth
-                            scrollable
-                        />
-                    </div>
-                </div>
+	// Select current time by default
+	setSelectedTime(getCurrentTimeValue());
 
-                {/* Time Section */}
-                <div>
-                    <label className={labelClass}>Time</label>
-                    <div className="flex gap-2 mt-1.5">
-                        <FilterDropdown
-                            label="Hour"
-                            options={hourOptions}
-                            value={String(selectedHour)}
-                            onChange={(val) => setSelectedHour(Number(val))}
-                            fullWidth
-                            scrollable
-                        />
-                        <FilterDropdown
-                            label="Min"
-                            options={minuteOptions}
-                            value={String(selectedMinute)}
-                            onChange={(val) => setSelectedMinute(Number(val))}
-                            fullWidth
-                            scrollable
-                        />
-                        <FilterDropdown
-                            label="AM/PM"
-                            options={periodOptions}
-                            value={selectedPeriod}
-                            onChange={(val) => setSelectedPeriod(val as "AM" | "PM")}
-                            fullWidth
-                        />
-                    </div>
-                </div>
+	setError('');
+}, [isOpen]);
 
-                {error && (
-                    <p className="text-[#FF4345] font-inter text-xs">{error}</p>
-                )}
+	const months = [
+		'January',
+		'February',
+		'March',
+		'April',
+		'May',
+		'June',
+		'July',
+		'August',
+		'September',
+		'October',
+		'November',
+		'December',
+	];
 
-                <p className="text-[#777980] font-inter text-xs">
-                    Your timezone: <span className="text-[#1B1B1B] font-medium">{userTimezone}</span>. Campaign will be sent automatically at the specified date and time.
-                </p>
 
-                <div className="flex gap-3 justify-end pt-2">
-                    <Button
-                        type="button"
-                        variant="outline"
-                        onClick={onClose}
-                        className="flex-1 py-2.5"
-                    >
-                        Cancel
-                    </Button>
-                    <Button
-                        onClick={handleSchedule}
-                        isLoading={isScheduling}
-                        loadingText="Scheduling..."
-                        className="flex-1 py-2.5"
-                    >
-                        Schedule
-                    </Button>
-                </div>
-            </div>
-        </Modal>
-    );
+	const monthOptions = useMemo(
+		() =>
+			months.map(
+				(month, index) => ({
+					value: String(index),
+					label: month,
+				}),
+			),
+		[],
+	);
+
+
+	const dayOptions = useMemo(
+		() =>
+			Array.from(
+				{
+					length: getDaysInMonth(
+						selectedYear,
+						selectedMonth,
+					),
+				},
+				(_, index) => ({
+					value: String(
+						index + 1,
+					),
+					label: String(
+						index + 1,
+					),
+				}),
+			),
+		[
+			selectedYear,
+			selectedMonth,
+		],
+	);
+
+
+	const yearOptions = useMemo(
+		() =>
+			Array.from(
+				{ length: 5 },
+				(_, index) => {
+					const year =
+						new Date().getFullYear() +
+						index;
+
+					return {
+						value: String(
+							year,
+						),
+						label: String(
+							year,
+						),
+					};
+				},
+			),
+		[],
+	);
+
+
+	const getSelectedDateTime =
+		() => {
+			const [
+				hour,
+				minute,
+			] = selectedTime
+				.split(':')
+				.map(Number);
+
+			return new Date(
+				selectedYear,
+				selectedMonth,
+				selectedDay,
+				hour,
+				minute,
+				0,
+				0,
+			);
+		};
+
+
+	const normalizeTimeForDate = (
+		year: number,
+		month: number,
+		day: number,
+	) => {
+		const now = new Date();
+
+		const minimumAllowed =
+			new Date(
+				now.getTime() +
+					5 * 60 * 1000,
+			);
+
+		minimumAllowed.setSeconds(
+			0,
+			0,
+		);
+
+		const [
+			hour,
+			minute,
+		] = selectedTime
+			.split(':')
+			.map(Number);
+
+		const selectedDate =
+			new Date(
+				year,
+				month,
+				day,
+				hour,
+				minute,
+				0,
+				0,
+			);
+
+		const isToday =
+			year === now.getFullYear() &&
+			month === now.getMonth() &&
+			day === now.getDate();
+
+		if (
+			isToday &&
+			selectedDate <
+				minimumAllowed
+		) {
+			setSelectedTime(
+				formatTime(
+					minimumAllowed.getHours(),
+					minimumAllowed.getMinutes(),
+				),
+			);
+		}
+	};
+
+
+	const handleSchedule = () => {
+		const scheduled =
+			getSelectedDateTime();
+
+		const now = new Date();
+
+		const minimumAllowed =
+			new Date(
+				now.getTime() +
+					5 * 60 * 1000,
+			);
+
+		minimumAllowed.setSeconds(
+			0,
+			0,
+		);
+
+		if (
+			scheduled < minimumAllowed
+		) {
+			setError(
+				'Please select a date and time at least 5 minutes from now.',
+			);
+
+			return;
+		}
+
+		setError('');
+
+		onSchedule(
+			scheduled.toISOString(),
+		);
+	};
+
+	const modalTitle = (
+		<div className="flex flex-col gap-1">
+			<span className="text-[#1D1F2C] font-inter text-2xl font-medium leading-[100%]">
+				Schedule Campaign
+			</span>
+
+			<span className="text-[#777980] font-inter text-sm font-normal leading-[132%]">
+				Choose when this campaign should be
+				sent automatically.
+			</span>
+		</div>
+	);
+
+	const userTimezone =
+		Intl.DateTimeFormat()
+			.resolvedOptions()
+			.timeZone;
+
+	return (
+		<Modal
+			isOpen={isOpen}
+			onClose={onClose}
+			title={modalTitle}
+			size="md"
+			bodyClassName="py-3"
+		>
+			<div className="flex flex-col gap-4">
+				<div className="w-full h-px bg-[#DFE1E7]" />
+
+				<div>
+					<label className={labelClass}>
+						Date
+					</label>
+
+					<div className="flex gap-2 mt-1.5">
+						<FilterDropdown
+							label="Month"
+							options={
+								monthOptions
+							}
+							value={String(
+								selectedMonth,
+							)}
+							onChange={(
+								value,
+							) => {
+								if (!value) {
+									return;
+								}
+
+								const month =
+									Number(
+										value,
+									);
+
+								setSelectedMonth(
+									month,
+								);
+
+								const maxDay =
+									getDaysInMonth(
+										selectedYear,
+										month,
+									);
+
+								const day =
+									Math.min(
+										selectedDay,
+										maxDay,
+									);
+
+								setSelectedDay(
+									day,
+								);
+
+								normalizeTimeForDate(
+									selectedYear,
+									month,
+									day,
+								);
+
+								setError('');
+							}}
+							fullWidth
+							scrollable
+						/>
+
+						<FilterDropdown
+							label="Day"
+							options={
+								dayOptions
+							}
+							value={String(
+								selectedDay,
+							)}
+							onChange={(
+								value,
+							) => {
+								if (!value) {
+									return;
+								}
+
+								const day =
+									Number(
+										value,
+									);
+
+								setSelectedDay(
+									day,
+								);
+
+								normalizeTimeForDate(
+									selectedYear,
+									selectedMonth,
+									day,
+								);
+
+								setError('');
+							}}
+							fullWidth
+							scrollable
+						/>
+
+						<FilterDropdown
+							label="Year"
+							options={
+								yearOptions
+							}
+							value={String(
+								selectedYear,
+							)}
+							onChange={(
+								value,
+							) => {
+								if (!value) {
+									return;
+								}
+
+								const year =
+									Number(
+										value,
+									);
+
+								setSelectedYear(
+									year,
+								);
+
+								const maxDay =
+									getDaysInMonth(
+										year,
+										selectedMonth,
+									);
+
+								const day =
+									Math.min(
+										selectedDay,
+										maxDay,
+									);
+
+								setSelectedDay(
+									day,
+								);
+
+								normalizeTimeForDate(
+									year,
+									selectedMonth,
+									day,
+								);
+
+								setError('');
+							}}
+							fullWidth
+							scrollable
+						/>
+					</div>
+				</div>
+
+
+				<div>
+					<label className={labelClass}>
+						Time
+					</label>
+
+					<div className="mt-1.5">
+						<TimePicker
+							value={
+								selectedTime
+							}
+							onChange={(
+								value,
+							) => {
+								setSelectedTime(
+									value,
+								);
+
+								setError('');
+							}}
+						/>
+					</div>
+				</div>
+
+
+				{error && (
+					<p className="text-[#FF4345] font-inter text-xs">
+						{error}
+					</p>
+				)}
+
+
+				<p className="text-[#777980] font-inter text-xs">
+					Your timezone:{' '}
+					<span className="text-[#1B1B1B] font-medium">
+						{userTimezone}
+					</span>
+					. Campaign will be sent automatically
+					at the specified date and time.
+				</p>
+
+
+				<div className="flex gap-3 justify-end pt-2">
+					<Button
+						type="button"
+						variant="outline"
+						onClick={onClose}
+						className="flex-1 py-2.5"
+					>
+						Cancel
+					</Button>
+
+					<Button
+						onClick={
+							handleSchedule
+						}
+						isLoading={
+							isScheduling
+						}
+						loadingText="Scheduling..."
+						className="flex-1 py-2.5"
+					>
+						Schedule
+					</Button>
+				</div>
+			</div>
+		</Modal>
+	);
 }
+
+
+// "use client";
+
+// import { useState, useEffect, useMemo } from "react";
+// import { Modal } from "@/components/ui/Modal";
+// import { Button } from "@/components/ui/Button";
+// import { FilterDropdown } from "@/components/ui/FilterDropdown";
+
+// interface ScheduleModalProps {
+//     isOpen: boolean;
+//     onClose: () => void;
+//     onSchedule: (scheduledAt: string) => void;
+//     isScheduling?: boolean;
+// }
+
+// const labelClass = "text-[#777980] font-inter text-base font-normal leading-[130%]";
+
+// function getDaysInMonth(year: number, month: number): number {
+//     return new Date(year, month + 1, 0).getDate();
+// }
+
+// export function ScheduleModal({
+//     isOpen,
+//     onClose,
+//     onSchedule,
+//     isScheduling = false,
+// }: ScheduleModalProps) {
+//     const defaultDate = new Date();
+//     defaultDate.setDate(defaultDate.getDate() + 7);
+
+//     const [selectedMonth, setSelectedMonth] = useState(defaultDate.getMonth());
+//     const [selectedDay, setSelectedDay] = useState(defaultDate.getDate());
+//     const [selectedYear, setSelectedYear] = useState(defaultDate.getFullYear());
+//     const [selectedHour, setSelectedHour] = useState(9);
+//     const [selectedMinute, setSelectedMinute] = useState(0);
+//     const [selectedPeriod, setSelectedPeriod] = useState<"AM" | "PM">("AM");
+//     const [error, setError] = useState("");
+
+//     useEffect(() => {
+//         if (isOpen) {
+//             const d = new Date();
+//             d.setDate(d.getDate() + 7);
+//             setSelectedMonth(d.getMonth());
+//             setSelectedDay(d.getDate());
+//             setSelectedYear(d.getFullYear());
+//             setSelectedHour(9);
+//             setSelectedMinute(0);
+//             setSelectedPeriod("AM");
+//             setError("");
+//         }
+//     }, [isOpen]);
+
+//     const months = [
+//         "January", "February", "March", "April", "May", "June",
+//         "July", "August", "September", "October", "November", "December",
+//     ];
+
+//     const monthOptions = useMemo(() => months.map((m, i) => ({ value: String(i), label: m })), []);
+//     const dayOptions = useMemo(
+//         () =>
+//             Array.from({ length: getDaysInMonth(selectedYear, selectedMonth) }, (_, i) => ({
+//                 value: String(i + 1),
+//                 label: String(i + 1),
+//             })),
+//         [selectedYear, selectedMonth]
+//     );
+//     const yearOptions = useMemo(
+//         () =>
+//             Array.from({ length: 5 }, (_, i) => {
+//                 const y = new Date().getFullYear() + i;
+//                 return { value: String(y), label: String(y) };
+//             }),
+//         []
+//     );
+//     const hourOptions = useMemo(
+//         () =>
+//             Array.from({ length: 12 }, (_, i) => ({
+//                 value: String(i + 1),
+//                 label: String(i + 1).padStart(2, "0"),
+//             })),
+//         []
+//     );
+//     const minuteOptions = useMemo(
+//         () => [
+//             { value: "0", label: "00" },
+//             { value: "15", label: "15" },
+//             { value: "30", label: "30" },
+//             { value: "45", label: "45" },
+//         ],
+//         []
+//     );
+//     const periodOptions = useMemo(
+//         () => [
+//             { value: "AM", label: "AM" },
+//             { value: "PM", label: "PM" },
+//         ],
+//         []
+//     );
+
+//     const handleSchedule = () => {
+//         const hour24 =
+//             selectedPeriod === "PM" && selectedHour !== 12
+//                 ? selectedHour + 12
+//                 : selectedPeriod === "AM" && selectedHour === 12
+//                     ? 0
+//                     : selectedHour;
+
+//         const scheduled = new Date(selectedYear, selectedMonth, selectedDay, hour24, selectedMinute);
+
+//         if (scheduled <= new Date()) {
+//             setError("Please select a future date and time");
+//             return;
+//         }
+
+//         onSchedule(scheduled.toISOString());
+//     };
+
+//     const modalTitle = (
+//         <div className="flex flex-col gap-1">
+//             <span className="text-[#1D1F2C] font-inter text-2xl font-medium leading-[100%]">
+//                 Schedule Campaign
+//             </span>
+//             <span className="text-[#777980] font-inter text-sm font-normal leading-[132%]">
+//                 Choose when this campaign should be sent automatically.
+//             </span>
+//         </div>
+//     );
+
+//     const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+//     return (
+//         <Modal
+//             isOpen={isOpen}
+//             onClose={onClose}
+//             title={modalTitle}
+//             size="md"
+//             bodyClassName="py-3"
+//         >
+//             <div className="flex flex-col gap-4">
+//                 <div className="w-full h-px bg-[#DFE1E7]" />
+
+//                 {/* Date Section */}
+//                 <div>
+//                     <label className={labelClass}>Date</label>
+//                     <div className="flex gap-2 mt-1.5">
+//                         <FilterDropdown
+//                             label="Month"
+//                             options={monthOptions}
+//                             value={String(selectedMonth)}
+//                             onChange={(val) => {
+//                                 const newMonth = Number(val);
+//                                 setSelectedMonth(newMonth);
+//                                 const maxDay = getDaysInMonth(selectedYear, newMonth);
+//                                 if (selectedDay > maxDay) setSelectedDay(maxDay);
+//                             }}
+//                             fullWidth
+//                             scrollable
+//                         />
+//                         <FilterDropdown
+//                             label="Day"
+//                             options={dayOptions}
+//                             value={String(selectedDay)}
+//                             onChange={(val) => setSelectedDay(Number(val))}
+//                             fullWidth
+//                             scrollable
+//                         />
+//                         <FilterDropdown
+//                             label="Year"
+//                             options={yearOptions}
+//                             value={String(selectedYear)}
+//                             onChange={(val) => setSelectedYear(Number(val))}
+//                             fullWidth
+//                             scrollable
+//                         />
+//                     </div>
+//                 </div>
+
+//                 {/* Time Section */}
+//                 <div>
+//                     <label className={labelClass}>Time</label>
+//                     <div className="flex gap-2 mt-1.5">
+//                         <FilterDropdown
+//                             label="Hour"
+//                             options={hourOptions}
+//                             value={String(selectedHour)}
+//                             onChange={(val) => setSelectedHour(Number(val))}
+//                             fullWidth
+//                             scrollable
+//                         />
+//                         <FilterDropdown
+//                             label="Min"
+//                             options={minuteOptions}
+//                             value={String(selectedMinute)}
+//                             onChange={(val) => setSelectedMinute(Number(val))}
+//                             fullWidth
+//                             scrollable
+//                         />
+//                         <FilterDropdown
+//                             label="AM/PM"
+//                             options={periodOptions}
+//                             value={selectedPeriod}
+//                             onChange={(val) => setSelectedPeriod(val as "AM" | "PM")}
+//                             fullWidth
+//                         />
+//                     </div>
+//                 </div>
+
+//                 {error && (
+//                     <p className="text-[#FF4345] font-inter text-xs">{error}</p>
+//                 )}
+
+//                 <p className="text-[#777980] font-inter text-xs">
+//                     Your timezone: <span className="text-[#1B1B1B] font-medium">{userTimezone}</span>. Campaign will be sent automatically at the specified date and time.
+//                 </p>
+
+//                 <div className="flex gap-3 justify-end pt-2">
+//                     <Button
+//                         type="button"
+//                         variant="outline"
+//                         onClick={onClose}
+//                         className="flex-1 py-2.5"
+//                     >
+//                         Cancel
+//                     </Button>
+//                     <Button
+//                         onClick={handleSchedule}
+//                         isLoading={isScheduling}
+//                         loadingText="Scheduling..."
+//                         className="flex-1 py-2.5"
+//                     >
+//                         Schedule
+//                     </Button>
+//                 </div>
+//             </div>
+//         </Modal>
+//     );
+// }
+

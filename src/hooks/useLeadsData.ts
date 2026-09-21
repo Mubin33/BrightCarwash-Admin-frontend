@@ -157,6 +157,7 @@ export function useLeadsData(
     setDepositFilter,
     uniqueSources,
     stages,
+    setStages,
     refreshStages,
     selectedIds,
     handleSelectRow,

@@ -9,7 +9,7 @@ import { getStages } from "@/services/stage.service";
 import { useExportExcel } from "@/hooks/useExportExcel";
 import { GroupsHeader } from "./GroupsHeader";
 import { GroupsList } from "./GroupsList";
-import { AddLeadModal } from "../kanban/AddLeadModal";
+import { AddGroupMemberModal } from "./AddGroupMemberModal";
 import { mapStagesToOptions } from "@/lib/stage-utils";
 import type { StageOption } from "@/components/ui/StageDropdown";
 import { toast } from "react-toastify";
@@ -261,12 +261,22 @@ export const GroupsContent = forwardRef<GroupsContentRef, { groupModalOpen: bool
                         handleGroupCreated(group);
                     }}
                 />
-                <AddLeadModal
+                <AddGroupMemberModal
                     isOpen={leadModalOpen}
                     onClose={() => { setLeadModalOpen(false); setTargetGroupId(null); }}
-                    onLeadCreated={handleLeadAdded}
+                    groupId={targetGroupId}
+                    groupName={groups.find((g) => g.id === targetGroupId)?.name}
+                    existingLeadIds={groups.find((g) => g.id === targetGroupId)?.leadIds || []}
                     stages={stages}
-                    title="Add New Member"
+                    onSuccess={async () => {
+                        if (targetGroupId) {
+                            await Promise.all([
+                                fetchGroupLeads(targetGroupId, true),
+                                refetch(),
+                                refetchLeads(),
+                            ]);
+                        }
+                    }}
                 />
             </div>
         );

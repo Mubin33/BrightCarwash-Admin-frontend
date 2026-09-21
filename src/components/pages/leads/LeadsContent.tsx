@@ -1,14 +1,14 @@
 "use client";
 
-import { useRef, useState } from "react";
 import {
   LeadsTable,
   type LeadsTableHandle,
 } from "@/components/pages/leads/LeadsTable";
-import { AddLeadModal } from "@/components/pages/leads/kanban/AddLeadModal";
 import { CreateGroupModal } from "@/components/pages/leads/groups/CreateGroupModal";
-import { LeadsContentHeader } from "./LeadsContentHeader";
+import { AddLeadModal } from "@/components/pages/leads/kanban/AddLeadModal";
 import { useLeadsContent } from "@/hooks/useLeadsContent";
+import { useRef, useState } from "react";
+import { LeadsContentHeader } from "./LeadsContentHeader";
 
 export function LeadsContent() {
   const [listLimit, setListLimit] = useState(10);
@@ -27,6 +27,7 @@ export function LeadsContent() {
     selectedLeads,
     setSelectedLeads,
     stages,
+    setStages,
     isExportOpen,
     setIsExportOpen,
     exportRef,
@@ -76,8 +77,9 @@ export function LeadsContent() {
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}
         stages={stages}
+        setStages={setStages}
       />
-      
+
       <CreateGroupModal
         isOpen={groupModalOpen}
         onClose={() => setGroupModalOpen(false)}
@@ -85,7 +87,7 @@ export function LeadsContent() {
         onGroupCreated={() => {
           setGroupModalOpen(false);
           setSelectedLeads([]);
-        } } 
+        }}
       />
     </div>
   );

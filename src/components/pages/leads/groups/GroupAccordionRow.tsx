@@ -60,14 +60,16 @@ export function GroupAccordionRow({
                     <div className="flex items-center gap-1">
                         {isExpanded && (
                             <>
-                                <Button
-                                    variant="icon"
-                                    permission={PERMISSIONS.lead_group.connect}
-                                    onClick={(e) => { e.stopPropagation(); onAddLead(group.id); }}
-                                    className="flex h-6 w-6 items-center justify-center rounded text-[#586cc3] bg-gray-300/50 hover:bg-[#586cc3]/10 transition-colors"
-                                >
-                                    <Plus size={14} />
-                                </Button>
+                                {(groupLeads.length > 0 || (group._count?.leads || 0) > 0) && (
+                                    <Button
+                                        variant="icon"
+                                        permission={PERMISSIONS.lead_group.connect}
+                                        onClick={(e) => { e.stopPropagation(); onAddLead(group.id); }}
+                                        className="flex px-2.5 py-1 text-xs text-black gap-1.5 items-center justify-center rounded text-[#586cc3] bg-gray-300/50 hover:bg-[#586cc3]/10 transition-colors cursor-pointer font-medium"
+                                    >
+                                        Add Member <Plus size={14} />
+                                    </Button>
+                                )}
                                 <Button
                                     variant="icon"
                                     permission={PERMISSIONS.lead_group.delete}
