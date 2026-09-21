@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/Button';
 import { useCreateGalleryMutation, useUpdateGalleryMutation } from '@/services/gallery.api';
 import type { GalleryItem } from '@/types/gallery';
 import { toast } from 'react-toastify';
+import { usePermission } from '@/hooks/usePermission';
+import { PERMISSIONS } from '@/lib/permissions';
 
 interface GalleryModalProps {
     isOpen: boolean;
@@ -28,6 +30,9 @@ export function GalleryModal({ isOpen, onClose, item, onSuccess }: GalleryModalP
     const [updateGallery] = useUpdateGalleryMutation();
 
     const isEditing = !!item;
+    const canUpdate = usePermission(PERMISSIONS.gallery.update);
+    const canCreate = usePermission(PERMISSIONS.gallery.create);
+    const canSubmit = isEditing ? canUpdate : canCreate;
 
     // Handle slide animation
     useEffect(() => {
@@ -100,6 +105,7 @@ export function GalleryModal({ isOpen, onClose, item, onSuccess }: GalleryModalP
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (!canSubmit) return;
         if (!name.trim()) {
             toast.warning('Please enter a name');
             return;
@@ -159,7 +165,7 @@ export function GalleryModal({ isOpen, onClose, item, onSuccess }: GalleryModalP
                     <div className="flex flex-col gap-3">
                         <div className="flex justify-between items-center">
                             <h2 className="text-[#1D1F2C] font-inter text-2xl font-medium leading-[132%]">
-                                {isEditing ? 'Edit Gallery Item' : 'Add New Gallery'}
+                                {isEditing ? (canUpdate ? 'Edit Gallery Item' : 'View Gallery Item') : 'Add New Gallery'}
                             </h2>
                             <button
                                 onClick={handleClose}
@@ -184,7 +190,8 @@ export function GalleryModal({ isOpen, onClose, item, onSuccess }: GalleryModalP
                                 value={name}
                                 onChange={(e) => setName(e.target.value)}
                                 placeholder="Enter gallery name..."
-                                className="w-full px-4 py-3 border border-[#DFE1E7] rounded-lg bg-white text-[#1B1B1B] placeholder-[#A5A5AB] font-inter text-base outline-none focus:border-[#0098E8] focus:ring-2 focus:ring-[#0098E8]/10 transition-all"
+                                disabled={!canSubmit}
+                                className={`w-full px-4 py-3 border border-[#DFE1E7] rounded-lg bg-white text-[#1B1B1B] placeholder-[#A5A5AB] font-inter text-base outline-none focus:border-[#0098E8] focus:ring-2 focus:ring-[#0098E8]/10 transition-all ${!canSubmit ? 'opacity-70 bg-gray-50 cursor-not-allowed' : ''}`}
                             />
                         </div>
 
@@ -194,33 +201,37 @@ export function GalleryModal({ isOpen, onClose, item, onSuccess }: GalleryModalP
                                 Image
                             </label>
                             <div
-                                className={`relative border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-all ${preview
-                                        ? 'border-[#0098E8] bg-[#F0F8FF]'
-                                        : 'border-[#DFE1E7] bg-[#F8FAFB] hover:border-[#0098E8] hover:bg-[#F0F8FF]'
+                                className={`relative border-2 border-dashed rounded-lg p-8 text-center transition-all ${!canSubmit
+                                        ? 'border-[#DFE1E7] bg-gray-50 cursor-default'
+                                        : preview
+                                            ? 'border-[#0098E8] bg-[#F0F8FF] cursor-pointer'
+                                            : 'border-[#DFE1E7] bg-[#F8FAFB] hover:border-[#0098E8] hover:bg-[#F0F8FF] cursor-pointer'
                                     }`}
-                                onDrop={handleDrop}
-                                onDragOver={handleDragOver}
-                                onClick={() => fileInputRef.current?.click()}
+                                onDrop={canSubmit ? handleDrop : undefined}
+                                onDragOver={canSubmit ? handleDragOver : undefined}
+                                onClick={canSubmit ? () => fileInputRef.current?.click() : undefined}
                             >
                                 {preview ? (
                                     <div className="relative">
                                         <img
-                                            src={preview}
-                                            alt="Preview"
-                                            className="max-h-[200px] mx-auto rounded-lg object-contain"
+                                             src={preview}
+                                             alt="Preview"
+                                             className="max-h-[200px] mx-auto rounded-lg object-contain"
                                         />
-                                        <button
-                                            type="button"
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                setFile(null);
-                                                setPreview(null);
-                                                if (fileInputRef.current) fileInputRef.current.value = '';
-                                            }}
-                                            className="absolute top-2 right-2 p-1 bg-white rounded-full shadow-md hover:bg-[#FFE6E6] transition-colors"
-                                        >
-                                            <X size={16} className="text-[#FF4345]" />
-                                        </button>
+                                        {canSubmit && (
+                                            <button
+                                                type="button"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    setFile(null);
+                                                    setPreview(null);
+                                                    if (fileInputRef.current) fileInputRef.current.value = '';
+                                                }}
+                                                className="absolute top-2 right-2 p-1 bg-white rounded-full shadow-md hover:bg-[#FFE6E6] transition-colors"
+                                            >
+                                                <X size={16} className="text-[#FF4345]" />
+                                            </button>
+                                        )}
                                     </div>
                                 ) : (
                                     <div className="flex flex-col items-center gap-2">
@@ -251,11 +262,12 @@ export function GalleryModal({ isOpen, onClose, item, onSuccess }: GalleryModalP
                             <div className="flex items-center gap-2">
                                 <button
                                     type="button"
+                                    disabled={!canSubmit}
                                     onClick={() => setIsPublished(false)}
                                     className={`flex-1 flex items-center gap-2 px-4 py-3 rounded-lg border transition-all ${!isPublished
-                                            ? 'bg-[#F7EBEA] border-[#B23730]'
+                                            ? 'bg-[#FEECEB] border-[#B23730]'
                                             : 'bg-white border-[#ECEFF3] hover:border-[#DFE1E7]'
-                                        }`}
+                                        } ${!canSubmit ? 'cursor-not-allowed opacity-70' : ''}`}
                                 >
                                     <div
                                         className={`w-5 h-5 rounded-full border flex items-center justify-center ${!isPublished
@@ -274,11 +286,12 @@ export function GalleryModal({ isOpen, onClose, item, onSuccess }: GalleryModalP
 
                                 <button
                                     type="button"
+                                    disabled={!canSubmit}
                                     onClick={() => setIsPublished(true)}
                                     className={`flex-1 flex items-center gap-2 px-4 py-3 rounded-lg border transition-all ${isPublished
                                             ? 'bg-[#DCF7EA] border-[#006F1F]'
                                             : 'bg-white border-[#ECEFF3] hover:border-[#DFE1E7]'
-                                        }`}
+                                        } ${!canSubmit ? 'cursor-not-allowed opacity-70' : ''}`}
                                 >
                                     <div
                                         className={`w-5 h-5 rounded-full border flex items-center justify-center ${isPublished
@@ -305,16 +318,18 @@ export function GalleryModal({ isOpen, onClose, item, onSuccess }: GalleryModalP
                                 onClick={handleClose}
                                 className="flex-1 py-3"
                             >
-                                Cancel
+                                {canSubmit ? 'Cancel' : 'Close'}
                             </Button>
-                            <Button
-                                type="submit"
-                                isLoading={isSubmitting}
-                                loadingText={isEditing ? 'Saving...' : 'Creating...'}
-                                className="flex-1 py-3"
-                            >
-                                {isEditing ? 'Save Changes' : 'Add Gallery'}
-                            </Button>
+                            {canSubmit && (
+                                <Button
+                                    type="submit"
+                                    isLoading={isSubmitting}
+                                    loadingText={isEditing ? 'Saving...' : 'Creating...'}
+                                    className="flex-1 py-3"
+                                >
+                                    {isEditing ? 'Save Changes' : 'Add Gallery'}
+                                </Button>
+                            )}
                         </div>
                     </form>
                 </div>

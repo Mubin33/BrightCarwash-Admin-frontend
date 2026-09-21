@@ -3,6 +3,8 @@
 import { useState, useMemo, useEffect, useRef, memo } from "react";
 import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
+import { usePermission } from "@/hooks/usePermission";
+import { PERMISSIONS } from "@/lib/permissions";
 import type { Permission, TeamRole } from "@/types/team";
 
 interface EditPermissionsModalProps {
@@ -29,7 +31,9 @@ export const EditPermissionsModal = memo(function EditPermissionsModal({
 }: EditPermissionsModalProps) {
     const [selected, setSelected] = useState<Set<string>>(() => new Set(selectedPermissions));
     const prevPermissionsRef = useRef<string[]>(selectedPermissions);
+    const canUpdate = usePermission(PERMISSIONS.role.update);
     const isLocked = role ? isSuperAdmin(role.name) : false;
+    const isReadOnly = isLocked || !canUpdate;
 
     // Sync external selectedPermissions into state when they change
     useEffect(() => {
@@ -55,12 +59,12 @@ export const EditPermissionsModal = memo(function EditPermissionsModal({
     const isAllSelected = allIds.every((id) => selected.has(id));
 
     const toggleAll = () => {
-        if (isLocked) return;
+        if (isReadOnly) return;
         setSelected(isAllSelected ? new Set() : new Set(allIds));
     };
 
     const toggleModule = (module: string) => {
-        if (isLocked) return;
+        if (isReadOnly) return;
         const moduleIds = grouped[module].map((p) => p.id);
         const allModSelected = moduleIds.every((id) => selected.has(id));
         setSelected((prev) => {
@@ -71,7 +75,7 @@ export const EditPermissionsModal = memo(function EditPermissionsModal({
     };
 
     const togglePermission = (id: string) => {
-        if (isLocked) return;
+        if (isReadOnly) return;
         setSelected((prev) => {
             const next = new Set(prev);
             next.has(id) ? next.delete(id) : next.add(id);
@@ -80,7 +84,7 @@ export const EditPermissionsModal = memo(function EditPermissionsModal({
     };
 
     const handleSave = () => {
-        if (!role) return;
+        if (!role || isReadOnly) return;
         onSave(role.id, Array.from(selected));
         onClose();
     };
@@ -96,19 +100,19 @@ export const EditPermissionsModal = memo(function EditPermissionsModal({
         <Modal
             isOpen={isOpen}
             onClose={onClose}
-            title={`Edit Permissions — ${role?.name || ""}`}
+            title={`Edit Permissions — ${role?.name || ""}${isReadOnly ? (isLocked ? " (Protected Role)" : " (View Only)") : ""}`}
             size="lg"
             bodyClassName="py-3"
         >
             <div className="flex flex-col gap-4">
                 <div className="w-full h-px bg-[#DFE1E7]" />
 
-                <label className="flex items-center gap-2.5 cursor-pointer">
+                <label className={`flex items-center gap-2.5 ${isReadOnly ? "cursor-default opacity-70" : "cursor-pointer"}`}>
                     <input
                         type="checkbox"
                         checked={isAllSelected}
                         onChange={toggleAll}
-                        disabled={isLocked}
+                        disabled={isReadOnly}
                         className="w-4 h-4 rounded accent-[#0098E8]"
                     />
                     <span className="text-sm font-medium text-[#1B1B1B]">Select All Permissions</span>
@@ -126,7 +130,7 @@ export const EditPermissionsModal = memo(function EditPermissionsModal({
                                     <h3 className="text-xs font-bold uppercase tracking-widest text-[#777980]">
                                         {module}
                                     </h3>
-                                    <label className="flex items-center gap-1.5 cursor-pointer text-xs text-[#777980] hover:text-[#1B1B1B]">
+                                    <label className={`flex items-center gap-1.5 text-xs text-[#777980] ${isReadOnly ? "cursor-default opacity-70" : "cursor-pointer hover:text-[#1B1B1B]"}`}>
                                         <input
                                             type="checkbox"
                                             checked={allModSelected}
@@ -134,8 +138,8 @@ export const EditPermissionsModal = memo(function EditPermissionsModal({
                                                 if (el) el.indeterminate = someModSelected && !allModSelected;
                                             }}
                                             onChange={() => toggleModule(module)}
-                                            disabled={isLocked}
-                                            className="w-3.5 h-3.5 rounded accent-[#0098E8] cursor-pointer"
+                                            disabled={isReadOnly}
+                                            className="w-3.5 h-3.5 rounded accent-[#0098E8]"
                                         />
                                         Module All
                                     </label>
@@ -144,17 +148,17 @@ export const EditPermissionsModal = memo(function EditPermissionsModal({
                                     {perms.map((perm) => (
                                         <label
                                             key={perm.id}
-                                            className={`flex items-center gap-2 px-3 py-2.5 rounded-lg border cursor-pointer transition-colors text-sm ${selected.has(perm.id)
+                                            className={`flex items-center gap-2 px-3 py-2.5 rounded-lg border transition-colors text-sm ${isReadOnly ? "cursor-default opacity-75" : "cursor-pointer"} ${selected.has(perm.id)
                                                 ? "border-[#0098E8] bg-[#EBF5FF]"
-                                                : "border-[#DFE1E7] bg-[#F8FAFB] hover:border-[#B0B3BC]"
+                                                : `border-[#DFE1E7] bg-[#F8FAFB] ${!isReadOnly ? "hover:border-[#B0B3BC]" : ""}`
                                                 }`}
                                         >
                                             <input
                                                 type="checkbox"
                                                 checked={selected.has(perm.id)}
                                                 onChange={() => togglePermission(perm.id)}
-                                                disabled={isLocked}
-                                                className="w-3.5 h-3.5 rounded accent-[#0098E8] cursor-pointer shrink-0"
+                                                disabled={isReadOnly}
+                                                className="w-3.5 h-3.5 rounded accent-[#0098E8] shrink-0"
                                             />
                                             <span className="text-[#1B1B1B] text-xs leading-tight">{formatPermissionName(perm.name)}</span>
                                         </label>
@@ -167,11 +171,13 @@ export const EditPermissionsModal = memo(function EditPermissionsModal({
 
                 <div className="flex gap-3 justify-end pt-2 border-t border-[#E8E8E9]">
                     <Button type="button" variant="outline" onClick={onClose} className="px-6 w-auto!">
-                        Cancel
+                        {canUpdate && !isLocked ? "Cancel" : "Close"}
                     </Button>
-                    <Button onClick={handleSave} disabled={isLocked} className="px-6 w-auto!">
-                        Save
-                    </Button>
+                    {canUpdate && (
+                        <Button onClick={handleSave} disabled={isLocked} className="px-6 w-auto!">
+                            Save
+                        </Button>
+                    )}
                 </div>
             </div>
         </Modal>

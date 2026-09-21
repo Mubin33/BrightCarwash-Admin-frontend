@@ -8,6 +8,7 @@ import { Pagination } from "@/components/ui/Pagination";
 import { useLazyGetRoleByIdQuery } from "@/services/team.api";
 import type { TeamRole, TeamMember } from "@/types/team";
 import { PERMISSIONS } from "@/lib/permissions";
+import { usePermission } from "@/hooks/usePermission";
 
 const ITEMS_PER_PAGE = 5;
 
@@ -38,6 +39,11 @@ export function TeamsRolesSection({
     onCreateRole,
     onDeleteRole
 }: TeamsRolesSectionProps) {
+    const canRead = usePermission(PERMISSIONS.role.read);
+    const canUpdate = usePermission(PERMISSIONS.role.update);
+    const canDelete = usePermission(PERMISSIONS.role.delete);
+    const showActionColumn = canUpdate || canDelete;
+
     const [prefetchRole] = useLazyGetRoleByIdQuery();
     const [currentPage, setCurrentPage] = useState(1);
 
@@ -54,6 +60,8 @@ export function TeamsRolesSection({
         }
         return counts;
     }, [members]);
+
+    if (!canRead) return null;
 
     return (
         <div className="flex flex-col gap-4">
@@ -80,15 +88,17 @@ export function TeamsRolesSection({
                             <th className="py-2.5 px-4 text-left text-[#777980] font-inter text-xs font-medium uppercase tracking-wider">
                                 Members
                             </th>
-                            <th className="py-2.5 px-4 text-left text-[#777980] font-inter text-xs font-medium uppercase tracking-wider w-24">
-                                Action
-                            </th>
+                            {showActionColumn && (
+                                <th className="py-2.5 px-4 text-left text-[#777980] font-inter text-xs font-medium uppercase tracking-wider w-24">
+                                    Action
+                                </th>
+                            )}
                         </tr>
                     </thead>
                     <tbody>
                         {paginatedRoles.length === 0 ? (
                             <tr>
-                                <td colSpan={3} className="py-10 text-center text-[#777980] text-sm">
+                                <td colSpan={showActionColumn ? 3 : 2} className="py-10 text-center text-[#777980] text-sm">
                                     No roles found.
                                 </td>
                             </tr>
@@ -123,29 +133,33 @@ export function TeamsRolesSection({
                                                 </span>
                                             </div>
                                         </td>
-                                        <td className="py-2.5 px-4">
-                                            {!superAdmin && (
-                                                <div className="flex items-center gap-1">
-                                                    <Button
-                                                        variant="icon"
-                                                        permission={PERMISSIONS.role.update}
-                                                        onClick={() => onEditPermissions(role)}
-                                                        onMouseEnter={() => prefetchRole(role.name)}
-                                                        className="flex p-1.5 items-center rounded text-[#777980] hover:text-[#1B1B1B] hover:bg-gray-100 transition-colors"
-                                                    >
-                                                        <Pencil size={15} />
-                                                    </Button>
-                                                    <Button
-                                                        variant="icon"
-                                                        permission={PERMISSIONS.role.delete}
-                                                        onClick={() => onDeleteRole(role)}
-                                                        className="flex p-1.5 items-center rounded text-[#777980] hover:text-[#FF4345] hover:bg-[#FFE6E6] transition-colors"
-                                                    >
-                                                        <Icon name="delete" width={15} height={15} />
-                                                    </Button>
-                                                </div>
-                                            )}
-                                        </td>
+                                        {showActionColumn && (
+                                            <td className="py-2.5 px-4">
+                                                {!superAdmin && (
+                                                    <div className="flex items-center gap-1">
+                                                        <Button
+                                                            variant="icon"
+                                                            permission={PERMISSIONS.role.update}
+                                                            onClick={() => onEditPermissions(role)}
+                                                            onMouseEnter={() => prefetchRole(role.name)}
+                                                            className="flex p-1.5 items-center rounded text-[#777980] hover:text-[#1B1B1B] hover:bg-gray-100 transition-colors"
+                                                            title="Edit Permissions"
+                                                        >
+                                                            <Pencil size={15} />
+                                                        </Button>
+                                                        <Button
+                                                            variant="icon"
+                                                            permission={PERMISSIONS.role.delete}
+                                                            onClick={() => onDeleteRole(role)}
+                                                            className="flex p-1.5 items-center rounded text-[#777980] hover:text-[#FF4345] hover:bg-[#FFE6E6] transition-colors"
+                                                            title="Delete Role"
+                                                        >
+                                                            <Icon name="delete" width={15} height={15} />
+                                                        </Button>
+                                                    </div>
+                                                )}
+                                            </td>
+                                        )}
                                     </tr>
                                 );
                             })

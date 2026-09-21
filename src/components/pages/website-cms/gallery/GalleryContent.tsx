@@ -10,10 +10,17 @@ import { GalleryModal } from './GalleryModal';
 import { useGetGalleryQuery, useDeleteGalleryMutation } from '@/services/gallery.api';
 import type { GalleryItem } from '@/types/gallery';
 import { toast } from 'react-toastify';
+import { usePermission } from '@/hooks/usePermission';
+import { PERMISSIONS } from '@/lib/permissions';
 
 const ITEMS_PER_PAGE = 10;
 
 export function GalleryContent() {
+    const canRead = usePermission(PERMISSIONS.gallery.read);
+    const canCreate = usePermission(PERMISSIONS.gallery.create);
+    const canUpdate = usePermission(PERMISSIONS.gallery.update);
+    const canDelete = usePermission(PERMISSIONS.gallery.delete);
+
     const [searchQuery, setSearchQuery] = useState('');
     const [searchInput, setSearchInput] = useState('');
     const [statusFilter, setStatusFilter] = useState('');
@@ -55,11 +62,13 @@ export function GalleryContent() {
     };
 
     const handleEdit = (item: GalleryItem) => {
+        if (!canUpdate) return;
         setEditingItem(item);
         setIsModalOpen(true);
     };
 
     const handleDelete = async (id: string) => {
+        if (!canDelete) return;
         if (!confirm('Are you sure you want to delete this gallery item?')) return;
         try {
             await deleteGallery(id).unwrap();
@@ -94,9 +103,20 @@ export function GalleryContent() {
         );
     }
 
+    if (!canRead) {
+        return (
+            <div className="flex items-center justify-center py-12 text-[#777980] font-inter">
+                You do not have permission to view the gallery.
+            </div>
+        );
+    }
+
     return (
         <div className="flex flex-col gap-6 w-full">
-            <GalleryHeader onAddClick={() => setIsModalOpen(true)} />
+            <GalleryHeader onAddClick={() => {
+                if (!canCreate) return;
+                setIsModalOpen(true);
+            }} />
 
             <GalleryFilters
                 searchInput={searchInput}

@@ -13,8 +13,11 @@ import { useExportExcel } from '@/hooks/useExportExcel';
 import { useExportCSV } from '@/hooks/useExportCSV';
 import { mapStatsToMetrics, PAYMENT_EXPORT_COLUMNS } from '@/lib/payment-utils';
 import { toast } from 'react-toastify';
+import { usePermission } from '@/hooks/usePermission';
+import { PERMISSIONS } from '@/lib/permissions';
 
 export function PaymentsContent() {
+	const canExport = usePermission(PERMISSIONS.payment_transaction.export);
 	const { page, search, status, setPage, setSearch, setStatus } =
 		usePaymentPageState();
 	const [searchSubmitted, setSearchSubmitted] = useState(false);
@@ -80,7 +83,7 @@ export function PaymentsContent() {
 			<div className="flex flex-col gap-6 w-full">
 				<div className="flex justify-between items-end">
 					<div className="h-5 w-32 bg-gray-200 rounded animate-pulse" />
-					<div className="h-9 w-24 bg-gray-200 rounded animate-pulse" />
+					{canExport && <div className="h-9 w-24 bg-gray-200 rounded animate-pulse" />}
 				</div>
 				<div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
 					{[...Array(4)].map((_, i) => (
@@ -106,14 +109,17 @@ export function PaymentsContent() {
 				<h2 className="text-[#0B1220] font-lora text-xl font-bold leading-[100%]">
 					Payments Overview
 				</h2>
-				<div className="flex items-center gap-3 shrink-0">
-					<ExportDropdown
-						options={[
-							{ label: 'Export as Excel (.xlsx)', onClick: handleExportExcel },
-							{ label: 'Export as CSV (.csv)', onClick: handleExportCSV },
-						]}
-					/>
-				</div>
+				{canExport && (
+					<div className="flex items-center gap-3 shrink-0">
+						<ExportDropdown
+							permission={PERMISSIONS.payment_transaction.export}
+							options={[
+								{ label: 'Export as Excel (.xlsx)', onClick: handleExportExcel },
+								{ label: 'Export as CSV (.csv)', onClick: handleExportCSV },
+							]}
+						/>
+					</div>
+				)}
 			</div>
 
 			<div className="grid grid-cols-2 lg:grid-cols-4 gap-3">

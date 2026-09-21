@@ -11,10 +11,17 @@ import { useTeamPermissions } from "@/hooks/useTeamPermissions";
 import type { RootState } from "@/lib/store";
 import type { TeamMember, TeamRole } from "@/types/team";
 import { toast } from "react-toastify";
+import { usePermission } from "@/hooks/usePermission";
+import { PERMISSIONS } from "@/lib/permissions";
 
 const ITEMS_PER_PAGE = 5;
 
 export function TeamsContent() {
+    const canReadRoles = usePermission(PERMISSIONS.role.read);
+    const canCreateRole = usePermission(PERMISSIONS.role.create);
+    const canUpdateRole = usePermission(PERMISSIONS.role.update);
+    const canDeleteRole = usePermission(PERMISSIONS.role.delete);
+
     const [searchQuery, setSearchQuery] = useState("");
     const [memberPage, setMemberPage] = useState(1);
 
@@ -42,6 +49,7 @@ export function TeamsContent() {
     const [deleteRole] = useDeleteRoleMutation();
 
     const handleDeleteRole = async (role: TeamRole) => {
+        if (!canDeleteRole) return;
         if (!confirm(`Delete role "${role.name}"?`)) return;
         try {
             await deleteRole(role.id).unwrap();
@@ -121,13 +129,21 @@ export function TeamsContent() {
                 isFetching={isFetching}
             />
 
-            <TeamsRolesSection
-                roles={roles}
-                members={allMembers}
-                onEditPermissions={(role) => setEditRole(role)}
-                onCreateRole={() => setCreateRoleOpen(true)}
-                onDeleteRole={handleDeleteRole}
-            />
+            {canReadRoles && (
+                <TeamsRolesSection
+                    roles={roles}
+                    members={allMembers}
+                    onEditPermissions={(role) => {
+                        if (!canUpdateRole) return;
+                        setEditRole(role);
+                    }}
+                    onCreateRole={() => {
+                        if (!canCreateRole) return;
+                        setCreateRoleOpen(true);
+                    }}
+                    onDeleteRole={handleDeleteRole}
+                />
+            )}
 
             <TeamsModals
                 addMemberOpen={addMemberOpen}

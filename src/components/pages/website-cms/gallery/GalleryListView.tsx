@@ -2,6 +2,8 @@
 
 import Image from 'next/image';
 import { Icon } from '@/components/ui/Icon';
+import { usePermission } from '@/hooks/usePermission';
+import { PERMISSIONS } from '@/lib/permissions';
 import type { GalleryItem } from '@/types/gallery';
 
 interface GalleryListViewProps {
@@ -11,6 +13,10 @@ interface GalleryListViewProps {
 }
 
 export function GalleryListView({ items, onEdit, onDelete }: GalleryListViewProps) {
+    const canUpdate = usePermission(PERMISSIONS.gallery.update);
+    const canDelete = usePermission(PERMISSIONS.gallery.delete);
+    const showActions = canUpdate || canDelete;
+
     if (items.length === 0) {
         return (
             <div className="flex items-center justify-center py-12 text-[#777980] font-inter text-sm">
@@ -26,26 +32,28 @@ export function GalleryListView({ items, onEdit, onDelete }: GalleryListViewProp
                 <div className="col-span-1 text-[#777980] font-inter text-xs font-medium uppercase tracking-wider">
                     Photo
                 </div>
-                <div className="col-span-3 text-[#777980] font-inter text-xs font-medium uppercase tracking-wider">
+                <div className={`${showActions ? 'col-span-3' : 'col-span-4'} text-[#777980] font-inter text-xs font-medium uppercase tracking-wider`}>
                     Caption
                 </div>
-                <div className="col-span-3 text-[#777980] font-inter text-xs font-medium uppercase tracking-wider">
+                <div className={`${showActions ? 'col-span-3' : 'col-span-4'} text-[#777980] font-inter text-xs font-medium uppercase tracking-wider`}>
                     Status
                 </div>
                 <div className="col-span-3 text-[#777980] font-inter text-xs font-medium uppercase tracking-wider">
                     Publish Date
                 </div>
-                <div className="col-span-2 text-right text-[#777980] font-inter text-xs font-medium uppercase tracking-wider">
-                    Actions
-                </div>
+                {showActions && (
+                    <div className="col-span-2 text-right text-[#777980] font-inter text-xs font-medium uppercase tracking-wider">
+                        Actions
+                    </div>
+                )}
             </div>
 
             {/* Table Rows */}
             {items.map((item) => (
                 <div
                     key={item.id}
-                    className="grid grid-cols-12 gap-3 px-4 py-3 border-b border-[#E8E8E9] last:border-b-0 hover:bg-[#F8FAFB] transition-colors cursor-pointer items-center"
-                    onClick={() => onEdit(item)}
+                    className={`grid grid-cols-12 gap-3 px-4 py-3 border-b border-[#E8E8E9] last:border-b-0 hover:bg-[#F8FAFB] transition-colors items-center ${canUpdate ? 'cursor-pointer' : ''}`}
+                    onClick={canUpdate ? () => onEdit(item) : undefined}
                 >
                     {/* Photo */}
                     <div className="col-span-1 ">
@@ -59,14 +67,14 @@ export function GalleryListView({ items, onEdit, onDelete }: GalleryListViewProp
                     </div>
 
                     {/* Caption */}
-                    <div className="col-span-3">
+                    <div className={showActions ? 'col-span-3' : 'col-span-4'}>
                         <span className="text-[#1B1B1B] font-inter text-sm truncate block">
                             {item.name}
                         </span>
                     </div>
 
                     {/* Status */}
-                    <div className="col-span-3 ">
+                    <div className={showActions ? 'col-span-3' : 'col-span-4'}>
                         <span
                             className={`inline-flex px-3 py-1 rounded-full text-xs font-medium  ${item.is_published
                                 ? 'bg-[#DCF7EA] text-[#006F1F]'
@@ -89,28 +97,34 @@ export function GalleryListView({ items, onEdit, onDelete }: GalleryListViewProp
                     </div>
 
                     {/* Actions */}
-                    <div className="col-span-2 flex items-center justify-end gap-1">
-                        <button
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                onEdit(item);
-                            }}
-                            className="p-2 rounded-lg text-[#777980] hover:bg-[#F8FAFB] hover:text-[#0098E8] transition-colors"
-                            aria-label="Edit"
-                        >
-                            <Icon name="edit" width={18} height={18} />
-                        </button>
-                        <button
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                onDelete(item.id);
-                            }}
-                            className="p-2 rounded-lg text-[#777980] hover:bg-[#FFE6E6] hover:text-[#FF4345] transition-colors"
-                            aria-label="Delete"
-                        >
-                            <Icon name="delete" width={18} height={18} />
-                        </button>
-                    </div>
+                    {showActions && (
+                        <div className="col-span-2 flex items-center justify-end gap-1">
+                            {canUpdate && (
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        onEdit(item);
+                                    }}
+                                    className="p-2 rounded-lg text-[#777980] hover:bg-[#F8FAFB] hover:text-[#0098E8] transition-colors"
+                                    aria-label="Edit"
+                                >
+                                    <Icon name="edit" width={18} height={18} />
+                                </button>
+                            )}
+                            {canDelete && (
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        onDelete(item.id);
+                                    }}
+                                    className="p-2 rounded-lg text-[#777980] hover:bg-[#FFE6E6] hover:text-[#FF4345] transition-colors"
+                                    aria-label="Delete"
+                                >
+                                    <Icon name="delete" width={18} height={18} />
+                                </button>
+                            )}
+                        </div>
+                    )}
                 </div>
             ))}
         </div>

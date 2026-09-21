@@ -97,7 +97,7 @@ export function EmailEditor() {
 						}).unwrap();
 						toast.success('Template updated!');
 					} else {
-						await createTemplate({
+						const created = await createTemplate({
 							name,
 							description: `Created on ${new Date().toLocaleDateString()}`,
 							type: 'EMAIL',
@@ -105,6 +105,8 @@ export function EmailEditor() {
 							emailBody,
 						}).unwrap();
 						toast.success(`Template "${name}" saved!`);
+						router.push(`/campaigns/create?step=2&templateId=${created.id}&templateName=${encodeURIComponent(created.name)}`);
+						return;
 					}
 
 					router.push('/campaigns/create?step=3');

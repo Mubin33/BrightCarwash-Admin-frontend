@@ -77,6 +77,7 @@ export function LeadsContent() {
         onClose={() => setModalOpen(false)}
         stages={stages}
       />
+      
       <CreateGroupModal
         isOpen={groupModalOpen}
         onClose={() => setGroupModalOpen(false)}
@@ -84,7 +85,7 @@ export function LeadsContent() {
         onGroupCreated={() => {
           setGroupModalOpen(false);
           setSelectedLeads([]);
-        }}
+        } } 
       />
     </div>
   );

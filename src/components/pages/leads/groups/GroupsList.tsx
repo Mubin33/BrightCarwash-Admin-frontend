@@ -16,7 +16,7 @@ interface GroupsListProps {
     leads: Lead[];
     stages: StageOption[];
     onStageChange: (id: string, stageId: string) => void;
-    onDelete: (lead: Lead) => void;
+    onDelete: (groupId: string, leadId: string, leadName?: string) => void;
     onAddLead: (groupId: string) => void;
     onDeleteGroup: (groupId: string) => void;
     router: { push: (url: string) => void };

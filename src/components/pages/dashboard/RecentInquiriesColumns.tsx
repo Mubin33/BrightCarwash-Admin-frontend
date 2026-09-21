@@ -1,9 +1,13 @@
-import Image from "next/image";
-import { Icon } from "@/components/ui/Icon";
 import type { Column } from "@/components/ui/DataTable";
-import type { RecentInquiry } from "@/types/dashboard";
+import { Icon } from "@/components/ui/Icon";
 import type { StageOption } from "@/components/ui/StageDropdown";
-import { getStageIconUrl, getDefaultStageIcon, hexToTintedBg } from "@/lib/stage-utils";
+import {
+  getDefaultStageIcon,
+  getStageIconUrl,
+  hexToTintedBg,
+} from "@/lib/stage-utils";
+import type { RecentInquiry } from "@/types/dashboard";
+import Image from "next/image";
 
 const depositStyles: Record<string, string> = {
   paid: "text-[#006F1F] border-[#E8E8E9] bg-white",
@@ -13,16 +17,20 @@ const depositStyles: Record<string, string> = {
   failed: "text-[#FF4345] border-[#FF4345] bg-white",
 };
 
-
-function getStageFromName(name: string, stages: StageOption[]): StageOption | undefined {
-  return stages.find(s => s.value === name);
+function getStageFromName(
+  name: string,
+  stages: StageOption[],
+): StageOption | undefined {
+  return stages.find((s) => s.value === name);
 }
 
 function hasCustomIcon(stage: StageOption | undefined): boolean {
   return !!stage?.icon;
 }
 
-export function recentInquiriesColumns(stages: StageOption[]): Column<RecentInquiry>[] {
+export function recentInquiriesColumns(
+  stages: StageOption[],
+): Column<RecentInquiry>[] {
   return [
     {
       key: "leadName",
@@ -32,24 +40,32 @@ export function recentInquiriesColumns(stages: StageOption[]): Column<RecentInqu
           {/* <div className="w-6 h-6 rounded-full overflow-hidden border border-white">
             <Image src={row.avatar} alt={row.name} width={24} height={24} className="object-cover" />
           </div> */}
-          <span className="text-[#1B1B1B] font-inter text-sm font-normal leading-[150%] truncate max-w-[120px]">{row.name}</span>
+          <span className="text-[#1B1B1B] font-inter text-sm font-normal leading-[150%] truncate max-w-[120px]">
+            {row.name}
+          </span>
         </div>
       ),
     },
     {
       key: "service",
       header: "Service",
-      render: (row) => <span className="text-[#1B1B1B] font-inter text-sm">{row.service}</span>,
+      render: (row) => (
+        <span className="text-[#1B1B1B] font-inter text-sm">{row.service}</span>
+      ),
     },
     {
       key: "email",
       header: "Email",
-      render: (row) => <span className="text-[#1B1B1B] font-inter text-sm">{row.email}</span>,
+      render: (row) => (
+        <span className="text-[#1B1B1B] font-inter text-sm">{row.email}</span>
+      ),
     },
     {
       key: "source",
       header: "Source",
-      render: (row) => <span className="text-[#1B1B1B] font-inter text-sm">{row.source}</span>,
+      render: (row) => (
+        <span className="text-[#1B1B1B] font-inter text-sm">{row.source}</span>
+      ),
     },
     // {
     //   key: "deposit",
@@ -85,11 +101,16 @@ export function recentInquiriesColumns(stages: StageOption[]): Column<RecentInqu
                   height={14}
                   className="object-contain"
                   unoptimized
-                  crossOrigin="anonymous"
+                  // crossOrigin="anonymous"
                 />
               </div>
             ) : (
-              <Icon name={getDefaultStageIcon(displayName)} width={14} height={14} color={color} />
+              <Icon
+                name={getDefaultStageIcon(displayName)}
+                width={14}
+                height={14}
+                color={color}
+              />
             )}
             {displayName}
           </span>
@@ -99,7 +120,9 @@ export function recentInquiriesColumns(stages: StageOption[]): Column<RecentInqu
     {
       key: "date",
       header: "Date",
-      render: (row) => <span className="text-[#1B1B1B] font-inter text-sm">{row.date}</span>,
+      render: (row) => (
+        <span className="text-[#1B1B1B] font-inter text-sm">{row.date}</span>
+      ),
     },
   ];
 }

@@ -40,12 +40,19 @@ export function RecipientsModal({
     }, [isOpen, selectedGroupId, refetch]);
 
     const filteredGroups = useMemo(() => {
-        if (!searchTerm.trim()) return groups;
+        if (!searchTerm.trim()) {
+            return groups.filter((g: LeadGroup) => (g._count?.leads || 0) > 0);
+        }
+
         const term = searchTerm.toLowerCase();
+
         return groups.filter(
             (g: LeadGroup) =>
-                g.name.toLowerCase().includes(term) ||
-                (g.description?.toLowerCase().includes(term) ?? false)
+                (g._count?.leads || 0) > 0 &&
+                (
+                    g.name.toLowerCase().includes(term) ||
+                    (g.description?.toLowerCase().includes(term) ?? false)
+                )
         );
     }, [groups, searchTerm]);
 

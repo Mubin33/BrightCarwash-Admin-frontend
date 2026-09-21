@@ -1,9 +1,9 @@
-import { Icon } from "@/components/ui/Icon";
+import { recentInquiriesColumns } from "@/components/pages/dashboard/RecentInquiriesColumns";
 import { Button } from "@/components/ui/Button";
 import { DataTable } from "@/components/ui/DataTable";
-import { recentInquiriesColumns } from "@/components/pages/dashboard/RecentInquiriesColumns";
-import type { RecentInquiry } from "@/types/dashboard";
+import { Icon } from "@/components/ui/Icon";
 import type { StageOption } from "@/components/ui/StageDropdown";
+import type { RecentInquiry } from "@/types/dashboard";
 import Link from "next/link";
 
 interface RecentInquiriesTableProps {
@@ -11,7 +11,10 @@ interface RecentInquiriesTableProps {
   stages: StageOption[];
 }
 
-export function RecentInquiriesTable({ data, stages }: RecentInquiriesTableProps) {
+export function RecentInquiriesTable({
+  data,
+  stages,
+}: RecentInquiriesTableProps) {
   const columns = recentInquiriesColumns(stages);
 
   return (
@@ -25,7 +28,12 @@ export function RecentInquiriesTable({ data, stages }: RecentInquiriesTableProps
             variant="outline"
             className="flex py-2 sm:py-[10px] px-3 sm:px-4 justify-center items-center gap-1.5 sm:gap-2 rounded border border-[#DFE1E7] text-[#1B1B1B] font-inter text-xs sm:text-sm font-normal"
           >
-            <Icon name="view-all" width={14} height={14} className="sm:w-4 sm:h-4" />
+            <Icon
+              name="view-all"
+              width={14}
+              height={14}
+              className="sm:w-4 sm:h-4"
+            />
             View all
           </Button>
         </Link>

@@ -75,9 +75,15 @@ export function SimpleEditor() {
 	const handleSave = async () => {
 		if (!editor) return;
 
+		if (!templateName.trim()) {
+			toast.error("Template name is required");
+			return;
+		}
+
 		setSaving(true);
 		const html = editor.getHTML();
-		const name = templateName.trim() || `Simple Template ${new Date().toLocaleDateString()}`;
+		// const name = templateName.trim() || `Simple Template ${new Date().toLocaleDateString()}`;
+		const name = templateName.trim();
 
 		try {
 			const processedHtml = await uploadImagesInHtml(html, async (file) => {
@@ -98,7 +104,7 @@ export function SimpleEditor() {
 				}).unwrap();
 				toast.success("Template updated!");
 			} else {
-				await createTemplate({
+				const created = await createTemplate({
 					name,
 					description: `Created on ${new Date().toLocaleDateString()}`,
 					type: "EMAIL",
@@ -106,6 +112,8 @@ export function SimpleEditor() {
 					emailBody,
 				}).unwrap();
 				toast.success("Template saved! Design step complete.");
+				router.push(`/campaigns/create?step=2&templateId=${created.id}&templateName=${encodeURIComponent(created.name)}`);
+				return;
 			}
 
 			router.push("/campaigns/create?step=3");
@@ -136,6 +144,7 @@ export function SimpleEditor() {
 						value={templateName}
 						onChange={(e) => setTemplateName(e.target.value)}
 						placeholder="Template name"
+						required
 						className="px-3 py-2 border border-[#DFE1E7] rounded-lg text-sm font-inter outline-none focus:border-[#0098E8]"
 					/>
 					<UIButton onClick={handleSave} isLoading={saving} loadingText="Saving..." className="w-auto! px-6">

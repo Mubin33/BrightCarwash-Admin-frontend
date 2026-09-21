@@ -14,6 +14,7 @@ import {
     setSelectedGroup,
     setSubject,
     resetCampaignCreation,
+    restoreCampaignDraft,
 } from "@/store/slices/campaignCreationSlice";
 
 export function useCampaignCreation() {
@@ -37,5 +38,6 @@ export function useCampaignCreation() {
         setSubject: (subject: string, preview: string) =>
             dispatch(setSubject({ subject, preview })),
         reset: () => dispatch(resetCampaignCreation()),
+        restoreDraft: (draft: Parameters<typeof restoreCampaignDraft>[0]) => dispatch(restoreCampaignDraft(draft)),
     };
 }

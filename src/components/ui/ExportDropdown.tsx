@@ -4,6 +4,7 @@ import { useState, useRef, useEffect, ReactNode } from 'react';
 import { ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Icon } from '@/components/ui/Icon';
+import { usePermission } from '@/hooks/usePermission';
 
 interface ExportOption {
     label: string;
@@ -14,11 +15,15 @@ interface ExportDropdownProps {
     options: ExportOption[];
     trigger?: ReactNode;
     className?: string;
+    permission?: string;
 }
 
-export function ExportDropdown({ options, trigger, className = '' }: ExportDropdownProps) {
+export function ExportDropdown({ options, trigger, className = '', permission }: ExportDropdownProps) {
+    const hasPerm = usePermission(permission || '');
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
+
+    if (permission && !hasPerm) return null;
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {

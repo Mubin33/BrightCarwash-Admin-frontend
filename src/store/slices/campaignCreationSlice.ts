@@ -118,6 +118,14 @@ const campaignCreationSlice = createSlice({
       Object.assign(state, action.payload);
       state.isEdit = true;
     },
+
+    restoreCampaignDraft: (
+      state,
+      action: PayloadAction<Partial<CampaignCreationState>>,
+    ) => {
+      Object.assign(state, action.payload);
+      state.isEdit = false;
+    },
   },
 });
 
@@ -134,6 +142,7 @@ export const {
   setSelectedGroup,
   setSubject,
   loadCampaignForEdit,
+  restoreCampaignDraft,
 } = campaignCreationSlice.actions;
 
 export default campaignCreationSlice.reducer;

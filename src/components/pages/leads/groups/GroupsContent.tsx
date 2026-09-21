@@ -42,6 +42,7 @@ export const GroupsContent = forwardRef<GroupsContentRef, { groupModalOpen: bool
             removeOptimisticGroup,
             addLeadToGroupOptimistic,
             updateLeadStageOptimistic,
+            removeLeadOptimistic,
         } = useGroupsData();
         const [searchQuery, setSearchQuery] = useState("");
         const [stages, setStages] = useState<StageOption[]>([]);
@@ -55,6 +56,7 @@ export const GroupsContent = forwardRef<GroupsContentRef, { groupModalOpen: bool
             fetchGroupLeads,
             addLeadToGroupOptimistic,
             updateLeadStageOptimistic,
+            removeLeadOptimistic,
         });
 
         const exportColumns = useMemo(

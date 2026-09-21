@@ -29,7 +29,7 @@ export function StepThreeDesign({ onBack, onTemplateSelect }: StepThreeDesignPro
 				</div>
 				<div className="flex items-center gap-3">
 					<Button variant="outline" onClick={() => router.push("/campaigns/create/simple-editor")} className="flex py-2.5 px-4 items-center gap-2 rounded border border-[#DFE1E7] text-[#1B1B1B] font-inter text-sm w-auto!">
-						Simple Editor
+						Text Editor
 					</Button>
 					<Button onClick={() => router.push("/campaigns/create/editor")} className="flex py-2.5 px-4 items-center gap-2 rounded bg-[#0098E8] text-white font-inter text-sm hover:bg-[#0088D8] transition-colors w-auto!">
 						Drag and Drop Editor

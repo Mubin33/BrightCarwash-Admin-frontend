@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { StageDropdown } from "@/components/ui/StageDropdown";
 import { ActionsDropdown } from "@/components/ui/ActionsDropdown";
+import { PERMISSIONS } from "@/lib/permissions";
 import type { Lead } from "@/types/leads";
 import type { StageOption } from "@/components/ui/StageDropdown";
 
@@ -26,7 +27,7 @@ export function LeadRow({ lead, stages, onStageChange, onDelete, router }: LeadR
     const currentStageValue = stageOption ? stageOption.value : lead.stage;
 
     return (
-        <tr className="border-t border-[#E8E8E9] bg-white hover:bg-[#F8FAFB] transition-colors">
+        <tr className="border-t border-[#E8E8E9] bg-white hover:bg-[#F8FAFB] transition-colors X">
             <td className="py-2.5 px-4 border-r border-[#E8E8E9]">
                 <div className="flex items-center gap-2">
                     <div className="w-6 h-6 rounded-full overflow-hidden border border-white shrink-0">
@@ -71,7 +72,12 @@ export function LeadRow({ lead, stages, onStageChange, onDelete, router }: LeadR
                 <ActionsDropdown
                     items={[
                         { label: "View Lead", onClick: () => router.push(`/leads/${lead.id}`) },
-                        { label: "Delete", onClick: () => onDelete(lead), variant: "danger" as const },
+                        {
+                            label: "Remove",
+                            permission: PERMISSIONS.lead_group.disconnect,
+                            onClick: () => onDelete(lead),
+                            variant: "danger" as const,
+                        },
                     ]}
                 />
             </td>

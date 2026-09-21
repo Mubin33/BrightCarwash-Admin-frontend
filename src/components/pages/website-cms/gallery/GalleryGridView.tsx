@@ -1,6 +1,8 @@
 "use client";
 
 import { Icon } from '@/components/ui/Icon';
+import { usePermission } from '@/hooks/usePermission';
+import { PERMISSIONS } from '@/lib/permissions';
 import type { GalleryItem } from '@/types/gallery';
 
 interface GalleryGridViewProps {
@@ -10,6 +12,9 @@ interface GalleryGridViewProps {
 }
 
 export function GalleryGridView({ items, onEdit, onDelete }: GalleryGridViewProps) {
+    const canUpdate = usePermission(PERMISSIONS.gallery.update);
+    const canDelete = usePermission(PERMISSIONS.gallery.delete);
+
     if (items.length === 0) {
         return (
             <div className="flex items-center justify-center py-12 text-[#777980] font-inter text-sm">
@@ -23,13 +28,13 @@ export function GalleryGridView({ items, onEdit, onDelete }: GalleryGridViewProp
             {items.map((item) => (
                 <div
                     key={item.id}
-                    className="relative group rounded-xl overflow-hidden bg-gradient-to-b from-black/10 to-black/70 h-64 cursor-pointer"
+                    className={`relative group rounded-xl overflow-hidden bg-gradient-to-b from-black/10 to-black/70 h-64 ${canUpdate ? 'cursor-pointer' : ''}`}
                     style={{
                         backgroundImage: `url(${item.image})`,
                         backgroundSize: 'cover',
                         backgroundPosition: 'center',
                     }}
-                    onClick={() => onEdit(item)}
+                    onClick={canUpdate ? () => onEdit(item) : undefined}
                 >
                     {/* Overlay */}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
@@ -54,26 +59,34 @@ export function GalleryGridView({ items, onEdit, onDelete }: GalleryGridViewProp
                     </div>
 
                     {/* Actions - visible on hover */}
-                    <div className="absolute top-3 left-3 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
-                        <button
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                onEdit(item);
-                            }}
-                            className="p-2 bg-white/90 rounded-lg hover:bg-white transition-colors"
-                        >
-                            <Icon name="edit" width={16} height={16} color="#1B1B1B" />
-                        </button>
-                        <button
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                onDelete(item.id);
-                            }}
-                            className="p-2 bg-white/90 rounded-lg hover:bg-[#FFE6E6] transition-colors"
-                        >
-                            <Icon name="delete" width={16} height={16} color="#FF4345" />
-                        </button>
-                    </div>
+                    {(canUpdate || canDelete) && (
+                        <div className="absolute top-3 left-3 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
+                            {canUpdate && (
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        onEdit(item);
+                                    }}
+                                    className="p-2 bg-white/90 rounded-lg hover:bg-white transition-colors"
+                                    aria-label="Edit"
+                                >
+                                    <Icon name="edit" width={16} height={16} color="#1B1B1B" />
+                                </button>
+                            )}
+                            {canDelete && (
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        onDelete(item.id);
+                                    }}
+                                    className="p-2 bg-white/90 rounded-lg hover:bg-[#FFE6E6] transition-colors"
+                                    aria-label="Delete"
+                                >
+                                    <Icon name="delete" width={16} height={16} color="#FF4345" />
+                                </button>
+                            )}
+                        </div>
+                    )}
                 </div>
             ))}
         </div>

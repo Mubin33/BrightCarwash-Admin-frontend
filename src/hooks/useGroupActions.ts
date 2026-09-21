@@ -3,7 +3,7 @@
 import { useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
-import { useUpdateLeadStageMutation, useDeleteLeadMutation } from "@/services/leads.api";
+import { useUpdateLeadStageMutation, useDisconnectLeadsFromGroupMutation } from "@/services/leads.api";
 import { getAccessToken } from "@/lib/auth-client";
 import { APP_CONFIG } from "@/configs/app.config";
 import type { Lead } from "@/types/leads";
@@ -13,11 +13,12 @@ export function useGroupActions({
     refetchLeads,
     fetchGroupLeads,
     addLeadToGroupOptimistic,
-    updateLeadStageOptimistic
+    updateLeadStageOptimistic,
+    removeLeadOptimistic,
 }: any) {
     const router = useRouter();
     const [updateStage] = useUpdateLeadStageMutation();
-    const [deleteLead] = useDeleteLeadMutation();
+    const [disconnectLeads] = useDisconnectLeadsFromGroupMutation();
 
     const handleStageChange = useCallback(async (id: string, stageName: string) => {
         updateLeadStageOptimistic(id, stageName);
@@ -32,16 +33,28 @@ export function useGroupActions({
         }
     }, [updateStage, refetchLeads, updateLeadStageOptimistic]);
 
-    const handleDeleteLead = useCallback(async (lead: Lead) => {
+    const handleDeleteLead = useCallback(async (groupIdOrLead: string | Lead, leadId?: string, leadName?: string) => {
+        const actualGroupId = typeof groupIdOrLead === 'string' ? groupIdOrLead : '';
+        const actualLeadId = leadId || (typeof groupIdOrLead === 'object' ? (groupIdOrLead as Lead).id : '');
+        const actualLeadName = leadName || (typeof groupIdOrLead === 'object' ? (groupIdOrLead as Lead).name : '');
+
+        if (!actualGroupId || !actualLeadId) return;
+
+        // Optimistically remove from group list in UI immediately
+        removeLeadOptimistic?.(actualGroupId, actualLeadId);
+
         try {
-            await deleteLead(lead.id).unwrap();
-            toast.success(`${lead.name} deleted`);
-            await refetchLeads();
-            await refetch();
+            await disconnectLeads({ groupId: actualGroupId, leadIds: [actualLeadId] }).unwrap();
+            toast.success(actualLeadName ? `${actualLeadName} removed from group` : "Lead removed from group");
+            await Promise.all([
+                refetch(),
+                fetchGroupLeads(actualGroupId, true),
+            ]);
         } catch {
-            toast.error("Failed to delete lead");
+            toast.error("Failed to remove lead from group");
+            await fetchGroupLeads(actualGroupId, true);
         }
-    }, [deleteLead, refetchLeads, refetch]);
+    }, [disconnectLeads, removeLeadOptimistic, refetch, fetchGroupLeads]);
 
     const handleDeleteGroup = useCallback(async (groupId: string) => {
         try {
@@ -97,6 +110,7 @@ export function useGroupActions({
         router,
         handleStageChange,
         handleDeleteLead,
+        handleRemoveLeadFromGroup: handleDeleteLead,
         handleDeleteGroup,
         handleAddLeadToGroup,
     };

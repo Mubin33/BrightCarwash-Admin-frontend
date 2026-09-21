@@ -1,19 +1,27 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { DashboardMetrics } from "@/components/pages/dashboard/DashboardMetrics";
 import { DashboardCharts } from "@/components/pages/dashboard/DashboardCharts";
+import { DashboardMetrics } from "@/components/pages/dashboard/DashboardMetrics";
 import { RecentInquiriesTable } from "@/components/pages/dashboard/RecentInquiriesTable";
+import type { StageOption } from "@/components/ui/StageDropdown";
+import { mapStagesToOptions } from "@/lib/stage-utils";
 import { useGetDashboardMetricsQuery } from "@/services/dashboard.api";
 import { useGetLeadsQuery } from "@/services/leads.api";
 import { getStages } from "@/services/stage.service";
-import type { StageOption } from "@/components/ui/StageDropdown";
-import { mapStagesToOptions } from "@/lib/stage-utils";
+import { useEffect, useState } from "react";
 
 export function DashboardContent() {
-  const { data: metricsData, isLoading: metricsLoading, error: metricsError } = useGetDashboardMetricsQuery();
+  const {
+    data: metricsData,
+    isLoading: metricsLoading,
+    error: metricsError,
+  } = useGetDashboardMetricsQuery();
 
-  const { data: leadsResponse, isLoading: leadsLoading, refetch: refetchLeads } = useGetLeadsQuery({
+  const {
+    data: leadsResponse,
+    isLoading: leadsLoading,
+    refetch: refetchLeads,
+  } = useGetLeadsQuery({
     page: 1,
     limit: 10,
   });
@@ -47,10 +55,7 @@ export function DashboardContent() {
         {/* Stats Cards */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {[...Array(4)].map((_, i) => (
-            <div
-              key={i}
-              className="h-[140px] bg-slate-200 rounded-xl"
-            />
+            <div key={i} className="h-[140px] bg-slate-200 rounded-xl" />
           ))}
         </div>
 
@@ -72,8 +77,12 @@ export function DashboardContent() {
         <div className="w-14 h-14 rounded-full bg-[#FFE6E6] flex items-center justify-center mb-4">
           <span className="text-[#FF4345] text-2xl font-bold">!</span>
         </div>
-        <h3 className="text-[#1B1B1B] font-inter text-lg font-semibold mb-1">Failed to load</h3>
-        <p className="text-[#777980] font-inter text-sm">Please refresh the page or try again later.</p>
+        <h3 className="text-[#1B1B1B] font-inter text-lg font-semibold mb-1">
+          Failed to load
+        </h3>
+        <p className="text-[#777980] font-inter text-sm">
+          Please refresh the page or try again later.
+        </p>
       </div>
     );
   }
@@ -83,7 +92,7 @@ export function DashboardContent() {
   const recentLeads = leadsData.slice(0, 4).map((lead) => ({
     id: lead.id,
     name: lead.name,
-    avatar: lead.avatar,
+    avatar: lead.stageIcon ?? null,
     service: lead.service,
     email: lead.email,
     source: lead.source,
@@ -95,7 +104,9 @@ export function DashboardContent() {
   return (
     <div className="w-full max-w-full flex flex-col gap-3 sm:gap-4">
       <div className="flex justify-between items-end gap-3">
-        <h2 className="text-[#0B1220] font-lora text-lg sm:text-xl font-bold leading-[100%]">Key Metrics</h2>
+        <h2 className="text-[#0B1220] font-lora text-lg sm:text-xl font-bold leading-[100%]">
+          Key Metrics
+        </h2>
       </div>
 
       <DashboardMetrics data={metricsData.data} />

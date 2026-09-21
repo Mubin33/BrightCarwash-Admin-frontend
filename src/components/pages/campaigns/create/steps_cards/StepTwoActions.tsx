@@ -1,6 +1,8 @@
 'use client';
 
 import { useState } from 'react';
+import { useDispatch } from 'react-redux';
+import { resetCampaignCreation } from '@/store/slices/campaignCreationSlice';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 import { Calendar, Send, Save } from 'lucide-react';
@@ -44,6 +46,7 @@ export function StepTwoActions({
 	campaignData,
 }: StepTwoActionsProps) {
 	const router = useRouter();
+	const dispatch = useDispatch();
 	const searchParams = useSearchParams();
 	const isEdit = searchParams.get("edit") === "true";
 	const campaignId = searchParams.get("id");
@@ -97,6 +100,8 @@ export function StepTwoActions({
 			}
 			await launchCampaign(campaign.id).unwrap();
 			toast.success('Campaign sent successfully!');
+			sessionStorage.removeItem('campaign_creation_draft');
+			dispatch(resetCampaignCreation());
 			router.push('/campaigns');
 		} catch (error: any) {
 			console.error('Send error:', error);
@@ -142,6 +147,8 @@ export function StepTwoActions({
 			}
 			await launchCampaign(campaign.id).unwrap();
 			toast.success(`Campaign scheduled for ${new Date(scheduledAt).toLocaleString()}`);
+			sessionStorage.removeItem('campaign_creation_draft');
+			dispatch(resetCampaignCreation());
 			router.push("/campaigns");
 		} catch (error: any) {
 			console.error("Schedule error:", error);
@@ -176,6 +183,8 @@ export function StepTwoActions({
 				await createCampaign(buildPayload({ scheduledAt: null })).unwrap();
 				toast.success('Campaign saved as draft!');
 			}
+			sessionStorage.removeItem('campaign_creation_draft');
+			dispatch(resetCampaignCreation());
 			router.push('/campaigns');
 		} catch (error: any) {
 			console.error('Save draft error:', error);
@@ -184,6 +193,12 @@ export function StepTwoActions({
 			setIsSavingDraft(false);
 		}
 	};
+
+	
+	const disableSaveDraft =
+		!campaignData?.leadGroupId ||
+		!campaignData?.subject?.trim() ||
+		!campaignData?.templateId;
 
 	return (
 		<div className='flex items-center gap-3'>
@@ -217,6 +232,7 @@ export function StepTwoActions({
 				variant='outline'
 				permission={PERMISSIONS.campaign.create}
 				className='flex py-2.5 px-4 items-center gap-2 rounded border border-[#DFE1E7] text-[#1B1B1B] font-inter text-sm hover:bg-[#F8FAFB] transition-colors w-auto!'
+				disabled={disableSaveDraft}
 			>
 				<Save size={16} />
 				{isEdit ? 'Update Draft' : 'Save as Draft'}

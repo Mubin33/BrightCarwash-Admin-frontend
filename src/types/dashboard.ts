@@ -21,7 +21,7 @@ export interface ServiceMixItem {
 export interface RecentInquiry {
   id: string;
   name: string;
-  avatar: string;
+  avatar: string | null;
   service: string;
   email: string;
   vehicle?: string;

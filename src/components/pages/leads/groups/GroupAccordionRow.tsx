@@ -2,6 +2,8 @@
 
 import { ChevronDown, ChevronUp, Plus, Trash2, Users } from "lucide-react";
 import { Button } from "@/components/ui/Button";
+import { usePermission } from "@/hooks/usePermission";
+import { PERMISSIONS } from "@/lib/permissions";
 import { LeadRow } from "./LeadRow";
 import type { Lead } from "@/types/leads";
 import type { StageOption } from "@/components/ui/StageDropdown";
@@ -20,7 +22,7 @@ interface GroupAccordionRowProps {
     stages: StageOption[];
     onToggle: (id: string) => void;
     onStageChange: (id: string, stageId: string) => void;
-    onDelete: (lead: Lead) => void;
+    onDelete: (groupId: string, leadId: string, leadName?: string) => void;
     onAddLead: (groupId: string) => void;
     onDeleteGroup: (groupId: string) => void;
     router: { push: (url: string) => void };
@@ -38,6 +40,8 @@ export function GroupAccordionRow({
     onDeleteGroup,
     router,
 }: GroupAccordionRowProps) {
+    const canConnect = usePermission(PERMISSIONS.lead_group.connect);
+
     return (
         <tr>
             <td colSpan={8} className="p-0">
@@ -58,6 +62,7 @@ export function GroupAccordionRow({
                             <>
                                 <Button
                                     variant="icon"
+                                    permission={PERMISSIONS.lead_group.connect}
                                     onClick={(e) => { e.stopPropagation(); onAddLead(group.id); }}
                                     className="flex h-6 w-6 items-center justify-center rounded text-[#586cc3] bg-gray-300/50 hover:bg-[#586cc3]/10 transition-colors"
                                 >
@@ -65,6 +70,7 @@ export function GroupAccordionRow({
                                 </Button>
                                 <Button
                                     variant="icon"
+                                    permission={PERMISSIONS.lead_group.delete}
                                     onClick={(e) => { e.stopPropagation(); onDeleteGroup(group.id); }}
                                     className="flex h-6 w-6 items-center justify-center rounded text-[#FF4345] hover:bg-red-50 transition-colors"
                                 >
@@ -97,7 +103,7 @@ export function GroupAccordionRow({
                                     lead={lead}
                                     stages={stages}
                                     onStageChange={onStageChange}
-                                    onDelete={onDelete}
+                                    onDelete={() => onDelete(group.id, lead.id, lead.name)}
                                     router={router}
                                 />
                             ))}
@@ -107,13 +113,19 @@ export function GroupAccordionRow({
 
                 {/* Empty state */}
                 {isExpanded && groupLeads.length === 0 && (
-                    <div
-                        onClick={() => onAddLead(group.id)}
-                        className="mx-4 my-3 flex cursor-pointer flex-col items-center justify-center rounded-lg border border-dashed border-[#DFE1E7] py-6 text-[#777980] hover:border-[#B0B3BC] hover:text-[#1B1B1B] transition-colors"
-                    >
-                        <Plus size={16} className="mb-1" />
-                        <span className="text-xs">Add Member</span>
-                    </div>
+                    canConnect ? (
+                        <div
+                            onClick={() => onAddLead(group.id)}
+                            className="mx-4 my-3 flex cursor-pointer flex-col items-center justify-center rounded-lg border border-dashed border-[#DFE1E7] py-6 text-[#777980] hover:border-[#B0B3BC] hover:text-[#1B1B1B] transition-colors"
+                        >
+                            <Plus size={16} className="mb-1" />
+                            <span className="text-xs">Add Member</span>
+                        </div>
+                    ) : (
+                        <div className="mx-4 my-3 flex flex-col items-center justify-center rounded-lg border border-[#DFE1E7] py-4 text-[#777980] text-xs">
+                            No members in this group
+                        </div>
+                    )
                 )}
             </td>
         </tr>

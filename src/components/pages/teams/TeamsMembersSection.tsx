@@ -64,10 +64,10 @@ export function TeamsMembersSection({
                     Teams
                 </h2>
                 <div className="flex items-center gap-3">
-                    <div className="relative min-w-65">
+                    <div className="relative min-w-65 sm:min-w-80">
                         <input
                             type="text"
-                            placeholder="Search members..."
+                            placeholder="Search by first name, last name or email"
                             value={inputValue}
                             onChange={(e) => setInputValue(e.target.value)}
                             onKeyDown={(e) => e.key === "Enter" && handleSearch()}

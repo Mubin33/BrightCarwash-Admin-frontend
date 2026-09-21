@@ -20,10 +20,13 @@ export function CreateGroupModal({ isOpen, onClose, selectedLeads, onGroupCreate
     const [connectLeads] = useConnectLeadsToGroupMutation();
 
     const handleCreate = async () => {
+
         if (!groupName.trim()) {
-            toast.warning("Enter a group name");
-            return;
-        }
+        toast.warning("Enter a group name");
+        return;
+    }
+
+       
 
         setIsSubmitting(true);
 

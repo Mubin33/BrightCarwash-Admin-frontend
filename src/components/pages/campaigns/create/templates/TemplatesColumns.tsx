@@ -45,7 +45,7 @@ export function createTemplatesColumns({ onView, onEdit, onDelete }: TemplatesCo
         },
         {
             key: "editor",
-            header: "Editor",
+            header: "Template Format",
             render: (row) => (
                 <span className="text-[#1B1B1B] font-inter text-sm">{row.editorType?.replace(/_/g, " ")}</span>
             ),

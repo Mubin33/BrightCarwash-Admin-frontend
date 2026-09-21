@@ -23,6 +23,7 @@ export function TemplatesList({ onTemplateSelect }: TemplatesListProps) {
     const [currentPage, setCurrentPage] = useState(1);
     const [limit, setLimit] = useState(10);
     const [previewTemplate, setPreviewTemplate] = useState<Template | null>(null);
+    const [editorTypeFilter, setEditorTypeFilter] = useState("");
 
     const { data, isLoading, error } = useGetTemplatesQuery({
         search: searchQuery || undefined,
@@ -72,6 +73,21 @@ export function TemplatesList({ onTemplateSelect }: TemplatesListProps) {
         onDelete: handleDelete,
     }), []);
 
+    const filteredTemplates = useMemo(() => {
+        if (!editorTypeFilter) {
+            return templates || [];
+        }
+
+        return (templates || []).filter(
+            (template) => template.editorType === editorTypeFilter
+        );
+    }, [templates, editorTypeFilter]);
+
+    const editorTypes = useMemo(
+        () => [...new Set(templates.map((template) => template.editorType))],
+        [templates]
+    );
+
     if (isLoading) {
         return (
             <div className="flex flex-col gap-4 w-full">
@@ -89,17 +105,28 @@ export function TemplatesList({ onTemplateSelect }: TemplatesListProps) {
         );
     }
 
+    console.log("editorTypes", editorTypes);
+
+    console.log("templates", templates);
+
+    
+
     return (
         <div className="flex flex-col gap-4">
             <TemplatesFilters
                 searchInput={searchInput}
                 onSearchChange={setSearchInput}
                 onSearchSubmit={handleSearch}
+                templatesData={editorTypes}
+
+                editorTypeFilter={editorTypeFilter}
+                onEditorTypeChange={setEditorTypeFilter}
+
                 limit={limit}
                 onLimitChange={(val) => { setLimit(val); setCurrentPage(1); }}
             />
 
-            <DataTable columns={columns} data={templates} rowKey={(row) => row.id} className="w-full border border-[#E8E8E9] rounded-lg" />
+            <DataTable columns={columns} data={filteredTemplates} rowKey={(row) => row.id} className="w-full border border-[#E8E8E9] rounded-lg" />
 
             <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} totalItems={totalItems} itemsPerPage={limit} />
 

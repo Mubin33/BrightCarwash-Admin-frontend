@@ -97,7 +97,7 @@ export function StepOneDetails({
 							)}
 						</div>
 						<p className="text-xs text-[#777980] mt-1 hidden md:block">
-							Press <kbd className="px-1 py-0.5 bg-[#F1F1F1] rounded text-[#777980] text-xs">Enter</kbd> to add tag
+							Type a tag and press <kbd className="px-1 py-0.5 bg-[#F1F1F1] rounded text-[#777980] text-xs">Enter</kbd> to add it.
 						</p>
 					</div>
 				</div>

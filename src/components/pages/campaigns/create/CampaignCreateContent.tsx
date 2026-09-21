@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useDispatch } from 'react-redux';
 import { useCampaignCreation } from '@/hooks/useCampaignCreation';
@@ -8,11 +8,20 @@ import { CampaignBreadcrumb } from './components/CampaignBreadcrumb';
 import { StepOneDetails } from './steps/StepOneDetails';
 import { StepTwoTemplate } from './steps/StepTwoTemplate';
 import { StepThreeDesign } from './steps/StepThreeDesign';
-import { loadCampaignForEdit, resetCampaignCreation, setDesignFilled, setSelectedTemplateName } from '@/store/slices/campaignCreationSlice';
+import {
+	loadCampaignForEdit,
+	restoreCampaignDraft,
+	resetCampaignCreation,
+	setDesignFilled,
+	setSelectedTemplateName,
+	setTemplateId,
+} from '@/store/slices/campaignCreationSlice';
 import { useGetCampaignByIdQuery } from '@/services/campaign.api';
 import { useGetTemplateByIdQuery } from '@/services/template.api';
 import { getAccessToken } from '@/lib/auth-client';
 import CampaignsSkeleton from '../CampaignSkeleton';
+
+const DRAFT_STORAGE_KEY = 'campaign_creation_draft';
 
 export function CampaignCreateContent() {
 	const dispatch = useDispatch();
@@ -20,10 +29,12 @@ export function CampaignCreateContent() {
 	const isEdit = searchParams.get("edit") === "true";
 	const campaignId = searchParams.get("id");
 	const stepFromUrl = searchParams.get("step") || "";
+	const templateIdFromUrl = searchParams.get("templateId");
+	const templateNameFromUrl = searchParams.get("templateName");
 
 	const [currentStep, setCurrentStep] = useState(() => {
 		if (stepFromUrl === "3") return 3;
-		if (stepFromUrl === "2") return 2;
+		if (stepFromUrl === "2" || templateIdFromUrl) return 2;
 		return 1;
 	});
 
@@ -34,59 +45,119 @@ export function CampaignCreateContent() {
 
 	const campaign = useCampaignCreation();
 
-	// Reset state when NOT editing (new campaign)
+	// Restore draft from sessionStorage if Redux is empty on mount (e.g. after refresh or returning to campaign)
 	useEffect(() => {
-		if (!isEdit && stepFromUrl !== "3") {
-			dispatch(resetCampaignCreation());
-			setCurrentStep(1);
+		if (!isEdit && typeof window !== "undefined") {
+			const savedDraft = sessionStorage.getItem(DRAFT_STORAGE_KEY);
+			if (savedDraft) {
+				try {
+					const parsed = JSON.parse(savedDraft);
+					// If Redux is currently empty but draft exists in sessionStorage, rehydrate
+					if (!campaign.campaignName && !campaign.selectedGroupId && !campaign.subject) {
+						dispatch(restoreCampaignDraft(parsed));
+					}
+				} catch (e) {
+					console.error("Failed to parse campaign draft:", e);
+				}
+			}
 		}
-	}, [isEdit, stepFromUrl, dispatch]);
+	}, [isEdit, dispatch, campaign.campaignName, campaign.selectedGroupId, campaign.subject]);
 
-	// Reset state on unmount
+	// Sync campaign draft to sessionStorage so sub-route navigation or reload never loses data
+	useEffect(() => {
+		if (!isEdit && typeof window !== "undefined") {
+			const hasData =
+				Boolean(campaign.campaignName) ||
+				Boolean(campaign.selectedGroupId) ||
+				Boolean(campaign.subject) ||
+				Boolean(campaign.templateId) ||
+				(campaign.tags && campaign.tags.length > 0);
+
+			if (hasData) {
+				sessionStorage.setItem(
+					DRAFT_STORAGE_KEY,
+					JSON.stringify({
+						campaignName: campaign.campaignName,
+						tags: campaign.tags,
+						tagInput: campaign.tagInput,
+						selectedTemplateName: campaign.selectedTemplateName,
+						templateId: campaign.templateId,
+						designFilled: campaign.designFilled,
+						selectedGroupId: campaign.selectedGroupId,
+						selectedGroupName: campaign.selectedGroupName,
+						subject: campaign.subject,
+						previewText: campaign.previewText,
+						filled: campaign.filled,
+					})
+				);
+			}
+		}
+	}, [
+		isEdit,
+		campaign.campaignName,
+		campaign.tags,
+		campaign.tagInput,
+		campaign.selectedTemplateName,
+		campaign.templateId,
+		campaign.designFilled,
+		campaign.selectedGroupId,
+		campaign.selectedGroupName,
+		campaign.subject,
+		campaign.previewText,
+		campaign.filled,
+	]);
+
+	// Apply template from URL if passed (e.g. from editor or template select page)
+	useEffect(() => {
+		if (templateIdFromUrl) {
+			dispatch(setTemplateId(templateIdFromUrl));
+			dispatch(setDesignFilled(true));
+			if (templateNameFromUrl) {
+				dispatch(setSelectedTemplateName(decodeURIComponent(templateNameFromUrl)));
+			}
+		}
+	}, [templateIdFromUrl, templateNameFromUrl, dispatch]);
+
+	// Reset state ONLY when navigating away from the campaign creation hierarchy
 	useEffect(() => {
 		return () => {
-			if (!isEdit) {
-				dispatch(resetCampaignCreation());
+			if (typeof window !== "undefined") {
+				const nextPath = window.location.pathname;
+				if (!nextPath.startsWith("/campaigns/create")) {
+					dispatch(resetCampaignCreation());
+					sessionStorage.removeItem(DRAFT_STORAGE_KEY);
+				}
 			}
 		};
-	}, [isEdit, dispatch]);
+	}, [dispatch]);
 
-	// Get templateId from campaignData
-	const templateId = campaignData?.emailConfig?.templateId || null;
+	// Active template ID (from campaignData if editing, or from Redux / URL)
+	const activeTemplateId = isEdit
+		? (campaignData?.emailConfig?.templateId || null)
+		: (campaign.templateId || templateIdFromUrl || null);
 
-	// Fetch template details when templateId exists - with refetch on change
+	// Fetch template details when activeTemplateId exists
 	const { data: templateData, isLoading: isLoadingTemplate } = useGetTemplateByIdQuery(
-		templateId || '',
+		activeTemplateId || '',
 		{
-			skip: !templateId,
+			skip: !activeTemplateId,
 			refetchOnMountOrArgChange: true
 		}
 	);
 
-	// Clear template name when templateId is null (no template selected)
-	useEffect(() => {
-		if (!templateId) {
-			dispatch(setSelectedTemplateName(''));
-			return;
-		}
-	}, [templateId, dispatch]);
-
-	// Load draft campaign data for editing
+	// Load draft campaign data for editing an existing campaign
 	useEffect(() => {
 		if (isEdit && campaignData) {
-
 			const tags = campaignData.tags || [];
-
 			const leadGroupId = campaignData.emailConfig?.leadGroupId || null;
 			const leadGroupName = campaignData.emailConfig?.leadGroup?.name || '';
 			const subject = campaignData.emailConfig?.subject || '';
 			const templateIdFromConfig = campaignData.emailConfig?.templateId || null;
 
-			// Check which fields are filled
 			const filled = {
-				recipients: !!leadGroupId,
-				subject: !!subject,
-				design: !!templateIdFromConfig,
+				recipients: Boolean(leadGroupId),
+				subject: Boolean(subject),
+				design: Boolean(templateIdFromConfig),
 			};
 
 			dispatch(loadCampaignForEdit({
@@ -104,22 +175,19 @@ export function CampaignCreateContent() {
 
 			if (templateIdFromConfig) {
 				dispatch(setDesignFilled(true));
-				if (stepFromUrl !== "3") {
-					setCurrentStep(2);
-				}
 			}
 		}
-	}, [isEdit, campaignData, dispatch, stepFromUrl]);
+	}, [isEdit, campaignData, dispatch]);
 
-	// Set template name when template data loads
+	// Set template name when template data loads from API
 	useEffect(() => {
 		if (templateData && templateData.name) {
 			dispatch(setSelectedTemplateName(templateData.name));
 		}
 	}, [templateData, dispatch]);
 
-	// Also fetch template name via direct API call as fallback
-	const fetchTemplateName = async (id: string) => {
+	// Fallback fetch for template name if needed
+	const fetchTemplateName = useCallback(async (id: string) => {
 		try {
 			const response = await fetch(
 				`${process.env.NEXT_PUBLIC_API_BASE_URL}/admin/templates/${id}`,
@@ -140,13 +208,13 @@ export function CampaignCreateContent() {
 		} catch (error) {
 			console.error('Failed to fetch template name:', error);
 		}
-	};
+	}, [dispatch]);
 
 	useEffect(() => {
-		if (campaignData?.emailConfig?.templateId && !templateData && !isLoadingTemplate) {
-			fetchTemplateName(campaignData.emailConfig.templateId);
+		if (activeTemplateId && !templateData && !isLoadingTemplate && !campaign.selectedTemplateName) {
+			fetchTemplateName(activeTemplateId);
 		}
-	}, [campaignData, templateData, isLoadingTemplate]);
+	}, [activeTemplateId, templateData, isLoadingTemplate, campaign.selectedTemplateName, fetchTemplateName]);
 
 	const handleTemplateSelect = (name: string, id: string) => {
 		campaign.setSelectedTemplateName(name);

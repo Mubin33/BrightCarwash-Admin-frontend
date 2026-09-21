@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/Button";
 import { toast } from "react-toastify";
 import { getAccessToken } from "@/lib/auth-client";
 import { APP_CONFIG } from "@/configs/app.config";
+import { usePermission } from "@/hooks/usePermission";
+import { PERMISSIONS } from "@/lib/permissions";
 
 interface CreateRoleModalProps {
     isOpen: boolean;
@@ -14,11 +16,13 @@ interface CreateRoleModalProps {
 }
 
 export function CreateRoleModal({ isOpen, onClose, onRoleCreated }: CreateRoleModalProps) {
+    const canCreate = usePermission(PERMISSIONS.role.create);
     const [roleName, setRoleName] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (!canCreate) return;
         if (!roleName.trim()) { toast.warning("Role name is required"); return; }
         const validNameRegex = /^[a-zA-Z\s-]+$/;
         if (!validNameRegex.test(roleName.trim())) {
@@ -64,7 +68,7 @@ export function CreateRoleModal({ isOpen, onClose, onRoleCreated }: CreateRoleMo
                 </div>
                 <div className="flex gap-3 justify-end pt-2 border-t border-[#E8E8E9]">
                     <Button type="button" variant="outline" onClick={onClose} className="px-6 w-auto!">Cancel</Button>
-                    <Button type="submit" isLoading={isSubmitting} loadingText="Creating…" className="px-6 w-auto!">Create</Button>
+                    <Button type="submit" permission={PERMISSIONS.role.create} isLoading={isSubmitting} loadingText="Creating…" className="px-6 w-auto!">Create</Button>
                 </div>
             </form>
         </Modal>

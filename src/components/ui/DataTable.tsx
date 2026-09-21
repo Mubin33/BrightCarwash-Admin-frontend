@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import type { ReactNode } from 'react';
+import type { ReactNode } from "react";
 
 export interface Column<T> {
   key: string;
@@ -20,7 +20,7 @@ export function DataTable<T>({
   columns,
   data,
   rowKey,
-  className = '',
+  className = "",
 }: DataTableProps<T>) {
   if (data.length === 0) {
     return (
@@ -38,7 +38,7 @@ export function DataTable<T>({
             {columns.map((col) => (
               <th
                 key={col.key}
-                className={`py-2.5 px-4 text-left text-[#777980] font-inter text-xs font-medium uppercase tracking-wider border-r border-[#E8E8E9] last:border-r-0 ${col.className || ''}`}
+                className={`py-2.5 px-4 text-left text-[#777980] font-inter text-xs font-medium uppercase tracking-wider border-r border-[#E8E8E9] last:border-r-0 ${col.className || ""}`}
               >
                 {col.header}
               </th>
@@ -57,7 +57,7 @@ export function DataTable<T>({
                 {columns.map((col) => (
                   <td
                     key={`${rowId}-${col.key}`}
-                    className={`py-2.5 px-4 border-r border-[#E8E8E9] last:border-r-0 ${col.className || ''}`}
+                    className={`py-2.5 px-4 border-r border-[#E8E8E9] last:border-r-0 ${col.className || ""}`}
                   >
                     {col.render ? col.render(row) : (row as any)[col.key]}
                   </td>

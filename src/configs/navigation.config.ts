@@ -1,5 +1,5 @@
-import type { NavSection } from "@/types/navigation";
 import { PERMISSIONS } from "@/lib/permissions";
+import type { NavSection } from "@/types/navigation";
 
 export const NAVIGATION_CONFIG: NavSection[] = [
   {
@@ -41,7 +41,7 @@ export const NAVIGATION_CONFIG: NavSection[] = [
           },
           {
             id: "marketing-email-list",
-            label: "Email List",
+            label: "Email Logs",
             icon: "list",
             href: "/marketing/email-list",
             permission: PERMISSIONS.mail_management.view_logs,

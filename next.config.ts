@@ -4,6 +4,7 @@ const nextConfig: NextConfig = {
 	reactStrictMode: true,
 	allowedDevOrigins: [
 		'10.10.33.10',
+		'10.10.35.153',
 		'https://holiday-exposure-pocket-whilst.trycloudflare.com',
 		'https://karma-usr-dealers-msg.trycloudflare.com',
 
