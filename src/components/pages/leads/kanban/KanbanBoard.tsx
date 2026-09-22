@@ -16,6 +16,35 @@ interface KanbanBoardProps {
   onStageDeleted: () => void;
 }
 
+function matchLeadToStage(leadStage: string | undefined, stage: StageOption): boolean {
+  if (!leadStage) return false;
+  const targetLower = leadStage.toLowerCase().trim();
+  const valLower = stage.value?.toLowerCase().trim() || "";
+  const labelLower = stage.label?.toLowerCase().trim() || "";
+  const stageId = stage.stageId || "";
+
+  if (valLower === targetLower || labelLower === targetLower || stageId === leadStage) {
+    return true;
+  }
+
+  const normTarget = targetLower.replace(/[-_\s]/g, "");
+  const normVal = valLower.replace(/[-_\s]/g, "");
+  const normLabel = labelLower.replace(/[-_\s]/g, "");
+
+  if (normTarget === normVal || normTarget === normLabel) {
+    return true;
+  }
+
+  if (
+    (targetLower === "new" && (normVal.includes("new") || normLabel.includes("new"))) ||
+    (normTarget.includes("new") && valLower === "new")
+  ) {
+    return true;
+  }
+
+  return false;
+}
+
 export function KanbanBoard({
   leads,
   stages,
@@ -26,17 +55,25 @@ export function KanbanBoard({
 }: KanbanBoardProps) {
   const boardRef = useRef<HTMLDivElement>(null);
 
-  const getLeadsByStage = (stageValue: string): Lead[] =>
-    leads.filter((l) => l.stage === stageValue);
+  const getLeadsByStage = (stage: StageOption): Lead[] =>
+    leads.filter((l) => matchLeadToStage(l.stage, stage) || l.stageId === stage.stageId);
 
   const handleDragEnd = (result: DropResult) => {
     if (!result.destination) return;
     const { draggableId, destination } = result;
-    const targetStage = destination.droppableId;
+    const targetDroppableId = destination.droppableId;
     const lead = leads.find((l) => l.id === draggableId);
-    if (!lead || lead.stage === targetStage) return;
-    const stageOption = stages.find((s) => s.value === targetStage);
-    onStageChange(draggableId, stageOption?.label || targetStage);
+    if (!lead) return;
+
+    const targetStageOption = stages.find(
+      (s) => s.value === targetDroppableId || s.stageId === targetDroppableId || s.label === targetDroppableId
+    );
+
+    if (targetStageOption && matchLeadToStage(lead.stage, targetStageOption)) {
+      return;
+    }
+
+    onStageChange(draggableId, targetStageOption?.label || targetDroppableId);
   };
 
   const handleWheel = useCallback((e: React.WheelEvent) => {
@@ -55,19 +92,18 @@ export function KanbanBoard({
         className="flex gap-4 overflow-x-auto pb-4 adm-kanban-board h-full"
       >
         {stages.map((stage) => {
-          // Pass the icon as-is to KanbanColumn, it will handle rendering
           const icon = stage.icon || getDefaultStageIcon(stage.label);
 
           return (
             <KanbanColumn
-              key={stage.stageId}
+              key={stage.stageId || stage.value}
               id={stage.value}
               stageId={stage.stageId}
               title={stage.label}
               borderColor={stage.color}
               stageColor={stage.color}
               icon={icon}
-              items={getLeadsByStage(stage.value)}
+              items={getLeadsByStage(stage)}
               stages={stages}
               setStages={setStages}
               onDeleteLead={onDeleteLead}

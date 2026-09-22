@@ -2,7 +2,7 @@
 
 import { getAccessToken } from "@/lib/auth-client";
 import axiosInstance from "@/lib/axios-instance";
-import { useGetLeadGroupsQuery } from "@/services/leads.api";
+import { useGetLeadGroupsFilterQuery } from "@/services/leads.api";
 import type { LeadGroup } from "@/types/campaign";
 import type { Lead } from "@/types/leads";
 import { useCallback, useState } from "react";
@@ -41,21 +41,33 @@ interface GroupWithLeads {
 }
 
 export function useGroupsData() {
-  const {
-    data: apiGroups = [],
-    refetch: refetchGroups,
-    isLoading: groupsLoading,
-  } = useGetLeadGroupsQuery({
-    limit: 100,
-  });
   const [groupLeadsMap, setGroupLeadsMap] = useState<Record<string, Lead[]>>(
     {},
   );
   const [isLoadingLeads, setIsLoadingLeads] = useState(false);
   const [optimisticGroups, setOptimisticGroups] = useState<LeadGroup[]>([]);
   const [fetchingGroups, setFetchingGroups] = useState<Set<string>>(new Set());
+  const [searchQuery, setSearchQuery] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [groupId, setGroupId] = useState<string>("");
 
-  const allGroups = [...apiGroups, ...optimisticGroups];
+  // Groups list
+  const {
+    data: apiGroupsResponse,
+    refetch: refetchGroups,
+    isLoading: groupsLoading,
+  } = useGetLeadGroupsFilterQuery({
+    page: currentPage,
+    limit: 5,
+    search: searchQuery || undefined,
+  });
+
+  const totalItems = apiGroupsResponse?.meta?.totalItems || 0;
+  const totalPages = apiGroupsResponse?.meta?.totalPages || 1;
+  const currentLimit = 2;
+  const isPageLoading = groupsLoading || isLoadingLeads;
+
+  const allGroups = [...(apiGroupsResponse?.groups ?? []), ...optimisticGroups];
 
   const fetchGroupLeads = useCallback(
     async (groupId: string, force?: boolean) => {
@@ -182,10 +194,19 @@ export function useGroupsData() {
   );
 
   return {
+    searchQuery,
+    setSearchQuery,
+    currentPage,
+    setCurrentPage,
+    totalItems,
+    totalPages,
+    currentLimit,
     groups,
+    setGroupId,
     leads,
     groupLeads: leads,
-    isLoading: groupsLoading || isLoadingLeads,
+    isPageLoading,
+    isLoading: isPageLoading,
     refetch: refetchGroups,
     fetchGroupLeads,
     addGroupOptimistic,

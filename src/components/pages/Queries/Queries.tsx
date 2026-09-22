@@ -1,19 +1,19 @@
 "use client";
+import { ActionsDropdown } from "@/components/ui/ActionsDropdown";
 import { DataTable } from "@/components/ui/DataTable";
 import { FilterDropdown } from "@/components/ui/FilterDropdown";
-import { ActionsDropdown } from "@/components/ui/ActionsDropdown";
-import { useQueriesDetailQuery } from "@/services/queries.api";
+import { Pagination } from "@/components/ui/Pagination";
+import { useParams } from "@/hooks/useParams";
 import {
   useDeleteQuoteMutation,
   useGetQuotesQuery,
+  useQueriesDetailQuery,
   useUpdateStatusMutation,
 } from "@/services/queries.api";
-import { Search } from "lucide-react";
-import React, { useState, useCallback } from "react";
-import { useRouter } from "next/navigation";
 import { format } from "date-fns";
-import { Pagination } from "@/components/ui/Pagination";
-import { useParams } from "@/hooks/useParams";
+import { Search } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 import QueryDetailPanel from "./QueryDetailPanel";
 
 export default function Queries() {
@@ -27,6 +27,8 @@ export default function Queries() {
   const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [selectedQueryId, setSelectedQueryId] = useState<string>("");
   const [searchInput, setSearchInput] = useState(queryState.search);
+
+  console.log("searchInput", searchInput);
 
   const {
     data: quotesData,

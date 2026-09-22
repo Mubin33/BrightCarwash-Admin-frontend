@@ -8,17 +8,17 @@ import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
 export interface StageOption {
-  value: string; // ✅ Slug (e.g., "new", "post_lead")
-  label: string; // ✅ Actual stage name (e.g., "New", "Post Lead")
+  value: string; // Slug (e.g., "new", "post_lead")
+  label: string; // Actual stage name (e.g., "New", "Post Lead")
   color: string;
   stageId: string;
   icon?: string | null;
 }
 
 interface StageDropdownProps {
-  currentStage: string; // ✅ This is the slug (e.g., "new", "post_lead")
+  currentStage: string; // Slug or Name or ID
   stages: StageOption[];
-  onSelect: (stageName: string) => void; // ✅ Passes the stage name (label)
+  onSelect: (stageName: string) => void; // Passes the stage name (label)
   onStageCreated?: () => void;
 }
 
@@ -31,10 +31,42 @@ const ITEM_HEIGHT = 20;
 const EXTRA_HEIGHT = 8;
 
 function hexToTintedBg(hex: string): string {
-  const r = parseInt(hex.slice(1, 3), 16);
-  const g = parseInt(hex.slice(3, 5), 16);
-  const b = parseInt(hex.slice(5, 7), 16);
+  const cleanHex = hex.startsWith("#") ? hex.slice(1) : hex;
+  const r = parseInt(cleanHex.slice(0, 2) || "00", 16);
+  const g = parseInt(cleanHex.slice(2, 4) || "98", 16);
+  const b = parseInt(cleanHex.slice(4, 6) || "E8", 16);
   return `rgba(${r}, ${g}, ${b}, 0.12)`;
+}
+
+function matchStage(stage: StageOption, targetStage: string | undefined): boolean {
+  if (!targetStage) return false;
+  const targetLower = targetStage.toLowerCase().trim();
+  const valLower = stage.value?.toLowerCase().trim() || "";
+  const labelLower = stage.label?.toLowerCase().trim() || "";
+  const stageId = stage.stageId || "";
+
+  if (valLower === targetLower || labelLower === targetLower || stageId === targetStage) {
+    return true;
+  }
+
+  // Normalize underscores and hyphens (e.g., "new_lead" vs "new-lead" vs "new lead")
+  const normTarget = targetLower.replace(/[-_\s]/g, "");
+  const normVal = valLower.replace(/[-_\s]/g, "");
+  const normLabel = labelLower.replace(/[-_\s]/g, "");
+
+  if (normTarget === normVal || normTarget === normLabel) {
+    return true;
+  }
+
+  // Handle "new" alias for "new lead"
+  if (
+    (targetLower === "new" && (normVal.includes("new") || normLabel.includes("new"))) ||
+    (normTarget.includes("new") && valLower === "new")
+  ) {
+    return true;
+  }
+
+  return false;
 }
 
 export function StageDropdown({
@@ -44,9 +76,7 @@ export function StageDropdown({
   onStageCreated,
 }: StageDropdownProps) {
   const [open, setOpen] = useState(false);
-  const [dropdownStyle, setDropdownStyle] = useState<Record<string, string>>(
-    {},
-  );
+  const [dropdownStyle, setDropdownStyle] = useState<Record<string, string>>({});
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const btnRef = useRef<HTMLDivElement>(null);
@@ -112,8 +142,8 @@ export function StageDropdown({
     }
   }, [open, stages.length]);
 
-  // ✅ Find the stage by value (slug) or fallback
-  const currentOption = stages.find((s) => s.value === currentStage);
+  // Find the stage with robust multi-field matching
+  const currentOption = stages.find((s) => matchStage(s, currentStage));
   const currentColor = currentOption?.color || defaultColor;
   const tintedBg = hexToTintedBg(currentColor);
 
@@ -152,14 +182,14 @@ export function StageDropdown({
               style={dropdownStyle}
             >
               {stages.map((stage) => {
-                const isSelected = stage.value === currentStage;
+                const isSelected = matchStage(stage, currentStage);
 
                 return (
                   <Button
-                    key={stage.stageId}
+                    key={stage.stageId || stage.value}
                     variant="icon"
                     onClick={() => {
-                      // ✅ Pass the actual stage name (label) to parent
+                      // Pass the actual stage name (label) to parent
                       onSelect(stage.label);
                       setOpen(false);
                     }}

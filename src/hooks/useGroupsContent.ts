@@ -22,6 +22,7 @@ export function useGroupsContent() {
   const {
     groups,
     leads: groupLeads,
+    isPageLoading,
     isLoading,
     refetch,
     fetchGroupLeads,
@@ -108,6 +109,7 @@ export function useGroupsContent() {
   return {
     groups,
     groupLeads,
+    isPageLoading,
     isLoading,
     searchQuery,
     setSearchQuery,

@@ -150,7 +150,7 @@ export function AddLeadModal({
   const handleCreated = async () => {
     setCreateModalOpen(false);
     refreshStages();
-    //     getStages().then((s) => setStages(mapStagesToOptions(s)));
+    // getStages().then((s) => setStages(mapStagesToOptions(s)));
 
     getStages().then((s) => {
       const options = mapStagesToOptions(s);

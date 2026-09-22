@@ -91,10 +91,10 @@ export const LeadsTable = forwardRef<LeadsTableHandle, LeadsTableExternalProps>(
     });
 
     const sourceFilters: string[] =
-      leadFilterOptions?.sources?.map((item) => item.source) || [];
+      leadFilterOptions?.sources?.map((item: { source: string }) => item.source) || [];
 
     const uniquePriorities: string[] =
-      leadFilterOptions?.priorities?.map((item) => item.priority) || [];
+      leadFilterOptions?.priorities?.map((item: { priority: string }) => item.priority) || [];
 
     useImperativeHandle(
       ref,
