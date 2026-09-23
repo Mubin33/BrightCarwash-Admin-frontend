@@ -13,7 +13,6 @@ const inputClass = "w-full px-4 py-3 bg-white rounded-lg border border-[#DFE1E7]
 export function ProfileSettings() {
     const { data: initialData, isLoading } = useGetProfileQuery();
     const user = useSelector((state: { auth: { user: { permissions: string[] } | null } }) => state.auth.user);
-    const canViewProfile = hasPermission(user, PERMISSIONS.user.read);
     const {
         form,
         avatar,
@@ -36,7 +35,6 @@ export function ProfileSettings() {
         return <div className="h-96 bg-gray-100 rounded-lg animate-pulse" />;
     }
 
-    if (!canViewProfile) return null;
 
     return (
         <div className="p-6 bg-[#F8FAFB] rounded-lg border border-[#DFE1E7] flex flex-col gap-6">
@@ -124,7 +122,6 @@ export function ProfileSettings() {
                     onClick={handleSave}
                     isLoading={isSaving}
                     loadingText="Saving..."
-                    permission={PERMISSIONS.user.update}
                     className="w-auto! flex py-2.5 px-4 items-center gap-2 rounded bg-[#0098E8] text-white font-inter text-sm hover:bg-[#0088D8] transition-colors w-auto!"
                 >
                     Save Changes

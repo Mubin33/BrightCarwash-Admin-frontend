@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/Button";
 import { FilterDropdown } from "@/components/ui/FilterDropdown";
 import { Modal } from "@/components/ui/Modal";
 import type { StageOption } from "@/components/ui/StageDropdown";
+import { getStages } from "@/services/stage.service";
+import { mapStagesToOptions } from "@/lib/stage-utils";
 import {
   useConnectLeadsToGroupMutation,
   useCreateLeadMutation,
@@ -14,6 +16,8 @@ import { Check, Loader2, Search, UserPlus, Users, X } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "react-toastify";
+import { CreateStageModal } from "../CreateStageModal";
+import { useLeadsData } from "@/hooks/useLeadsData";
 
 interface AddGroupMemberModalProps {
   isOpen: boolean;
@@ -45,6 +49,7 @@ export function AddGroupMemberModal({
   const [selectedLeadIds, setSelectedLeadIds] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [createModalOpen, setCreateModalOpen] = useState(false);
 
   // New Lead Form States
   const [name, setName] = useState("");
@@ -66,6 +71,35 @@ export function AddGroupMemberModal({
 
   const [connectLeads] = useConnectLeadsToGroupMutation();
   const [createLead] = useCreateLeadMutation();
+
+  const [stageList, setStageList] = useState<StageOption[]>(stages);
+
+  useEffect(() => {
+    if (stages && stages.length > 0) {
+      setStageList(stages);
+    }
+  }, [stages]);
+
+  // Add new Stages
+  const { refreshStages } = useLeadsData();
+
+  const handleCreated = async () => {
+    setCreateModalOpen(false);
+    refreshStages();
+
+    try {
+      const freshStages = await getStages();
+      const options = mapStagesToOptions(freshStages);
+      setStageList(options);
+      const lastStage = options[options.length - 1];
+      if (lastStage) {
+        setCurrentStageId(lastStage.value);
+        setCurrentStageLabel(lastStage.label);
+      }
+    } catch {
+      // ignore
+    }
+  };
 
   // Fetch existing leads from system
   const { data: paginatedLeads, isLoading: isLeadsLoading } =
@@ -248,8 +282,8 @@ export function AddGroupMemberModal({
   };
 
   const stageOptions =
-    stages.length > 0
-      ? stages.map((s) => ({ value: s.stageId, label: s.label }))
+    stageList.length > 0
+      ? stageList.map((s) => ({ value: s.stageId, label: s.label }))
       : [{ value: defaultStageId, label: defaultStageLabel }];
 
   const handleStageChange = (selectedValue: string) => {
@@ -264,8 +298,9 @@ export function AddGroupMemberModal({
     "w-full px-4 py-2.5 text-sm font-inter border border-[#DFE1E7] rounded-lg bg-white text-[#1B1B1B] placeholder-[#777980] outline-none focus:border-[#0098E8] focus:ring-2 focus:ring-[#0098E8]/10 transition-all";
 
   return (
-    <Modal
-      isOpen={isOpen}
+    <>
+      <Modal
+        isOpen={isOpen}
       onClose={onClose}
       title={
         <div className="flex items-center gap-2">
@@ -592,9 +627,21 @@ export function AddGroupMemberModal({
                 </label>
                 <FilterDropdown
                   label="Select stage"
-                  options={stageOptions}
+                  options={[
+                    ...stageOptions,
+                    {
+                      value: "__create_new_stage__",
+                      label: "Create Stage",
+                    },
+                  ]}
                   value={currentStageId}
-                  onChange={handleStageChange}
+                  onChange={(val: string) => {
+                    if (val === "__create_new_stage__") {
+                      setCreateModalOpen(true);
+                      return;
+                    }
+                    handleStageChange(val);
+                  }}
                   fullWidth
                   scrollable
                 />
@@ -626,5 +673,12 @@ export function AddGroupMemberModal({
         )}
       </div>
     </Modal>
+
+    <CreateStageModal
+      isOpen={createModalOpen}
+      onClose={() => setCreateModalOpen(false)}
+      onCreated={handleCreated}
+    />
+  </>
   );
 }
