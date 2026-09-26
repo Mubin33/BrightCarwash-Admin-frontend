@@ -1,5 +1,5 @@
 import { getAccessToken } from "@/lib/auth-client";
-import type { LeadGroup, LeadGroupsListResponse } from "@/types/campaign";
+import type { LeadGroupsListResponse } from "@/types/campaign";
 import type {
   CreateLeadRequest,
   Lead,
@@ -269,47 +269,16 @@ export const leadsApi = createApi({
     }),
 
     getLeadGroups: builder.query<
-      LeadGroup[],
-      { search?: string; page?: number; limit?: number }
-    >({
-      queryFn: async (params = {}) => {
-        try {
-          const queryParams = new URLSearchParams();
-          if (params.search) queryParams.append("search", params.search);
-          if (params.page) queryParams.append("page", String(params.page || 1));
-          if (params.limit)
-            queryParams.append("limit", String(params.limit || 50));
-
-          const url = `/admin/lead-groups${queryParams.toString() ? `?${queryParams}` : ""}`;
-          const json = await fetchFromBackend<LeadGroupsListResponse>(url);
-          return { data: json.data.groups };
-        } catch (error) {
-          return {
-            error: {
-              status: 500,
-              data:
-                error instanceof Error
-                  ? error.message
-                  : "Failed to fetch lead groups",
-            },
-          };
-        }
-      },
-      providesTags: ["LeadGroups"],
-      keepUnusedDataFor: 300,
-    }),
-
-    getLeadGroupsFilter: builder.query<
-      // LeadGroup[],
       LeadGroupsListResponse["data"],
-      { search?: string; page?: number; limit?: number }
+      { search?: string; page?: number; limit?: number } | void
     >({
       queryFn: async (params = {}) => {
         try {
           const queryParams = new URLSearchParams();
-          if (params.search) queryParams.append("search", params.search);
-          if (params.page) queryParams.append("page", String(params.page || 1));
-          if (params.limit)
+          if (params?.search) queryParams.append("search", params.search);
+          if (params?.page)
+            queryParams.append("page", String(params.page || 1));
+          if (params?.limit)
             queryParams.append("limit", String(params.limit || 50));
 
           const url = `/admin/lead-groups${queryParams.toString() ? `?${queryParams}` : ""}`;
@@ -785,7 +754,6 @@ export const {
   useUpdateLeadPriorityMutation,
   useCreateLeadMutation,
   useGetLeadGroupsQuery,
-  useGetLeadGroupsFilterQuery,
   useDeleteLeadMutation,
   useConnectLeadsToGroupMutation,
   useDisconnectLeadsFromGroupMutation,
@@ -795,3 +763,5 @@ export const {
   useGetLeadFilterOptionsQuery,
   useGetNonGroupLeadsQuery,
 } = leadsApi;
+
+export const useGetLeadGroupsFilterQuery = useGetLeadGroupsQuery;

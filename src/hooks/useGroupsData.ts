@@ -2,7 +2,7 @@
 
 import { getAccessToken } from "@/lib/auth-client";
 import axiosInstance from "@/lib/axios-instance";
-import { useGetLeadGroupsFilterQuery } from "@/services/leads.api";
+import { useGetLeadGroupsQuery } from "@/services/leads.api";
 import type { LeadGroup } from "@/types/campaign";
 import type { Lead } from "@/types/leads";
 import { useCallback, useState } from "react";
@@ -40,6 +40,16 @@ interface GroupWithLeads {
   _count?: { leads: number };
 }
 
+export interface GroupLeadPagination {
+  totalItems: number;
+  itemCount: number;
+  itemsPerPage: number;
+  totalPages: number;
+  currentPage: number;
+  hasNextPage: boolean;
+  hasPreviousPage: boolean;
+}
+
 export function useGroupsData() {
   const [groupLeadsMap, setGroupLeadsMap] = useState<Record<string, Lead[]>>(
     {},
@@ -50,13 +60,16 @@ export function useGroupsData() {
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [groupId, setGroupId] = useState<string>("");
+  const [groupLeadPagination, setGroupLeadPagination] = useState<
+    Record<string, GroupLeadPagination>
+  >({});
 
   // Groups list
   const {
     data: apiGroupsResponse,
     refetch: refetchGroups,
     isLoading: groupsLoading,
-  } = useGetLeadGroupsFilterQuery({
+  } = useGetLeadGroupsQuery({
     page: currentPage,
     limit: 5,
     search: searchQuery || undefined,
@@ -69,12 +82,62 @@ export function useGroupsData() {
 
   const allGroups = [...(apiGroupsResponse?.groups ?? []), ...optimisticGroups];
 
+  // const fetchGroupLeads = useCallback(
+  //   async (groupId: string, force?: boolean) => {
+  //     if (
+  //       !force &&
+  //       (groupLeadsMap[groupId]?.length > 0 || fetchingGroups.has(groupId))
+  //     ) {
+  //       return groupLeadsMap[groupId] || [];
+  //     }
+
+  //     setFetchingGroups((prev) => new Set(prev).add(groupId));
+
+  //     try {
+  //       const token = getAccessToken();
+  //       if (!token) {
+  //         toast.error("Please login");
+  //         return [];
+  //       }
+
+  //       const url = `/admin/lead-groups/${groupId}/leads?page=1&limit=100`;
+  //       const res = await axiosInstance.get(url);
+  //       const leadsData = res.data?.data?.leads || [];
+  //       const mappedLeads = leadsData.map(mapApiLeadToLead);
+
+  //       setGroupLeadsMap((prev) => ({
+  //         ...prev,
+  //         [groupId]: mappedLeads,
+  //       }));
+
+  //       return mappedLeads;
+  //     } catch (error: any) {
+  //       console.error(`Failed to fetch leads for group ${groupId}:`, error);
+  //       return [];
+  //     } finally {
+  //       setFetchingGroups((prev) => {
+  //         const next = new Set(prev);
+  //         next.delete(groupId);
+  //         return next;
+  //       });
+  //     }
+  //   },
+  //   [groupLeadsMap, fetchingGroups],
+  // );
+
   const fetchGroupLeads = useCallback(
-    async (groupId: string, force?: boolean) => {
+    async (groupId: string, page = 1, limit = 10, force = false) => {
+      const existingPagination = groupLeadPagination[groupId];
       if (
         !force &&
-        (groupLeadsMap[groupId]?.length > 0 || fetchingGroups.has(groupId))
+        existingPagination?.currentPage === page &&
+        existingPagination?.itemsPerPage === limit &&
+        groupLeadsMap[groupId]?.length > 0
       ) {
+        return groupLeadsMap[groupId] || [];
+      }
+
+      if (!force && fetchingGroups.has(groupId)) {
         return groupLeadsMap[groupId] || [];
       }
 
@@ -82,20 +145,31 @@ export function useGroupsData() {
 
       try {
         const token = getAccessToken();
+
         if (!token) {
           toast.error("Please login");
           return [];
         }
 
-        const url = `/admin/lead-groups/${groupId}/leads?page=1&limit=100`;
+        const url = `/admin/lead-groups/${groupId}/leads?page=${page}&limit=${limit}`;
         const res = await axiosInstance.get(url);
+
         const leadsData = res.data?.data?.leads || [];
+        const meta = res.data?.data?.meta;
+
         const mappedLeads = leadsData.map(mapApiLeadToLead);
 
         setGroupLeadsMap((prev) => ({
           ...prev,
           [groupId]: mappedLeads,
         }));
+
+        if (meta) {
+          setGroupLeadPagination((prev) => ({
+            ...prev,
+            [groupId]: meta,
+          }));
+        }
 
         return mappedLeads;
       } catch (error: any) {
@@ -109,7 +183,7 @@ export function useGroupsData() {
         });
       }
     },
-    [groupLeadsMap, fetchingGroups],
+    [groupLeadsMap, fetchingGroups, groupLeadPagination],
   );
 
   const addGroupOptimistic = useCallback((group: LeadGroup) => {
@@ -181,10 +255,7 @@ export function useGroupsData() {
       id: group.id,
       name: group.name,
       leadIds: (currentGroupLeads || []).map((l) => l.id),
-      _count:
-        currentGroupLeads !== undefined
-          ? { leads: currentGroupLeads.length }
-          : group._count || { leads: 0 },
+      _count: group._count || { leads: 0 },
     };
   });
 
@@ -209,6 +280,7 @@ export function useGroupsData() {
     isLoading: isPageLoading,
     refetch: refetchGroups,
     fetchGroupLeads,
+    groupLeadPagination,
     addGroupOptimistic,
     removeOptimisticGroup,
     addLeadToGroupOptimistic,

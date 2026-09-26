@@ -17,8 +17,7 @@ export function CreateNewsForm() {
     const [categoryId, setCategoryId] = useState('');
     const [file, setFile] = useState<File | null>(null);
     const [preview, setPreview] = useState<string | null>(null);
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const [isPublished, setIsPublished] = useState(true);
+    const [submittingType, setSubmittingType] = useState<'draft' | 'publish' | null>(null);
 
     const { data: categories = [] } = useGetCategoriesQuery();
     const [createNews] = useCreateNewsMutation();
@@ -73,12 +72,11 @@ export function CreateNewsForm() {
         return { valid: true, file };
     };
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
+    const handleSave = async (publishStatus: boolean) => {
         const validation = validateForm();
         if (!validation.valid || !validation.file) return;
 
-        setIsSubmitting(true);
+        setSubmittingType(publishStatus ? 'publish' : 'draft');
         try {
             await createNews({
                 title: title.trim(),
@@ -86,27 +84,19 @@ export function CreateNewsForm() {
                 summary: summary.trim() || content.trim().slice(0, 150),
                 image: validation.file,
                 category_id: categoryId,
-                is_published: isPublished,
+                is_published: publishStatus,
             }).unwrap();
-            toast.success('Post created successfully');
+            toast.success(publishStatus ? 'Post created successfully' : 'Draft saved successfully');
             router.push('/website-cms/news-blog');
         } catch {
-            toast.error('Failed to create post');
+            toast.error(publishStatus ? 'Failed to create post' : 'Failed to save draft');
         } finally {
-            setIsSubmitting(false);
+            setSubmittingType(null);
         }
     };
 
-    const handleSaveDraft = (e: React.MouseEvent) => {
-        e.preventDefault();
-        setIsPublished(false);
-        // Trigger form submission
-        const fakeEvent = new Event('submit') as any;
-        handleSubmit(fakeEvent);
-    };
-
     return (
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+        <form onSubmit={(e) => { e.preventDefault(); handleSave(true); }} className="flex flex-col gap-4">
             {/* Header */}
             <div className="flex justify-between items-center">
                 <div className="flex items-center gap-3">
@@ -119,15 +109,19 @@ export function CreateNewsForm() {
                     <Button
                         type="button"
                         variant="outline"
-                        onClick={handleSaveDraft}
+                        onClick={() => handleSave(false)}
+                        isLoading={submittingType === 'draft'}
+                        loadingText="Saving..."
+                        disabled={submittingType !== null}
                         className="py-2.5 px-4 text-[#777980]"
                     >
                         Save as a draft
                     </Button>
                     <Button
                         type="submit"
-                        isLoading={isSubmitting}
+                        isLoading={submittingType === 'publish'}
                         loadingText="Publishing..."
+                        disabled={submittingType !== null}
                         className="py-2.5 px-4"
                     >
                         Publish

@@ -85,6 +85,7 @@ export function KanbanColumn({
 						</Button> */}
             <Button
               variant="icon"
+              disabled={title === "Converted"}
               onClick={async () => {
                 if (!confirm(`Delete stage "${title}"?`)) return;
                 try {
@@ -95,7 +96,7 @@ export function KanbanColumn({
                   toast.error("Failed to delete stage");
                 }
               }}
-              className="flex p-1.5 items-center rounded-lg border border-transparent text-[#777980] cursor-pointer hover:bg-white/70 hover:border-[#D0D5DD] hover:text-[#FF4345] transition-all duration-200"
+              className="flex p-1.5 items-center rounded-lg border border-transparent text-[#777980] cursor-pointer hover:bg-white/70 hover:border-[#D0D5DD] hover:text-[#FF4345] transition-all duration-200 [&:disabled]:!cursor-not-allowed disabled:opacity-40"
             >
               <Trash2 size={18} />
             </Button>

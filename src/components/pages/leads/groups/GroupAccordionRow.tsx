@@ -1,13 +1,15 @@
 "use client";
 
 import { Button } from "@/components/ui/Button";
+import { Pagination } from "@/components/ui/Pagination";
 import { Icon } from "@/components/ui/Icon";
 import type { StageOption } from "@/components/ui/StageDropdown";
 import { usePermission } from "@/hooks/usePermission";
+import type { GroupLeadPagination } from "@/hooks/useGroupsData";
 import { PERMISSIONS } from "@/lib/permissions";
 import type { Lead } from "@/types/leads";
 import { ChevronDown, ChevronUp, Plus, Trash2, Users } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { LeadRow } from "./LeadRow";
 
 interface Group {
@@ -30,6 +32,13 @@ interface GroupAccordionRowProps {
   router: { push: (url: string) => void };
   onExport: (groupId: string, format: "xlsx" | "csv") => void;
   exportDisabled: boolean;
+  groupLeadPagination?: GroupLeadPagination;
+  fetchGroupLeads: (
+    groupId: string,
+    page?: number,
+    limit?: number,
+    force?: boolean,
+  ) => Promise<Lead[]>;
 }
 
 export function GroupAccordionRow({
@@ -45,9 +54,19 @@ export function GroupAccordionRow({
   router,
   onExport,
   exportDisabled,
+  groupLeadPagination,
+  fetchGroupLeads,
 }: GroupAccordionRowProps) {
   const canConnect = usePermission(PERMISSIONS.lead_group.connect);
   const [exportOpen, setExportOpen] = useState(false);
+  const [leadPage, setLeadPage] = useState(1);
+  const LEADS_PER_PAGE = 5;
+
+  useEffect(() => {
+    if (!isExpanded) return;
+
+    fetchGroupLeads(group.id, leadPage, LEADS_PER_PAGE);
+  }, [isExpanded, group.id, leadPage, fetchGroupLeads]);
 
   return (
     <tr>
@@ -186,7 +205,24 @@ export function GroupAccordionRow({
                 />
               ))}
             </tbody>
+
+            <tfoot>
+              <tr>
+                <td colSpan={8} className="border-t border-[#E8E8E9] px-4 py-2">
+                  {groupLeadPagination &&
+                    groupLeadPagination.totalPages > 1 && (
+                      <Pagination
+                        currentPage={groupLeadPagination.currentPage}
+                        totalPages={groupLeadPagination.totalPages}
+                        onPageChange={setLeadPage}
+                      />
+                    )}
+                </td>
+              </tr>
+            </tfoot>
+
           </table>
+
         )}
 
         {/* Empty state */}

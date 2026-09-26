@@ -37,7 +37,7 @@ const PRIORITY_OPTIONS = [
 export function AddLeadModal({
   isOpen,
   onClose,
-  stage = "New Lead",
+  stage = "Select Stage",
   stageId = "cmqhw9c130002q4tmw3f71hpt",
   borderColor = "#0098E8",
   onLeadCreated,
@@ -68,14 +68,10 @@ export function AddLeadModal({
   const [currentStageId, setCurrentStageId] = useState(stageId);
   const [currentStageLabel, setCurrentStageLabel] = useState(stage);
 
-  const stageOptions =
-    stages.length > 0
-      ? stages.map((s) => ({ value: s.stageId, label: s.label }))
-      : [{ value: stageId, label: stage }];
-
-  if (!stageOptions.some((o) => o.value === currentStageId)) {
-    stageOptions.unshift({ value: currentStageId, label: currentStageLabel });
-  }
+  const stageOptions = stages.map((s) => ({
+    value: s.stageId,
+    label: s.label,
+  }));
 
   const handleStageChange = (selectedValue: string) => {
     const selected = stageOptions.find((o) => o.value === selectedValue);
@@ -87,7 +83,15 @@ export function AddLeadModal({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name || !phone || !email || !service || !vehicle || !source) {
+    if (
+      !name ||
+      !phone ||
+      !email ||
+      !service ||
+      !vehicle ||
+      !source ||
+      currentStageLabel === "Select Stage"
+    ) {
       toast.warning("Please fill all required fields");
       return;
     }
@@ -300,7 +304,7 @@ export function AddLeadModal({
                 Deposit
               </label>
               <FilterDropdown
-                label="None"
+                label="Select Deposit"
                 options={[
                   { value: "PAID", label: "Paid" },
                   { value: "PENDING", label: "Pending" },
@@ -320,7 +324,7 @@ export function AddLeadModal({
               </label>
 
               <FilterDropdown
-                label="Select stage"
+                label="Select Stage"
                 options={[
                   ...stageOptions,
                   {

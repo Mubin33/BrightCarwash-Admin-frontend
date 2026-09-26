@@ -2,6 +2,7 @@
 
 import { Pagination } from "@/components/ui/Pagination";
 import type { StageOption } from "@/components/ui/StageDropdown";
+import type { GroupLeadPagination } from "@/hooks/useGroupsData";
 import type { Lead } from "@/types/leads";
 import { useState } from "react";
 import { GroupAccordionRow } from "./GroupAccordionRow";
@@ -28,7 +29,14 @@ interface GroupAccordionProps {
   router: { push: (url: string) => void };
   onAddLead: (groupId: string) => void;
   onDeleteGroup: (groupId: string) => void;
-  onGroupExpand?: (groupId: string) => void;
+  // onGroupExpand?: (groupId: string) => void;
+  groupLeadPagination?: Record<string, GroupLeadPagination>;
+  fetchGroupLeads: (
+    groupId: string,
+    page?: number,
+    limit?: number,
+    force?: boolean,
+  ) => Promise<Lead[]>;
   onExport?: (groupId: string, format: "xlsx" | "csv") => void;
   exportDisabled?: boolean;
 }
@@ -48,21 +56,37 @@ export function GroupAccordion({
   router,
   onAddLead,
   onDeleteGroup,
-  onGroupExpand,
+  // onGroupExpand,
+  groupLeadPagination,
+  fetchGroupLeads,
   onExport,
   exportDisabled = false,
 }: GroupAccordionProps) {
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
 
+  // const toggleGroup = (groupId: string) => {
+  //   setExpandedGroups((prev) => {
+  //     const next = new Set(prev);
+  //     if (next.has(groupId)) {
+  //       next.delete(groupId);
+  //     } else {
+  //       next.add(groupId);
+  //       onGroupExpand?.(groupId);
+  //     }
+  //     return next;
+  //   });
+  // };
+
   const toggleGroup = (groupId: string) => {
     setExpandedGroups((prev) => {
       const next = new Set(prev);
+
       if (next.has(groupId)) {
         next.delete(groupId);
       } else {
         next.add(groupId);
-        onGroupExpand?.(groupId);
       }
+
       return next;
     });
   };
@@ -133,6 +157,8 @@ export function GroupAccordion({
                   router={router}
                   onExport={onExport || (() => {})}
                   exportDisabled={exportDisabled}
+                  groupLeadPagination={groupLeadPagination?.[group.id]}
+                  fetchGroupLeads={fetchGroupLeads}
                 />
               );
             })}

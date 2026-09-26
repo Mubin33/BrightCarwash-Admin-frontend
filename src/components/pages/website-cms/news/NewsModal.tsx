@@ -26,7 +26,6 @@ export function NewsModal({ isOpen, onClose, item, onSuccess }: NewsModalProps) 
     const [isPublished, setIsPublished] = useState(true);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isVisible, setIsVisible] = useState(false);
-    const modalRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const { data: categories = [] } = useGetCategoriesQuery();
@@ -63,15 +62,15 @@ export function NewsModal({ isOpen, onClose, item, onSuccess }: NewsModalProps) 
     }, [item, isOpen]);
 
     useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') {
                 handleClose();
             }
         };
         if (isOpen) {
-            document.addEventListener('mousedown', handleClickOutside);
+            document.addEventListener('keydown', handleKeyDown);
         }
-        return () => document.removeEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('keydown', handleKeyDown);
     }, [isOpen]);
 
     const handleClose = () => {
@@ -169,7 +168,6 @@ export function NewsModal({ isOpen, onClose, item, onSuccess }: NewsModalProps) 
             />
             <div
                 className={`fixed top-0 right-0 h-full w-full max-w-[560px] bg-white z-50 shadow-xl transition-transform duration-300 ease-out ${isVisible ? 'translate-x-0' : 'translate-x-full'}`}
-                ref={modalRef}
             >
                 <div className="flex flex-col h-full p-6">
                     <div className="flex flex-col gap-3">

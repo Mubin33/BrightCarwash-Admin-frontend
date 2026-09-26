@@ -33,8 +33,11 @@ export function ImageModal({ isOpen, onClose, onSave, initialUrl = '' }: ImageMo
         }
     }, [url]);
 
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
+    const handleInsert = (e?: React.SyntheticEvent) => {
+        if (e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
         if (url.trim()) {
             onSave(url.trim());
             onClose();
@@ -43,7 +46,7 @@ export function ImageModal({ isOpen, onClose, onSave, initialUrl = '' }: ImageMo
 
     return (
         <Modal isOpen={isOpen} onClose={onClose} title="Insert Image" size="lg">
-            <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+            <div className="flex flex-col gap-4">
                 <div className="flex flex-col gap-2">
                     <label className="text-[#777980] font-inter text-sm font-medium leading-5">
                         Image URL
@@ -57,6 +60,13 @@ export function ImageModal({ isOpen, onClose, onSave, initialUrl = '' }: ImageMo
                             type="url"
                             value={url}
                             onChange={(e) => setUrl(e.target.value)}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    handleInsert();
+                                }
+                            }}
                             placeholder="https://example.com/image.jpg"
                             className="w-full pl-10 pr-4 py-3 bg-[#F8FAFB] rounded-lg border border-[#DFE1E7] text-[#1B1B1B] placeholder-[#777980] font-inter text-base outline-none focus:border-[#0098E8] focus:ring-2 focus:ring-[#0098E8]/20 transition-all"
                             autoFocus
@@ -94,14 +104,15 @@ export function ImageModal({ isOpen, onClose, onSave, initialUrl = '' }: ImageMo
                         Cancel
                     </Button>
                     <Button
-                        type="submit"
+                        type="button"
+                        onClick={handleInsert}
                         disabled={!url.trim()}
                         className="flex-1 py-2.5 bg-[#0098E8] text-white hover:bg-[#0088D8] disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         Insert Image
                     </Button>
                 </div>
-            </form>
+            </div>
         </Modal>
     );
 }

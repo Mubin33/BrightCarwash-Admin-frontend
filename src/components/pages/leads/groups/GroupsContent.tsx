@@ -60,6 +60,7 @@ export const GroupsContent = forwardRef<
     isPageLoading,
     refetch,
     fetchGroupLeads,
+    groupLeadPagination,
     addGroupOptimistic,
     removeOptimisticGroup,
     addLeadToGroupOptimistic,
@@ -216,7 +217,7 @@ export const GroupsContent = forwardRef<
         );
 
         if (leadsToExport.length === 0) {
-          leadsToExport = await fetchGroupLeads(groupId, true);
+          leadsToExport = await fetchGroupLeads(groupId, 1, 10, true);
         }
 
         if (!leadsToExport || leadsToExport.length === 0) {
@@ -302,14 +303,14 @@ export const GroupsContent = forwardRef<
     }
   }, [groupModalOpen, refetch, refetchLeads]);
 
-  useEffect(() => {
-    if (groups.length > 0 && !isPageLoading) {
-      const firstGroup = groups[0];
-      if (firstGroup) {
-        fetchGroupLeads(firstGroup.id);
-      }
-    }
-  }, [groups, isPageLoading, fetchGroupLeads]);
+  // useEffect(() => {
+  //   if (groups.length > 0 && !isPageLoading) {
+  //     const firstGroup = groups[0];
+  //     if (firstGroup) {
+  //       fetchGroupLeads(firstGroup.id);
+  //     }
+  //   }
+  // }, [groups, isPageLoading, fetchGroupLeads]);
 
   const handleLeadAdded = useCallback(
     async (leadId: string) => {
@@ -402,6 +403,8 @@ export const GroupsContent = forwardRef<
         onDeleteGroup={handleDeleteGroup}
         router={router}
         onGroupExpand={fetchGroupLeads}
+        groupLeadPagination={groupLeadPagination}
+        fetchGroupLeads={fetchGroupLeads}
         onExport={handleExportGroup}
         exportDisabled={isExportingGroup}
         currentPage={currentPage}
@@ -435,7 +438,7 @@ export const GroupsContent = forwardRef<
         onSuccess={async () => {
           if (targetGroupId) {
             await Promise.all([
-              fetchGroupLeads(targetGroupId, true),
+              fetchGroupLeads(targetGroupId, 1, 10, true),
               refetch(),
               refetchLeads(),
             ]);

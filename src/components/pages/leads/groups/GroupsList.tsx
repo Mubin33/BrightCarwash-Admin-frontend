@@ -3,6 +3,7 @@
 import type { StageOption } from "@/components/ui/StageDropdown";
 import type { Lead } from "@/types/leads";
 import { GroupAccordion } from "./GroupAccordion";
+import type { GroupLeadPagination } from "@/hooks/useGroupsData";
 
 interface Group {
   id: string;
@@ -27,6 +28,14 @@ interface GroupsListProps {
   onDeleteGroup: (groupId: string) => void;
   router: { push: (url: string) => void };
   onGroupExpand?: (groupId: string) => void;
+  groupLeadPagination: Record<string, GroupLeadPagination>;
+  fetchGroupLeads: (
+    groupId: string,
+    page?: number,
+    limit?: number,
+    force?: boolean,
+  ) => Promise<Lead[]>;
+
   onExport?: (groupId: string, format: "xlsx" | "csv") => void;
   exportDisabled?: boolean;
 }
@@ -47,6 +56,8 @@ export function GroupsList({
   onDeleteGroup,
   router,
   onGroupExpand,
+  groupLeadPagination,
+  fetchGroupLeads,
   onExport,
   exportDisabled,
 }: GroupsListProps) {
@@ -68,7 +79,8 @@ export function GroupsList({
       router={router}
       onAddLead={onAddLead}
       onDeleteGroup={onDeleteGroup}
-      onGroupExpand={onGroupExpand}
+      groupLeadPagination={groupLeadPagination}
+      fetchGroupLeads={fetchGroupLeads}
       onExport={onExport}
       exportDisabled={exportDisabled}
       currentPage={currentPage}

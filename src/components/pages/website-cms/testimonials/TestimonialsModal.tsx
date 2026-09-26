@@ -48,6 +48,7 @@ export function TestimonialsModal({ isOpen, onClose, item, onSuccess }: Testimon
             setDesignation(item.designation);
             setRatings(item.ratings);
             setReviewText(item.review_text);
+            setFile(null);
             setPreview(item.avatar || null);
             setIsActive(item.is_active);
         } else {
@@ -58,6 +59,10 @@ export function TestimonialsModal({ isOpen, onClose, item, onSuccess }: Testimon
             setFile(null);
             setPreview(null);
             setIsActive(true);
+        }
+
+        if (fileInputRef.current) {
+            fileInputRef.current.value = '';
         }
     }, [isOpen, item?.id]);
 
@@ -75,7 +80,13 @@ export function TestimonialsModal({ isOpen, onClose, item, onSuccess }: Testimon
 
     const handleClose = () => {
         setIsVisible(false);
-        setTimeout(() => onClose(), 300);
+        setTimeout(() => {
+            onClose();
+            setFile(null);
+            if (fileInputRef.current) {
+                fileInputRef.current.value = '';
+            }
+        }, 300);
     };
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
