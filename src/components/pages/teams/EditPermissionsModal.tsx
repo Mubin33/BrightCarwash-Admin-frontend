@@ -13,7 +13,12 @@ interface EditPermissionsModalProps {
   role: TeamRole | null;
   allPermissions: Permission[];
   selectedPermissions: string[];
-  onSave: (roleId: string, permissions: string[]) => void;
+  onSave: (
+    roleId: string,
+    permissions: string[],
+    roleName?: string,
+    permNames?: string[],
+  ) => void;
 }
 
 function isSuperAdmin(roleName: string): boolean {
@@ -36,8 +41,10 @@ export const EditPermissionsModal = memo(function EditPermissionsModal({
   const prevPermissionsRef = useRef<string[]>(selectedPermissions);
 
   const canUpdate = usePermission(PERMISSIONS.role.update);
+  const canReadPermission = usePermission(PERMISSIONS.permission.read);
+  const canEditPermissions = canUpdate && canReadPermission;
   const isLocked = role ? isSuperAdmin(role.name) : false;
-  const isReadOnly = isLocked || !canUpdate;
+  const isReadOnly = isLocked || !canEditPermissions;
 
   const isReadPermission = (permission: Permission) =>
     permission.name.endsWith(":read");
@@ -69,7 +76,7 @@ export const EditPermissionsModal = memo(function EditPermissionsModal({
       setSelected(normalizePermissions(next));
       prevPermissionsRef.current = next;
     }
-  }, [selectedPermissions, allPermissions]);
+  }, [selectedPermissions, allPermissions, normalizePermissions]);
 
   const grouped = useMemo(() => {
     const map: Record<string, Permission[]> = {};
@@ -145,7 +152,11 @@ export const EditPermissionsModal = memo(function EditPermissionsModal({
           return prev;
         }
 
-        next.has(id) ? next.delete(id) : next.add(id);
+        if (next.has(id)) {
+          next.delete(id);
+        } else {
+          next.add(id);
+        }
 
         return next;
       }
@@ -171,7 +182,11 @@ export const EditPermissionsModal = memo(function EditPermissionsModal({
   const handleSave = () => {
     if (!role || isReadOnly) return;
 
-    onSave(role.id, Array.from(selected));
+    const selectedPermNames = allPermissions
+      .filter((p) => selected.has(p.id))
+      .map((p) => p.name);
+
+    onSave(role.id, Array.from(selected), role.name, selectedPermNames);
     onClose();
   };
 
@@ -311,10 +326,10 @@ export const EditPermissionsModal = memo(function EditPermissionsModal({
             onClick={onClose}
             className="px-6 w-auto!"
           >
-            {canUpdate && !isLocked ? "Cancel" : "Close"}
+            {canEditPermissions && !isLocked ? "Cancel" : "Close"}
           </Button>
 
-          {canUpdate && (
+          {canEditPermissions && (
             <Button
               onClick={handleSave}
               disabled={isLocked}

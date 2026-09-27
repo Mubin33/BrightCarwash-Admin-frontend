@@ -23,12 +23,13 @@ export const CampaignsTable = memo(function CampaignsTable({
     onDelete,
     onLaunch,
     onStatusAction,
-    deletingId,
+    deletingId: _deletingId,
 }: CampaignsTableProps) {
+    void _deletingId;
     const [currentPage, setCurrentPage] = useState(1);
 
 
-    const safeCampaigns = campaigns || [];
+    const safeCampaigns = useMemo(() => campaigns || [], [campaigns]);
     const totalPages = Math.max(1, Math.ceil(safeCampaigns.length / ITEMS_PER_PAGE));
 
     const paginated = useMemo(

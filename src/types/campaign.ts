@@ -28,6 +28,7 @@ export interface CampaignEmailConfig {
 	senderName?: string;
 	senderEmail: string;
 	leadGroup: {
+		id?: string;
 		name: string;
 	};
 	leadGroupId?: string | null;
@@ -44,6 +45,7 @@ export interface Campaign {
 	channelType: CampaignChannelType;
 	scheduledAt: string | null;
 	emailConfig: CampaignEmailConfig;
+	templateId?: string | null;
 	analytics: CampaignAnalytics;
 	createdAt: string;
 	updatedAt: string;
@@ -60,7 +62,7 @@ export interface CreateCampaignRequest {
 	scheduledAt?: string | null;
 }
 
-export interface UpdateCampaignRequest extends Partial<CreateCampaignRequest> { }
+export type UpdateCampaignRequest = Partial<CreateCampaignRequest>;
 
 export interface CampaignListResponse {
 	success: boolean;

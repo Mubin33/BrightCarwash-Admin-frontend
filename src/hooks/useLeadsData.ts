@@ -80,10 +80,13 @@ export function useLeadsData(
     refetch();
   }, [refetch]);
 
-  const leads =
-    localLeads.length > 0 || isLoading || isFetching
-      ? localLeads
-      : paginatedData?.data || [];
+  const leads = useMemo(
+    () =>
+      localLeads.length > 0 || isLoading || isFetching
+        ? localLeads
+        : paginatedData?.data || [],
+    [localLeads, isLoading, isFetching, paginatedData?.data]
+  );
 
   const totalItems = paginatedData?.total || 0;
   const totalPages = paginatedData?.totalPages || 1;

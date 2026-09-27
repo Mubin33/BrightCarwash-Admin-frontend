@@ -45,7 +45,8 @@ export function ResetPasswordForm() {
 			sessionStorage.removeItem('resetEmail');
 			sessionStorage.removeItem('verifiedOtp');
 			router.push('/login');
-		} catch (error: any) {
+		} catch (err) {
+      const error = err as { response?: { data?: { message?: string } }; message?: string };
 			const message = error?.response?.data?.message || error?.message || 'Reset failed';
 			toast.error(message);
 		} finally {

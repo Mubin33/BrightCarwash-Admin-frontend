@@ -26,26 +26,36 @@ import { toast } from "react-toastify";
 const ITEMS_PER_PAGE = 5;
 
 export function TeamsContent() {
+  const canReadMembers = usePermission(PERMISSIONS.member.read);
   const canReadRoles = usePermission(PERMISSIONS.role.read);
   const canCreateRole = usePermission(PERMISSIONS.role.create);
   const canUpdateRole = usePermission(PERMISSIONS.role.update);
   const canDeleteRole = usePermission(PERMISSIONS.role.delete);
+  const canReadPermission = usePermission(PERMISSIONS.permission.read);
+
+  const canEditPermissions = canUpdateRole && canReadPermission;
 
   const [searchQuery, setSearchQuery] = useState("");
   const [memberPage, setMemberPage] = useState(1);
 
   const {
     data: membersData,
-    isLoading,
-    error,
+    isLoading: isMembersLoading,
+    error: membersError,
     isFetching,
     refetch: refetchMembers,
-  } = useGetTeamMembersQuery({
-    search: searchQuery || undefined,
-    page: memberPage,
-    limit: ITEMS_PER_PAGE,
-  });
-  const { data: allMembersData } = useGetTeamMembersQuery({ limit: 1000 });
+  } = useGetTeamMembersQuery(
+    {
+      search: searchQuery || undefined,
+      page: memberPage,
+      limit: ITEMS_PER_PAGE,
+    },
+    { skip: !canReadMembers },
+  );
+  const { data: allMembersData } = useGetTeamMembersQuery(
+    { limit: 1000 },
+    { skip: !canReadMembers },
+  );
   const allMembers = allMembersData?.members || [];
   const members = membersData?.members || [];
   const membersMeta = membersData?.meta || {
@@ -54,8 +64,15 @@ export function TeamsContent() {
     currentPage: 1,
   };
 
-  const { data: roles = [], refetch: refetchRoles } = useGetTeamRolesQuery();
-  const { data: permissions = [] } = useGetPermissionsQuery();
+  const {
+    data: roles = [],
+    isLoading: isRolesLoading,
+    error: rolesError,
+    refetch: refetchRoles,
+  } = useGetTeamRolesQuery(undefined, { skip: !canReadRoles });
+  const { data: permissions = [] } = useGetPermissionsQuery(undefined, {
+    skip: !canReadRoles || !canReadPermission,
+  });
   const [blockMember] = useBlockMemberMutation();
   const [unblockMember] = useUnblockMemberMutation();
   const [resendInvite] = useResendInviteMutation();
@@ -81,7 +98,7 @@ export function TeamsContent() {
   const currentUser = useSelector((state: RootState) => state.auth.user);
 
   const { data: rolePerms = [] } = useGetRoleByIdQuery(editRole?.name || "", {
-    skip: !editRole,
+    skip: !editRole || !canEditPermissions,
   });
   const { handleSavePermissions } = useTeamPermissions();
 
@@ -129,49 +146,72 @@ export function TeamsContent() {
       toast.error("Action failed");
     }
   };
-  useEffect(() => {}, [roles]);
-  if (isLoading)
+  const isPageLoading =
+    (canReadMembers && isMembersLoading) || (canReadRoles && isRolesLoading);
+
+  if (isPageLoading)
     return <div className="h-75 bg-gray-100 rounded-lg animate-pulse w-full" />;
-  if (error)
+
+  if (canReadMembers && membersError && (!canReadRoles || rolesError))
     return (
       <div className="flex items-center justify-center py-12 text-[#FF4345] font-inter">
-        Failed to load team members.
+        Failed to load team data.
       </div>
     );
 
   return (
     <div className="flex flex-col gap-6 w-full">
-      <TeamsMembersSection
-        members={members}
-        roles={roles}
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
-        currentPage={memberPage}
-        onPageChange={setMemberPage}
-        onEditRole={handleEditRole}
-        onResendInvite={handleResendInvite}
-        onToggleBlock={handleToggleBlock}
-        onAddMember={() => setAddMemberOpen(true)}
-        currentUserId={currentUser?.id || ""}
-        currentUserRole={currentUser?.role || ""}
-        meta={membersMeta}
-        isFetching={isFetching}
-      />
+      {canReadMembers ? (
+        membersError ? (
+          <div className="flex items-center justify-center py-12 text-[#FF4345] font-inter">
+            Failed to load team members.
+          </div>
+        ) : (
+          <TeamsMembersSection
+            members={members}
+            roles={roles}
+            searchQuery={searchQuery}
+            onSearchChange={setSearchQuery}
+            currentPage={memberPage}
+            onPageChange={setMemberPage}
+            onEditRole={handleEditRole}
+            onResendInvite={handleResendInvite}
+            onToggleBlock={handleToggleBlock}
+            onAddMember={() => setAddMemberOpen(true)}
+            currentUserId={currentUser?.id || ""}
+            currentUserRole={currentUser?.role || ""}
+            meta={membersMeta}
+            isFetching={isFetching}
+          />
+        )
+      ) : null}
 
-      {canReadRoles && (
-        <TeamsRolesSection
-          roles={roles}
-          members={allMembers}
-          onEditPermissions={(role) => {
-            if (!canUpdateRole) return;
-            setEditRole(role);
-          }}
-          onCreateRole={() => {
-            if (!canCreateRole) return;
-            setCreateRoleOpen(true);
-          }}
-          onDeleteRole={handleDeleteRole}
-        />
+      {canReadRoles ? (
+        rolesError ? (
+          <div className="flex items-center justify-center py-12 text-[#FF4345] font-inter">
+            Failed to load roles.
+          </div>
+        ) : (
+          <TeamsRolesSection
+            roles={roles}
+            members={allMembers}
+            onEditPermissions={(role) => {
+              if (!canEditPermissions) return;
+              setEditRole(role);
+            }}
+            onCreateRole={() => {
+              if (!canCreateRole) return;
+              setCreateRoleOpen(true);
+            }}
+            onDeleteRole={handleDeleteRole}
+          />
+        )
+      ) : null}
+
+      {!canReadMembers && !canReadRoles && (
+        <div className="flex items-center justify-center py-12 text-[#777980] font-inter">
+          You do not have permission to view team members or roles.
+        </div>
       )}
 
       <TeamsModals

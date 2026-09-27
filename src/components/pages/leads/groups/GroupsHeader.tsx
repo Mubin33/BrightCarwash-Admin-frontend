@@ -15,10 +15,12 @@ interface GroupsHeaderProps {
 export function GroupsHeader({
     searchQuery,
     onSearchChange,
-    onExport,
-    exportDisabled,
+    onExport: _onExport,
+    exportDisabled: _exportDisabled,
     onAddGroup,
 }: GroupsHeaderProps) {
+    void _onExport;
+    void _exportDisabled;
     return (
         <div className="flex items-center gap-3 flex-wrap w-full">
             <div className="flex px-4 py-3 items-center gap-3 rounded-lg border border-[#E8E8E9] bg-white max-w-[400px] flex-1 min-w-[200px]">

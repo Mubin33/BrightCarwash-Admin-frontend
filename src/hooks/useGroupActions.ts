@@ -15,7 +15,15 @@ export function useGroupActions({
     addLeadToGroupOptimistic,
     updateLeadStageOptimistic,
     removeLeadOptimistic,
-}: any) {
+}: {
+    refetch: () => Promise<unknown> | void;
+    refetchLeads: () => Promise<unknown> | void;
+    fetchGroupLeads: (groupId: string, pageOrForce?: number | boolean, limit?: number, force?: boolean) => Promise<unknown> | void;
+    addLeadToGroupOptimistic?: (groupId: string, lead: Lead) => void;
+    updateLeadStageOptimistic: (id: string, stageName: string) => void;
+    removeLeadOptimistic?: (groupId: string, leadId: string) => void;
+}) {
+    void addLeadToGroupOptimistic;
     const router = useRouter();
     const [updateStage] = useUpdateLeadStageMutation();
     const [disconnectLeads] = useDisconnectLeadsFromGroupMutation();
@@ -71,7 +79,8 @@ export function useGroupActions({
         }
     }, [refetch]);
 
-    const handleAddLeadToGroup = useCallback(async (groupId: string, leadId: string, leadData?: Lead) => {
+    const handleAddLeadToGroup = useCallback(async (groupId: string, leadId: string, _leadData?: Lead) => {
+        void _leadData;
         try {
             const token = getAccessToken();
             if (!token) {

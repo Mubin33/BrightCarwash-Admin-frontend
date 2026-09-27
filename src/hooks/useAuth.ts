@@ -55,7 +55,8 @@ export function useAuth() {
         toast.success("Login successful");
         router.replace("/dashboard");
         return true;
-      } catch (error: any) {
+      } catch (err) {
+        const error = err as { response?: { data?: { message?: string } }; message?: string };
         clearTokens();
         dispatch(clearAuth());
         const message =

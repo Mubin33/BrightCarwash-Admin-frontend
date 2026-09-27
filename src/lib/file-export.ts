@@ -6,7 +6,7 @@ export interface ExportOptions {
     fileName?: string;
     sheetName?: string;
     headers?: string[];
-    data: any[];
+    data: Record<string, unknown>[];
     format: ExportFormat;
 }
 
@@ -19,7 +19,7 @@ export interface DownloadOptions {
 export interface ExportResult {
     success: boolean;
     message: string;
-    data?: any;
+    data?: unknown;
 }
 
 const AI_BASE_URL = process.env.NEXT_PUBLIC_AI_BASE_URL?.replace(/\/$/, '') || '';

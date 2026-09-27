@@ -1,12 +1,12 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useState, useEffect } from "react";
 
-export function useParams<T extends Record<string, any>>(defaults: T) {
+export function useParams<T extends Record<string, unknown>>(defaults: T) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
   const getInitialState = useCallback(() => {
-    const state: any = {};
+    const state: Record<string, unknown> = {};
     Object.keys(defaults).forEach((key) => {
       const param = searchParams.get(key);
       state[key] = param !== null ? param : defaults[key];

@@ -33,13 +33,14 @@ export function HeroBannerUpload({
     onDrop,
     onDragOver,
     onDragLeave,
-    onOpenPicker,
+    onOpenPicker: _onOpenPicker,
     onFileChange,
     onCancel,
     onReplaceClick,
     setImageError,
     fileInputRef,
 }: HeroBannerUploadProps) {
+    void _onOpenPicker;
     const internalInputRef = useRef<HTMLInputElement | null>(null);
 
     const handleFileInputClick = () => {

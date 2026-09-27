@@ -18,7 +18,7 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   loadingText?: string;
   children: ReactNode;
   className?: string;
-  permission?: string;
+  permission?: string | string[];
 }
 
 const variantClasses: Record<ButtonVariant, string> = {

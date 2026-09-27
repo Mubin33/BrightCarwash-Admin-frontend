@@ -16,9 +16,7 @@ export function Pagination({
   currentPage,
   totalPages,
   onPageChange,
-  totalItems,
-  itemsPerPage,
-  isLoading = false,
+      isLoading = false,
 }: PaginationProps) {
   const getPageNumbers = () => {
     const pages: (number | string)[] = [];

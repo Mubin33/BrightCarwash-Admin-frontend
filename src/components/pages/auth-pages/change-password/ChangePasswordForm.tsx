@@ -28,7 +28,8 @@ export function ChangePasswordForm() {
       setOldPassword("");
       setNewPassword("");
       setConfirmPassword("");
-    } catch (error: any) {
+    } catch (err) {
+      const error = err as { response?: { data?: { message?: string } }; message?: string };
       const message = error?.response?.data?.message || error?.message || "Change password failed";
       toast.error(message);
     } finally {

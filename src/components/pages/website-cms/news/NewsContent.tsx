@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Pagination } from '@/components/ui/Pagination';
 import { NewsHeader } from './NewsHeader';

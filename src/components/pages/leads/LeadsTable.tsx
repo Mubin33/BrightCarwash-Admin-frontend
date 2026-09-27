@@ -69,8 +69,6 @@ export const LeadsTable = forwardRef<LeadsTableHandle, LeadsTableExternalProps>(
       priorityFilter,
       setPriorityFilter,
       depositFilter,
-      setDepositFilter,
-      uniqueSources,
       stages,
       setStages,
       refreshStages,

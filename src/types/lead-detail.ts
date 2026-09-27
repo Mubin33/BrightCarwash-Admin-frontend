@@ -76,6 +76,7 @@ export interface LeadDetailApiResponse {
 	}[];
 	assignment_history?: {
 		id: string;
+		created_at?: string;
 		assigned_to_id: string | null;
 		assignee: { id: string; first_name: string; last_name: string; email: string } | null;
 		assigned_by_id: string;

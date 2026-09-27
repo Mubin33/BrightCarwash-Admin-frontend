@@ -25,6 +25,7 @@ export function SubjectModal({
   initialPreview = "",
   onSave,
 }: SubjectModalProps) {
+    void initialPreview;
   const [subject, setSubject] = useState(initialSubject);
   const [subjectError, setSubjectError] = useState("");
 

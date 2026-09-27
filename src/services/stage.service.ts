@@ -2,7 +2,6 @@ import { APP_CONFIG } from '@/configs/app.config';
 import type {
 	Stage,
 	StageResponse,
-	SingleStageResponse,
 	CreateStageRequest,
 } from '@/types/stage';
 import { mockStages } from '@/mocks/stage.mock';

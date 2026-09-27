@@ -45,7 +45,8 @@ export function useTemplateActions() {
             try {
                 await archiveTemplate(template.id).unwrap();
                 toast.success(`"${template.name}" ${action}ed`);
-            } catch (error: any) {
+            } catch (err) {
+                const error = err as { data?: string };
                 toast.error(error?.data || `Failed to ${action} template`);
             } finally {
                 setArchivingId(null);

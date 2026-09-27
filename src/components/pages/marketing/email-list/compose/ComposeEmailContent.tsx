@@ -2,7 +2,6 @@
 
 import { Suspense } from "react";
 import { Button } from "@/components/ui/Button";
-import { Icon } from "@/components/ui/Icon";
 import { ComposeEmailHeader } from "./ComposeEmailHeader";
 import { ComposeEmailForm } from "./ComposeEmailForm";
 import { ComposeEmailEditor } from "./ComposeEmailEditor";

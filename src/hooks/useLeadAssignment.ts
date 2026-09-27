@@ -7,7 +7,7 @@ import type { LeadDetail, ActivityItem } from "@/types/lead-detail";
 
 export function useLeadAssignment(
     leadId: string,
-    currentLead: LeadDetail | null,
+    _currentLead: LeadDetail | null,
     addLocalActivity: (activity: ActivityItem) => void,
     triggerRefresh: () => void
 ) {
@@ -35,7 +35,8 @@ export function useLeadAssignment(
                 };
                 addLocalActivity(newActivity);
                 triggerRefresh();
-            } catch (error: any) {
+            } catch (err) {
+                const error = err as Error;
                 toast.error(error.message || "Failed to assign member");
                 throw error;
             }

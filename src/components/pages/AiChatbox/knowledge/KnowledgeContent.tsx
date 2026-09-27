@@ -32,15 +32,14 @@ export function KnowledgeContent() {
         { skip: !selectedFileId }
     );
 
-    const selectedFile = files?.find((f) => f.id === selectedFileId) || null;
-
+    
     const handleDelete = async (id: number) => {
         if (!confirm('Are you sure you want to delete this file?')) return;
         try {
             const result = await deleteFile(id).unwrap();
             toast.success(result.message || 'File deleted successfully');
             refetch();
-        } catch (error) {
+        } catch {
             toast.error('Failed to delete file');
         }
     };
@@ -51,7 +50,7 @@ export function KnowledgeContent() {
             toast.success('File uploaded successfully');
             setIsModalOpen(false);
             refetch();
-        } catch (error) {
+        } catch {
             toast.error('Failed to upload file');
         }
     };

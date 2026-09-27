@@ -16,7 +16,7 @@ function delay(ms: number): Promise<void> {
 }
 
 // Transform API response to match Campaign type
-function transformCampaign(apiCampaign: any): Campaign {
+function transformCampaign(apiCampaign: Campaign): Campaign {
 	return {
 		id: apiCampaign.id,
 		name: apiCampaign.name,

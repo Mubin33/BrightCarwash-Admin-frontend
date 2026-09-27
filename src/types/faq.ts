@@ -15,7 +15,7 @@ export interface CreateFAQRequest {
     is_active?: boolean;
 }
 
-export interface UpdateFAQRequest extends Partial<CreateFAQRequest> { }
+export type UpdateFAQRequest = Partial<CreateFAQRequest>;
 
 export interface FAQListResponse {
     success: boolean;

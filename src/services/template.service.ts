@@ -11,7 +11,7 @@ function delay(ms: number): Promise<void> {
 }
 
 
-function transformTemplate(apiTemplate: any): Template {
+function transformTemplate(apiTemplate: Template): Template {
 	let htmlContent = apiTemplate.emailBody?.htmlContent || '';
 
 	if (!htmlContent.trim()) {
@@ -39,8 +39,8 @@ export async function getSavedTemplates(): Promise<Template[]> {
 		const { data } = await axiosInstance.get<{
 			success: boolean;
 			message: string;
-			data: any[];
-			meta: any;
+			data: Template[];
+			meta: Record<string, unknown>;
 		}>('/admin/templates?isArchived=false&limit=100');
 
 		return data.data.map(transformTemplate);
@@ -59,8 +59,8 @@ export async function getCampaignTemplates(): Promise<Template[]> {
 		const { data } = await axiosInstance.get<{
 			success: boolean;
 			message: string;
-			data: any[];
-			meta: any;
+			data: Template[];
+			meta: Record<string, unknown>;
 		}>('/admin/templates?type=EMAIL&isArchived=false&limit=100');
 
 		return data.data.map(transformTemplate);

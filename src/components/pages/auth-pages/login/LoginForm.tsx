@@ -30,7 +30,8 @@ export function LoginForm() {
         setPassword("");
         setError("Invalid email or password");
       }
-    } catch (err: any) {
+    } catch (e) {
+      const err = e as { response?: { data?: { message?: string } }; message?: string };
       const message = err?.response?.data?.message || err?.message || "Login failed";
       setError(message);
     } finally {

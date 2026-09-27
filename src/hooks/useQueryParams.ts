@@ -3,7 +3,7 @@
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { useCallback } from "react";
 
-export function useQueryParams(p0: { status: string; search: string; page: string; limit: string; }) {
+export function useQueryParams() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
@@ -60,10 +60,6 @@ export function useQueryParams(p0: { status: string; search: string; page: strin
     return result;
   }, [searchParams]);
   
-  const handleSendEmail = (email: string) => {
-    const params = new URLSearchParams({ to: email });
-    router.push(`/marketing/email-list/create?${params.toString()}`);
-  };
 
   return { getParam, setParam, setParams, removeParam, getAllParams, searchParams };
 }

@@ -8,7 +8,23 @@ import type { Lead } from "@/types/leads";
 import { useCallback, useState } from "react";
 import { toast } from "react-toastify";
 
-function mapApiLeadToLead(apiLead: any): Lead {
+function mapApiLeadToLead(apiLead: {
+  id: string;
+  name?: string;
+  email?: string;
+  phone?: string;
+  service?: string;
+  vehicle?: string;
+  source?: string;
+  priority?: string;
+  deposit_status?: string;
+  stage_id?: string;
+  stage?: { name?: string; icon?: string | null };
+  assigned_to_id?: string | null;
+  notes?: string[];
+  created_at?: string;
+  [key: string]: unknown;
+}): Lead {
   const rawStage = apiLead.stage?.name?.toLowerCase() || "";
   const stageSlug = rawStage ? rawStage.replace(/\s+/g, "_") : "new";
 
@@ -54,13 +70,12 @@ export function useGroupsData() {
   const [groupLeadsMap, setGroupLeadsMap] = useState<Record<string, Lead[]>>(
     {},
   );
-  const [isLoadingLeads, setIsLoadingLeads] = useState(false);
+  const isLoadingLeads = false;
   const [optimisticGroups, setOptimisticGroups] = useState<LeadGroup[]>([]);
   const [fetchingGroups, setFetchingGroups] = useState<Set<string>>(new Set());
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [groupId, setGroupId] = useState<string>("");
-  const [groupLeadPagination, setGroupLeadPagination] = useState<
+    const [groupLeadPagination, setGroupLeadPagination] = useState<
     Record<string, GroupLeadPagination>
   >({});
 
@@ -111,7 +126,7 @@ export function useGroupsData() {
   //       }));
 
   //       return mappedLeads;
-  //     } catch (error: any) {
+  //     } catch (error) {
   //       console.error(`Failed to fetch leads for group ${groupId}:`, error);
   //       return [];
   //     } finally {
@@ -126,18 +141,18 @@ export function useGroupsData() {
   // );
 
   const fetchGroupLeads = useCallback(
-    async (groupId: string, page = 1, limit = 10, force = false) => {
+    async (groupId: string, pageOrForce: number | boolean = 1, limit = 10, force = false) => {
+      const page = typeof pageOrForce === "number" ? pageOrForce : 1;
+      const shouldForce = typeof pageOrForce === "boolean" ? pageOrForce : force;
       const existingPagination = groupLeadPagination[groupId];
-      if (
-        !force &&
-        existingPagination?.currentPage === page &&
+      if (!shouldForce && existingPagination?.currentPage === page &&
         existingPagination?.itemsPerPage === limit &&
         groupLeadsMap[groupId]?.length > 0
       ) {
         return groupLeadsMap[groupId] || [];
       }
 
-      if (!force && fetchingGroups.has(groupId)) {
+      if (!shouldForce && fetchingGroups.has(groupId)) {
         return groupLeadsMap[groupId] || [];
       }
 
@@ -172,7 +187,7 @@ export function useGroupsData() {
         }
 
         return mappedLeads;
-      } catch (error: any) {
+      } catch (error) {
         console.error(`Failed to fetch leads for group ${groupId}:`, error);
         return [];
       } finally {
@@ -273,8 +288,7 @@ export function useGroupsData() {
     totalPages,
     currentLimit,
     groups,
-    setGroupId,
-    leads,
+        leads,
     groupLeads: leads,
     isPageLoading,
     isLoading: isPageLoading,

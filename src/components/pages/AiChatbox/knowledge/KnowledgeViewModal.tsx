@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect } from 'react';
-import { Icon } from '@/components/ui/Icon';
 import { X } from 'lucide-react';
 import type { KnowledgeFileDetail } from '@/types/knowledge';
 

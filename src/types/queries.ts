@@ -18,7 +18,7 @@ export interface Item {
   phone: string
   vehicle: string
   status: string
-  description: any
+  description: string | null | unknown
   date: string
 }
 
@@ -29,4 +29,24 @@ export interface Meta {
   totalPages: number
   hasNextPage: boolean
   hasPreviousPage: boolean
+}
+
+export interface QuoteDetail {
+  id: string;
+  created_at: string;
+  updated_at: string;
+  full_name: string;
+  email: string;
+  phone: string;
+  vehicle: string;
+  status: string;
+  description: string | null;
+  date: string;
+  message?: string;
+}
+
+export interface QuoteDetailResponse {
+  success: boolean;
+  message: string;
+  data: QuoteDetail;
 }

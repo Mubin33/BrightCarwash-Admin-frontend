@@ -31,7 +31,7 @@ export function TemplatesList({ onTemplateSelect }: TemplatesListProps) {
         limit,
     });
 
-    const templates = data?.templates || [];
+    const templates = useMemo(() => data?.templates || [], [data?.templates]);
     const totalItems = data?.total || 0;
     const totalPages = data?.totalPages || 1;
 

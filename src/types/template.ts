@@ -7,6 +7,7 @@ export interface EmailBody {
 	templateId?: string;
 	subject: string;
 	htmlContent: string;
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	designJson?: Record<string, any>;
 }
 
@@ -33,11 +34,12 @@ export interface CreateTemplateRequest {
 	emailBody: {
 		subject: string;
 		htmlContent: string;
-		designJson?: Record<string, any>;
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	designJson?: Record<string, any>;
 	};
 }
 
-export interface UpdateTemplateRequest extends Partial<CreateTemplateRequest> { }
+export type UpdateTemplateRequest = Partial<CreateTemplateRequest>;
 
 export interface TemplateListResponse {
 	success: boolean;

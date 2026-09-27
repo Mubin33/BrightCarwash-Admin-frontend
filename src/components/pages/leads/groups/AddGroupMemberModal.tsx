@@ -59,6 +59,7 @@ export function AddGroupMemberModal({
   const [vehicle, setVehicle] = useState("");
   const [source, setSource] = useState("");
   const [deposit, setDeposit] = useState<number>(0);
+  void deposit;
   const [depositStatus, setDepositStatus] = useState<LeadDepositStatus>("NONE");
   const [priority, setPriority] = useState<string>("MEDIUM");
 
@@ -213,9 +214,10 @@ export function AddGroupMemberModal({
       );
       onSuccess?.();
       onClose();
-    } catch (error: any) {
+    } catch (err) {
+      const error = err as { data?: { message?: string }; response?: { data?: { message?: string } }; message?: string };
       const errorMsg =
-        error?.data?.message ||
+        (typeof error?.data === "string" ? error.data : error?.data?.message) ||
         error?.response?.data?.message ||
         error?.message ||
         "Failed to add members to group";
@@ -269,9 +271,10 @@ export function AddGroupMemberModal({
       toast.success(`Created & added ${name} to group`);
       onSuccess?.();
       onClose();
-    } catch (error: any) {
+    } catch (err) {
+      const error = err as { data?: { message?: string }; response?: { data?: { message?: string } }; message?: string };
       const errorMsg =
-        error?.data?.message ||
+        (typeof error?.data === "string" ? error.data : error?.data?.message) ||
         error?.response?.data?.message ||
         error?.message ||
         "Failed to create and add member";

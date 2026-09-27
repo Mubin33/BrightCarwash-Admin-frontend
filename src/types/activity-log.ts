@@ -9,7 +9,7 @@ export interface ActivityLog {
   action: string;
   entity: string;
   entityId: string | null;
-  changes: Record<string, any> | null;
+  changes: Record<string, unknown> | null;
   metadata: {
     ip: string;
     userAgent: string;

@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { Pagination } from "@/components/ui/Pagination";
 import { formatNotificationTime } from "@/lib/formatNotificationTime";
 import {
@@ -12,14 +12,13 @@ import { useParams } from "@/hooks/useParams";
 const ITEMS_PER_PAGE = 10;
 
 export default function NotificationsPage() {
-  const [currentPage, setCurrentPage] = useState<number>(1);
   const router = useRouter();
    const [queryState, setQueryState] = useParams({
         page: "1",
         limit: ITEMS_PER_PAGE.toString(),
       });
   
-  const { data, isLoading, error } = useGetNotificationQuery({
+  const { data, isLoading } = useGetNotificationQuery({
     page: Number(queryState.page || 1),
     limit: Number(queryState.limit || ITEMS_PER_PAGE.toString()),
   } as GetNotificationParams);

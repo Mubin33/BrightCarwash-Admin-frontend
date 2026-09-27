@@ -9,7 +9,6 @@ import type { BusinessProfileData } from "@/services/settings.api";
 
 export function useBusinessSettings(initialData: BusinessProfileData) {
     const [form, setForm] = useState<BusinessProfileData>(initialData);
-    const [logoFile, setLogoFile] = useState<File | null>(null);
     const [logoPreview, setLogoPreview] = useState<string | null>(initialData.logo);
     const [isUploading, setIsUploading] = useState(false);
     const [updateBusinessProfile, { isLoading: isSaving }] = useUpdateBusinessProfileMutation();

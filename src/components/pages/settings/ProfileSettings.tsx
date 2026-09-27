@@ -4,15 +4,12 @@ import Image from "next/image";
 import { Button } from "@/components/ui/Button";
 import { useProfileSettings } from "@/hooks/useProfileSettings";
 import { useGetProfileQuery } from "@/services/settings.api";
-import { PERMISSIONS, hasPermission } from "@/lib/permissions";
-import { useSelector } from "react-redux";
 
 const labelClass = "text-[#777980] font-inter text-base font-normal leading-5";
 const inputClass = "w-full px-4 py-3 bg-white rounded-lg border border-[#DFE1E7] text-[#1B1B1B] font-inter text-base outline-none focus:border-[#0098E8] transition-all";
 
 export function ProfileSettings() {
     const { data: initialData, isLoading } = useGetProfileQuery();
-    const user = useSelector((state: { auth: { user: { permissions: string[] } | null } }) => state.auth.user);
     const {
         form,
         avatar,

@@ -1,6 +1,5 @@
 "use client";
 
-import Image from 'next/image';
 import { Icon } from '@/components/ui/Icon';
 import { usePermission } from '@/hooks/usePermission';
 import { PERMISSIONS } from '@/lib/permissions';

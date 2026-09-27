@@ -20,7 +20,7 @@ export function EmailListHeader({
   return (
     <div className="flex justify-between items-center gap-3">
       <h2 className="text-[#0B1220] font-lora text-xl font-bold leading-[100%]">
-        Email Logs
+        {/* Email Logs */}
       </h2>
       <div className="flex items-center gap-3">
         <div className="relative">

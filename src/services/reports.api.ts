@@ -10,7 +10,7 @@ import type {
 } from '@/types/reports';
 import { APP_CONFIG } from '@/configs/app.config';
 import axiosInstance from '@/lib/axios-instance';
-import { mockStageSummary, mockStageBreakdown, mockLeadSources } from '@/mocks/reports.mock';
+import { mockStageBreakdown, mockLeadSources } from '@/mocks/reports.mock';
 
 function delay(ms: number) {
     return new Promise((resolve) => setTimeout(resolve, ms));
@@ -29,7 +29,7 @@ export const reportsApi = createApi({
                     // }
                     const { data } = await axiosInstance.get('/admin/reports/leads/stage-summary', { params });
                     return { data: data.data };
-                } catch (error) {
+                } catch {
                     return { error: { status: 500, data: 'Failed' } };
                 }
             },
@@ -43,7 +43,7 @@ export const reportsApi = createApi({
                     }
                     const { data } = await axiosInstance.post('/admin/reports/leads/stage-breakdown', body);
                     return { data: data.data };
-                } catch (error) {
+                } catch {
                     return { error: { status: 500, data: 'Failed' } };
                 }
             },
@@ -57,7 +57,7 @@ export const reportsApi = createApi({
                     }
                     const { data } = await axiosInstance.get('/admin/reports/leads/sources', { params });
                     return { data: data.data.eachCount };
-                } catch (error) {
+                } catch {
                     return { error: { status: 500, data: 'Failed' } };
                 }
             },
@@ -69,7 +69,7 @@ export const reportsApi = createApi({
                 try {
                     const { data } = await axiosInstance.get('/admin/reports/campaigns/highlights', { params });
                     return { data: data.data };
-                } catch (error) {
+                } catch {
                     return { error: { status: 500, data: 'Failed' } };
                 }
             },
@@ -80,7 +80,7 @@ export const reportsApi = createApi({
                 try {
                     const { data } = await axiosInstance.get('/admin/reports/campaigns/table', { params });
                     return { data: data.data };
-                } catch (error) {
+                } catch {
                     return { error: { status: 500, data: 'Failed' } };
                 }
             },
@@ -92,18 +92,18 @@ export const reportsApi = createApi({
                 try {
                     const { data } = await axiosInstance.get('/admin/reports/member-activity/highlights', { params });
                     return { data: data.data };
-                } catch (error) {
+                } catch {
                     return { error: { status: 500, data: 'Failed' } };
                 }
             },
         }),
 
-        getMemberTable: builder.query<{ data: MemberTableRow[]; meta: { totalItems: number; itemCount: number; itemsPerPage: number; totalPages: number; currentPage: number } }, { page: number; limit: number; search?: string }>({
+        getMemberTable: builder.query<{ data: MemberTableRow[]; meta: { totalItems: number; itemCount: number; itemsPerPage: number; totalPages: number; currentPage: number } }, { page: number; limit: number; search?: string; startDate?: string; endDate?: string }>({
             queryFn: async (params) => {
                 try {
                     const { data } = await axiosInstance.get('/admin/reports/member-activity/table', { params });
                     return { data: data.data };
-                } catch (error) {
+                } catch {
                     return { error: { status: 500, data: 'Failed' } };
                 }
             },

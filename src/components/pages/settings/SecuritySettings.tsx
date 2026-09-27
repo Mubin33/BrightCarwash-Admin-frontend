@@ -90,14 +90,19 @@ export function SecuritySettings() {
       toast.success("Password changed successfully");
       setForm({ old_password: "", new_password: "", confirm_password: "" });
       setErrors({});
-    } catch (err: any) {
-      const message = err?.data?.message || "Failed to change password";
+    } catch (err) {
+      const error = err as { data?: string | { message?: string }; message?: string };
+      const message =
+        (typeof error?.data === "string" ? error.data : error?.data?.message) ||
+        error?.message ||
+        "Failed to change password";
+
       toast.error(message);
 
       // If backend says old password is wrong, surface it inline too
       if (
         typeof message === "string" &&
-        message.toLowerCase().includes("current")
+        (message.toLowerCase().includes("current") || message.toLowerCase().includes("old"))
       ) {
         setErrors((prev) => ({ ...prev, old_password: message }));
       }

@@ -24,6 +24,7 @@ export function AssignMemberModal({
     currentAssigneeName,
     onAssign,
 }: AssignMemberModalProps) {
+    void leadId;
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedId, setSelectedId] = useState<string | null>(
         currentAssigneeId || null

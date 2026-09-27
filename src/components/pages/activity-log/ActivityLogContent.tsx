@@ -12,12 +12,9 @@ export function ActivityLogContent() {
         totalCount,
         totalPages,
         currentPage,
-        hasNext,
-        hasPrevious,
         isLoading,
         refetch,
         setPage,
-        filters,
     } = useActivityLog();
 
     return (

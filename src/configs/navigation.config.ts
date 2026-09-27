@@ -29,8 +29,7 @@ export const NAVIGATION_CONFIG: NavSection[] = [
         id: "marketing",
         label: "Marketing",
         icon: "campaigns",
-        href: "/marketing/campaigns",
-        permission: PERMISSIONS.campaign.read,
+        href: "",
         subItems: [
           {
             id: "marketing-campaigns",
@@ -71,7 +70,7 @@ export const NAVIGATION_CONFIG: NavSection[] = [
         label: "Teams",
         icon: "staffs",
         href: "/teams",
-        permission: PERMISSIONS.member.read,
+        permission: [PERMISSIONS.member.read, PERMISSIONS.role.read],
       },
       {
         id: "website-cms",

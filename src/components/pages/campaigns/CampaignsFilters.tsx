@@ -3,7 +3,7 @@
 import { Search } from "lucide-react";
 import { FilterDropdown } from "@/components/ui/FilterDropdown";
 import type { CampaignType, CampaignStatus } from "@/types/campaign";
-import { TYPE_FILTERS, STATUS_FILTERS } from "@/types/campaign";
+import { STATUS_FILTERS } from "@/types/campaign";
 
 interface CampaignsFiltersProps {
     searchQuery: string;
@@ -22,6 +22,8 @@ export function CampaignsFilters({
     statusFilter,
     onStatusChange,
 }: CampaignsFiltersProps) {
+    void typeFilter;
+    void onTypeChange;
     return (
         <div className="flex justify-between items-center w-full gap-4 flex-wrap">
 

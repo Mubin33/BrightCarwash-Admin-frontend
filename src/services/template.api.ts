@@ -20,7 +20,7 @@ interface GetTemplatesParams {
     limit?: number;
 }
 
-function transformTemplate(apiTemplate: any): Template {
+function transformTemplate(apiTemplate: Template): Template {
     let htmlContent = apiTemplate.emailBody?.htmlContent || '';
 
     if (!htmlContent.trim()) {

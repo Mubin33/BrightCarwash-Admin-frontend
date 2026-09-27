@@ -1,11 +1,10 @@
-
 export interface NavItem {
   id: string;
   label: string;
   icon: string;
   href: string;
   subItems?: NavItem[] | undefined;
-  permission?: string;
+  permission?: string | string[];
 }
 
 export interface NavSection {

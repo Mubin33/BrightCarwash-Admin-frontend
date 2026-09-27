@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { MoreHorizontal, Eye, Trash2, FileDown } from 'lucide-react';
+import { MoreHorizontal, Trash2, FileDown } from 'lucide-react';
 
 interface KnowledgeActionDropdownProps {
     onView: () => void;
@@ -11,11 +11,12 @@ interface KnowledgeActionDropdownProps {
 }
 
 export function KnowledgeActionDropdown({
-    onView,
+    onView: _onView,
     onDelete,
     onExport,
     isDeleting,
 }: KnowledgeActionDropdownProps) {
+  void _onView;
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
 

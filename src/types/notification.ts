@@ -17,7 +17,7 @@ export interface Item {
   channel: string
   status: string
   metadata: Metadata
-  error_logs: any
+  error_logs: unknown
   is_read: boolean
   created_at: string
   updated_at: string
@@ -35,4 +35,13 @@ export interface Meta {
   total_pages: number
   has_next_page: boolean
   has_prev_page: boolean
+}
+
+export interface NotificationMetricsResponse {
+  success?: boolean;
+  message?: string;
+  data: {
+    unread: number;
+    [key: string]: unknown;
+  };
 }

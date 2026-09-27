@@ -48,7 +48,8 @@ export function useCampaignActions() {
             try {
                 await launchCampaign(campaign.id).unwrap();
                 toast.success(`"${campaign.name}" launched`);
-            } catch (error: any) {
+            } catch (err) {
+                const error = err as { data?: string };
                 console.error("Launch error:", error);
                 toast.error(error?.data || "Failed to launch campaign");
             }
@@ -63,7 +64,8 @@ export function useCampaignActions() {
             try {
                 await statusAction({ id: campaign.id, action }).unwrap();
                 toast.success(`"${campaign.name}" ${label.toLowerCase()}ed`);
-            } catch (error: any) {
+            } catch (err) {
+                const error = err as { data?: string };
                 console.error("Status action error:", error);
                 toast.error(error?.data || `Failed to ${label.toLowerCase()} campaign`);
             }

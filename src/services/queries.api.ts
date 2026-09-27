@@ -1,5 +1,5 @@
 import axiosInstance from "@/lib/axios-instance";
-import { quoteInterfece } from "@/types/queries";
+import { quoteInterfece, QuoteDetailResponse } from "@/types/queries";
 import { createApi } from "@reduxjs/toolkit/query/react";
 
 export interface GetQuotesParams {
@@ -32,7 +32,8 @@ export const queriesApi = createApi({
           );
 
           return { data };
-        } catch (error: any) {
+        } catch (err) {
+          const error = err as { response?: { data?: { message?: string }; status?: number } };
           return {
             error: {
               status: error?.response?.status || 500,
@@ -46,15 +47,16 @@ export const queriesApi = createApi({
       keepUnusedDataFor: 60,
     }),
 
-    updateStatus: builder.mutation<any, { id: string; status: string }>({
+    updateStatus: builder.mutation<{ success: boolean; message?: string }, { id: string; status: string }>({
       queryFn: async ({ id, status }: { id: string; status: string }) => {
         try {
-          const { data } = await axiosInstance.patch<any>(
+          const { data } = await axiosInstance.patch<{ success: boolean; message?: string }>(
             `/admin/quotes/${id}`,
             { status },
           );
           return { data };
-        } catch (error: any) {
+        } catch (err) {
+          const error = err as { response?: { data?: { message?: string }; status?: number } };
           return {
             error: {
               status: error?.response?.status || 500,
@@ -69,7 +71,7 @@ export const queriesApi = createApi({
           queriesApi.util.updateQueryData(
             "queriesDetail",
             { id },
-            (draft: any) => {
+            (draft) => {
               if (draft?.data) {
                 draft.data.status = status;
               }
@@ -84,14 +86,15 @@ export const queriesApi = createApi({
       },
     }),
 
-    deleteQuote: builder.mutation<any, { id: string }>({
+    deleteQuote: builder.mutation<{ success: boolean; message?: string }, { id: string }>({
       queryFn: async ({ id }: { id: string }) => {
         try {
-          const { data } = await axiosInstance.delete<any>(
+          const { data } = await axiosInstance.delete<{ success: boolean; message?: string }>(
             `/admin/quotes/${id}`,
           );
           return { data };
-        } catch (error: any) {
+        } catch (err) {
+          const error = err as { response?: { data?: { message?: string }; status?: number } };
           return {
             error: {
               status: error?.response?.status || 500,
@@ -103,14 +106,13 @@ export const queriesApi = createApi({
       invalidatesTags: ["Queries"],
     }),
 
-    queriesDetail: builder.query<any, { id: string }>({
+    queriesDetail: builder.query<QuoteDetailResponse, { id: string }>({
       queryFn: async ({ id }: { id: string }) => {
         try {
-          const { data } = await axiosInstance.get<quoteInterfece>(
-            `/admin/quotes/${id}`,
-          );
+          const { data } = await axiosInstance.get<QuoteDetailResponse>(`/admin/quotes/${id}`);
           return { data };
-        } catch (error: any) {
+        } catch (err) {
+          const error = err as { response?: { data?: { message?: string }; status?: number } };
           return {
             error: {
               status: error?.response?.status || 500,
@@ -125,14 +127,15 @@ export const queriesApi = createApi({
       keepUnusedDataFor: 60,
     }),
 
-    sendEmail: builder.mutation<any, { id: string }>({
+    sendEmail: builder.mutation<{ success: boolean; message?: string }, { id: string }>({
       queryFn: async ({ id }: { id: string }) => {
         try {
-          const { data } = await axiosInstance.post<any>(
+          const { data } = await axiosInstance.post<{ success: boolean; message?: string }>(
             `/admin/quotes/${id}/send-email`,
           );
           return { data };
-        } catch (error: any) {
+        } catch (err) {
+          const error = err as { response?: { data?: { message?: string }; status?: number } };
           return {
             error: {
               status: error?.response?.status || 500,

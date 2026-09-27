@@ -1,6 +1,7 @@
 "use client";
 
 import { X } from "lucide-react";
+import type { DraggableProvidedDragHandleProps } from "@hello-pangea/dnd";
 import Image from "next/image";
 
 interface HeroBackgroundImageItemProps {
@@ -11,7 +12,7 @@ interface HeroBackgroundImageItemProps {
   onError: (index: number) => void;
   hasError: boolean;
   isLoading?: boolean;
-  dragHandleProps?: any;
+  dragHandleProps?: DraggableProvidedDragHandleProps | null;
 }
 
 const getFullImageUrl = (url: string) => {

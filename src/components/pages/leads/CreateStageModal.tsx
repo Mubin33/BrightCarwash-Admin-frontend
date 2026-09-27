@@ -74,7 +74,8 @@ export function CreateStageModal({
       setFilePreview(null);
       onCreated();
       onClose();
-    } catch (error: any) {
+    } catch (err) {
+      const error = err as { message?: string };
       toast.error(error?.message || "Failed to create stage");
     } finally {
       setIsSubmitting(false);

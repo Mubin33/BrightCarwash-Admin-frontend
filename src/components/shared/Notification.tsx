@@ -37,7 +37,7 @@ export default function Notification() {
 
   useEffect(() => {
     if (!socket) return;
-    socket.on('new_in_app_notification', (data) => {
+    socket.on('new_in_app_notification', () => {
       setCount((prev: number) => prev + 1);
     });
     return () => {
@@ -45,7 +45,7 @@ export default function Notification() {
     };
   }, [socket]);
 
-  const { data, isLoading, error } = useGetNotificationQuery({
+  const { data } = useGetNotificationQuery({
     page: 1,
     limit: 5,
   } as GetNotificationParams);

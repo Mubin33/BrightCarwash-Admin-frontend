@@ -107,7 +107,8 @@ export function useComposeEmail() {
 
             toast.success("Email sent successfully!");
             router.push("/marketing/email-list");
-        } catch (error: any) {
+        } catch (err) {
+            const error = err as { data?: { message?: string } };
             toast.error(error?.data?.message || "Failed to send email");
         }
     }, [form, sendEmail, router]);

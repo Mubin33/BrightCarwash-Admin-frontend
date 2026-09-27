@@ -55,12 +55,13 @@ export function GroupsList({
   onAddLead,
   onDeleteGroup,
   router,
-  onGroupExpand,
+  onGroupExpand: _onGroupExpand,
   groupLeadPagination,
   fetchGroupLeads,
   onExport,
   exportDisabled,
 }: GroupsListProps) {
+  void _onGroupExpand;
   if (groups.length === 0) {
     return (
       <div className="flex items-center justify-center py-20 text-[#777980] font-inter text-sm">

@@ -23,8 +23,6 @@ export function ExportDropdown({ options, trigger, className = '', permission }:
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
 
-    if (permission && !hasPerm) return null;
-
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -34,6 +32,8 @@ export function ExportDropdown({ options, trigger, className = '', permission }:
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
+
+    if (permission && !hasPerm) return null;
 
     const defaultTrigger = (
         <Button

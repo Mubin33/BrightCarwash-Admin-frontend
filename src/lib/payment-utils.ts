@@ -1,4 +1,4 @@
-import type { PaymentStatsData, PaymentStatsResponse, PaymentTransaction } from '@/types/payment';
+import type { PaymentStatsData } from '@/types/payment';
 import type { MetricCard } from '@/types/dashboard';
 
 

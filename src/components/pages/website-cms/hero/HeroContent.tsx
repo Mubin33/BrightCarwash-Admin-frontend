@@ -74,7 +74,7 @@ export function HeroContent() {
           status: updated.status,
           textAlignment: value as HeroFormData["textAlignment"],
           text_alignment: value as HeroFormData["textAlignment"],
-        } as any);
+        } as HeroFormData & { text_alignment?: HeroFormData["textAlignment"] });
       }
 
       return updated;
@@ -95,7 +95,7 @@ export function HeroContent() {
       status: data.status,
       textAlignment: data.textAlignment,
       text_alignment: data.textAlignment,
-    } as any;
+    } as HeroFormData & { text_alignment?: HeroFormData["textAlignment"] };
   };
 
   const handleBannerImageUpload = async (file: File): Promise<string> => {

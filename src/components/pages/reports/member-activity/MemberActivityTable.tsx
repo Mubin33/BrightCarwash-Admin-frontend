@@ -15,14 +15,24 @@ interface Props {
 }
 
 export function MemberActivityTable({ data, currentPage, totalPages, totalItems, onPageChange }: Props) {
+    const stageNames = useMemo(() => {
+        const stages = new Set<string>();
+        data.forEach((row) => {
+            if (row.stageBreakdown) {
+                Object.keys(row.stageBreakdown).forEach((stage) => stages.add(stage));
+            }
+        });
+        return Array.from(stages);
+    }, [data]);
+
     const columns: Column<MemberTableRow>[] = useMemo(
         () => [
             {
                 key: 'memberName',
                 header: 'Member Name',
                 render: (row) => (
-                    <span className="text-[#1B1B1B] font-inter text-sm font-medium">
-                        {row.firstName} {row.lastName}
+                    <span className="text-[#1B1B1B] font-inter text-sm font-medium whitespace-nowrap">
+                        {[row.firstName, row.lastName].filter(Boolean).join(' ') || '—'}
                     </span>
                 ),
             },
@@ -30,8 +40,8 @@ export function MemberActivityTable({ data, currentPage, totalPages, totalItems,
                 key: 'role',
                 header: 'Role',
                 render: (row) => (
-                    <span className="text-[#777980] font-inter text-sm capitalize">
-                        {row.role.join(', ')}
+                    <span className="text-[#777980] font-inter text-sm capitalize whitespace-nowrap">
+                        {row.role && row.role.length > 0 ? row.role.join(', ') : '—'}
                     </span>
                 ),
             },
@@ -39,38 +49,33 @@ export function MemberActivityTable({ data, currentPage, totalPages, totalItems,
                 key: 'assigned',
                 header: 'Assigned',
                 render: (row) => (
-                    <span className="text-[#1B1B1B] font-inter text-sm">{row.assigned}</span>
+                    <span className="text-[#1B1B1B] font-inter text-sm">{row.assigned ?? 0}</span>
                 ),
             },
-            {
-                key: 'converted',
-                header: 'Converted',
-                render: (row) => (
-                    <span className="text-[#006F1F] font-inter text-sm font-medium">
-                        {row.stageBreakdown['Converted'] || 0}
-                    </span>
-                ),
-            },
-            {
-                key: 'contacted',
-                header: 'Contacted',
-                render: (row) => (
-                    <span className="text-[#FFAF00] font-inter text-sm font-medium">
-                        {row.stageBreakdown['Contacted'] || 0}
-                    </span>
-                ),
-            },
-            {
-                key: 'lost',
-                header: 'Lost',
-                render: (row) => (
-                    <span className="text-[#FF4345] font-inter text-sm font-medium">
-                        {row.stageBreakdown['Lost'] || 0}
-                    </span>
-                ),
-            },
+            ...stageNames.map((stage) => {
+                const stageLower = stage.toLowerCase();
+                let colorClass = 'text-[#1B1B1B]';
+                if (stageLower === 'converted') {
+                    colorClass = 'text-[#006F1F]';
+                } else if (stageLower === 'contacted') {
+                    colorClass = 'text-[#FFAF00]';
+                } else if (stageLower === 'lost') {
+                    colorClass = 'text-[#FF4345]';
+                }
+
+                return {
+                    key: `stage_${stage}`,
+                    header: stage,
+                    className: 'whitespace-nowrap',
+                    render: (row: MemberTableRow) => (
+                        <span className={`${colorClass} font-inter text-sm font-medium`}>
+                            {row.stageBreakdown?.[stage] ?? 0}
+                        </span>
+                    ),
+                };
+            }),
         ],
-        [],
+        [stageNames],
     );
 
     return (

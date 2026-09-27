@@ -9,12 +9,13 @@ import axiosInstance from "@/lib/axios-instance";
 import { Search, Users, Check, X, Loader2 } from "lucide-react";
 import Image from "next/image";
 import type { Lead } from "@/types/leads";
+import type { LeadGroup } from "@/types/campaign";
 
 interface CreateGroupModalProps {
     isOpen: boolean;
     onClose: () => void;
     selectedLeads?: string[];
-    onGroupCreated?: (group: any) => void;
+    onGroupCreated?: (group: LeadGroup) => void;
 }
 
 export function CreateGroupModal({
@@ -48,7 +49,7 @@ export function CreateGroupModal({
             setSearchQuery("");
         }
         prevIsOpenRef.current = isOpen;
-    }, [isOpen]);
+    }, [isOpen, selectedLeads]);
 
     // Filter leads by search query
     const filteredLeads = useMemo(() => {
@@ -119,7 +120,8 @@ export function CreateGroupModal({
             setSelectedLeadIds([]);
             onGroupCreated?.(createdGroup);
             onClose();
-        } catch (error: any) {
+        } catch (err) {
+      const error = err as { response?: { data?: { message?: string } }; data?: { message?: string }; message?: string };
             const errorMsg =
                 error?.response?.data?.message ||
                 error?.data?.message ||

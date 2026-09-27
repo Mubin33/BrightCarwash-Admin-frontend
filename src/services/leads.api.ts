@@ -447,7 +447,7 @@ export const leadsApi = createApi({
           const token = getAccessToken();
 
           // Build request body
-          const requestBody: Record<string, any> = {
+          const requestBody: Record<string, unknown> = {
             format: params.format || "xlsx",
             sort_by: params.sortBy || "created_at",
             sort_order: params.sortOrder || "desc",

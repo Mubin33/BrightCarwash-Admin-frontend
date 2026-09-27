@@ -8,7 +8,6 @@ import type {
 import { APP_CONFIG } from '@/configs/app.config';
 import { mockStats, mockTransactions } from '@/mocks/payment.mock';
 import axiosInstance from '@/lib/axios-instance';
-import { getAccessToken } from '@/lib/auth-client';
 
 function delay(ms: number): Promise<void> {
 	return new Promise((resolve) => setTimeout(resolve, ms));

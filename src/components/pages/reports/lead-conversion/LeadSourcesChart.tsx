@@ -37,7 +37,7 @@ export function LeadSourcesChart({ data }: Props) {
             legend: { show: false },
             dataLabels: { enabled: false },
         }),
-        [labels, series],
+        [labels, series, data],
     );
 
     return (

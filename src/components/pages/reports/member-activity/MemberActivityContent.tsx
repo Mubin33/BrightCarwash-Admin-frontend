@@ -18,32 +18,43 @@ export function MemberActivityContent({ startDate, endDate }: Props) {
     const { page, setPage } = usePaymentPageState();
 
     const { data: highlights, isLoading: highlightsLoading } = useGetMemberHighlightsQuery({ startDate, endDate });
-    const { data: tableData, isLoading: tableLoading } = useGetMemberTableQuery({ page, limit: 10 });
+    const { data: tableData, isLoading: tableLoading } = useGetMemberTableQuery({ page, limit: 10, startDate, endDate });
 
-    const tableDataArray = tableData?.data || [];
+    const tableDataArray = useMemo(() => tableData?.data || [], [tableData?.data]);
+
+    const stageNames = useMemo(() => {
+        const stages = new Set<string>();
+        tableDataArray.forEach((row) => {
+            if (row.stageBreakdown) {
+                Object.keys(row.stageBreakdown).forEach((stage) => stages.add(stage));
+            }
+        });
+        return Array.from(stages);
+    }, [tableDataArray]);
 
     const exportColumns = useMemo(() => [
         { key: 'firstName', header: 'First Name' },
         { key: 'lastName', header: 'Last Name' },
         { key: 'role', header: 'Role' },
         { key: 'assigned', header: 'Assigned' },
-        { key: 'converted', header: 'Converted' },
-        { key: 'contacted', header: 'Contacted' },
-        { key: 'lost', header: 'Lost' },
-    ], []);
+        ...stageNames.map((stage) => ({ key: stage, header: stage })),
+    ], [stageNames]);
 
     // Prepare data for export with proper formatting
     const exportData = useMemo(() => {
-        return tableDataArray.map((row) => ({
-            firstName: row.firstName,
-            lastName: row.lastName,
-            role: row.role.join(', '),
-            assigned: row.assigned,
-            converted: row.stageBreakdown['Converted'] || 0,
-            contacted: row.stageBreakdown['Contacted'] || 0,
-            lost: row.stageBreakdown['Lost'] || 0,
-        }));
-    }, [tableDataArray]);
+        return tableDataArray.map((row) => {
+            const rowData: Record<string, any> = {
+                firstName: row.firstName || '',
+                lastName: row.lastName || '',
+                role: row.role && row.role.length > 0 ? row.role.join(', ') : '—',
+                assigned: row.assigned ?? 0,
+            };
+            stageNames.forEach((stage) => {
+                rowData[stage] = row.stageBreakdown?.[stage] ?? 0;
+            });
+            return rowData;
+        });
+    }, [tableDataArray, stageNames]);
 
     const { handleExport } = useExportExcel({
         data: exportData,
@@ -56,11 +67,16 @@ export function MemberActivityContent({ startDate, endDate }: Props) {
             toast.warning('No data to export');
             return;
         }
-        const header = 'First Name,Last Name,Role,Assigned,Converted,Contacted,Lost\n';
+        const headers = ['First Name', 'Last Name', 'Role', 'Assigned', ...stageNames];
+        const headerRow = headers.map(h => (h.includes(',') ? `"${h}"` : h)).join(',') + '\n';
         const rows = exportData.map(row =>
-            `${row.firstName},${row.lastName},${row.role},${row.assigned},${row.converted},${row.contacted},${row.lost}`
+            headers.map(h => {
+                const key = h === 'First Name' ? 'firstName' : h === 'Last Name' ? 'lastName' : h === 'Role' ? 'role' : h === 'Assigned' ? 'assigned' : h;
+                const val = row[key];
+                return typeof val === 'string' && val.includes(',') ? `"${val}"` : (val ?? 0);
+            }).join(',')
         ).join('\n');
-        const blob = new Blob([header + rows], { type: 'text/csv' });
+        const blob = new Blob([headerRow + rows], { type: 'text/csv' });
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;

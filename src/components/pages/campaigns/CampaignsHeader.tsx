@@ -19,7 +19,7 @@ export function CampaignsHeader() {
     return (
         <div className="flex justify-between items-center gap-3">
             <h2 className="text-[#0B1220] font-lora text-xl font-bold leading-[100%]">
-                E-mail Campaigns
+                {/* E-mail Campaigns */}
             </h2>
             <Link href="/campaigns/create" onClick={handleCreateClick}>
                 <Button

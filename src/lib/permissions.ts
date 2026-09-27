@@ -125,9 +125,12 @@ export const PERMISSIONS = {
 } as const;
 
 export function hasPermission(
-  user: { permissions: string[] } | null | undefined,
-  permission: string,
+  user: { permissions?: string[] } | null | undefined,
+  permission: string | string[],
 ): boolean {
   if (!user?.permissions) return false;
+  if (Array.isArray(permission)) {
+    return permission.some((p) => user.permissions?.includes(p));
+  }
   return user.permissions.includes(permission);
 }

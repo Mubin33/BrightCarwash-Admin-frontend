@@ -1,36 +1,123 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { useAppSelector } from "@/lib/store";
 import { Icon } from "@/components/ui/Icon";
 import { Button } from "@/components/ui/Button";
+import { NAVIGATION_CONFIG } from "@/configs/navigation.config";
 import type { NavbarProps } from "@/types/navigation";
 import Notification from "./Notification";
 import Image from "next/image";
 
-const pageTitles: Record<string, string> = {
-	"/dashboard": "Welcome back",
+const staticPageTitles: Record<string, string> = {
+	"/dashboard": "Dashboard",
 	"/leads": "Lead Insights",
+	"/leads/groups": "Lead Groups",
 	"/payments": "All Transactions",
 	"/campaigns": "Email Campaigns",
-	"/teams": "Team Management",
+	"/campaigns/create": "Create Campaign",
+	"/campaigns/create/editor": "Campaign Editor",
+	"/campaigns/create/simple-editor": "Simple Editor",
+	"/marketing/campaigns": "Email Campaigns",
+	"/marketing/email-list": "Email Logs",
+	"/marketing/email-list/create": "Create Email Log",
+	"/marketing/lead-groups": "Lead Groups",
 	"/marketing/queries": "Queries",
+	"/teams": "Team Management",
+	"/templates": "Email Templates",
+	"/templates/select": "Select Template",
 	"/website-cms": "Website CMS",
+	"/website-cms/hero-section": "Hero Section",
+	"/website-cms/testimonials": "Testimonials",
+	"/website-cms/news-blog": "News & Blog",
+	"/website-cms/news-blog/create": "Create News & Blog",
+	"/website-cms/gallery": "Gallery",
+	"/website-cms/faq": "FAQ",
+	"/website-cms/wash-with-purpose": "Others FAQ",
+	"/website-cms/business-hours": "Timing",
+	"/ai-chatbox": "AI Chatbot Insights",
+	"/ai-chatbox/knowledge": "Knowledge Base",
+	"/ai-chatbox/campaigns": "AI Campaigns",
 	"/reports": "Reports",
 	"/notifications": "Notifications",
-	"/ai-chatbox": "AI Chatbot Insights",
 	"/activity-log": "Activity Log",
 	"/settings": "Settings",
 	"/settings/change-password": "Change Password",
+	"/settings/business": "Business Settings",
+	"/settings/security": "Security Settings",
 };
+
+function formatSlug(slug: string): string {
+	return slug
+		.split("-")
+		.map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+		.join(" ");
+}
+
+function resolvePageTitle(pathname: string): string {
+	if (!pathname || pathname === "/") return "Welcome back";
+
+	// 1. Direct match in staticPageTitles
+	if (staticPageTitles[pathname]) {
+		return staticPageTitles[pathname];
+	}
+
+	// 2. Pattern matching for dynamic / nested routes
+	if (/^\/leads\/[^\/]+$/.test(pathname)) {
+		return "Lead Details";
+	}
+	if (/^\/campaigns\/[^\/]+$/.test(pathname)) {
+		return "Campaign Details";
+	}
+
+	// 3. Match from NAVIGATION_CONFIG
+	for (const section of NAVIGATION_CONFIG) {
+		for (const item of section.items) {
+			if (item.href && item.href === pathname) {
+				return item.label;
+			}
+			if (item.subItems) {
+				for (const sub of item.subItems) {
+					if (sub.href && sub.href === pathname) {
+						return sub.label;
+					}
+				}
+			}
+		}
+	}
+
+	// 4. Prefix match for nested subroutes
+	for (const [route, title] of Object.entries(staticPageTitles)) {
+		if (route !== "/dashboard" && route !== "/" && pathname.startsWith(route + "/")) {
+			const remaining = pathname.slice(route.length + 1).split("/")[0];
+			return `${title} - ${formatSlug(remaining)}`;
+		}
+	}
+
+	// 5. Fallback from last path segment
+	const segments = pathname.split("/").filter(Boolean);
+	if (segments.length > 0) {
+		const last = segments[segments.length - 1];
+		return formatSlug(last);
+	}
+
+	return "Welcome back";
+}
 
 export function Navbar({ onMenuClick }: NavbarProps) {
 	const pathname = usePathname();
 	const user = useAppSelector((state) => state.auth.user);
 	const [avatarError, setAvatarError] = useState(false);
 
-	const title = pageTitles[pathname] || 'Welcome back';
+	const title = resolvePageTitle(pathname);
+
+	useEffect(() => {
+		if (typeof document !== "undefined") {
+			document.title = `${title} | Bright Car Wash Admin`;
+		}
+	}, [title]);
+
 	const fullName = user?.firstName && user?.lastName
 		? `${user.firstName} ${user.lastName}`
 		: user?.firstName || 'User';

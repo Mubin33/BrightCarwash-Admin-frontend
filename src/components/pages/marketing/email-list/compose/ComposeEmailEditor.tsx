@@ -21,7 +21,7 @@ import {
   AlignRight,
   Bold,
   Eraser,
-  Image,
+  Image as ImageIcon,
   Italic,
   Link,
   List,
@@ -475,7 +475,7 @@ const handleAddImage = async () => {
             onClick={() => setImageModalOpen(true)}
             title="Insert image"
           >
-            <Image size={16} />
+            <ImageIcon size={16} />
           </ToolbarButton>
         </div>
 

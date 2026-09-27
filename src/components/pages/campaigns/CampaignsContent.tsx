@@ -1,6 +1,7 @@
 'use client';
 
 import { useRouter } from "next/navigation";
+import type { Campaign } from "@/types/campaign";
 import { useGetCampaignsQuery } from "@/services/campaign.api";
 import { useCampaignFilters } from "@/hooks/useCampaignFilters";
 import { useCampaignActions } from "@/hooks/useCampaignActions";
@@ -16,7 +17,7 @@ export function CampaignsContent() {
 	const filters = useCampaignFilters(campaigns);
 	const actions = useCampaignActions();
 
-	const handleEdit = (campaign: any) => {
+	const handleEdit = (campaign: Campaign) => {
 		// For draft campaigns, navigate to create with edit=true and campaign ID
 		if (campaign.status === "DRAFT") {
 			router.push(`/campaigns/create?edit=true&id=${campaign.id}`);

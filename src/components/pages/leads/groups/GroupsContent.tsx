@@ -3,6 +3,7 @@
 import type { StageOption } from "@/components/ui/StageDropdown";
 import { useExportExcel } from "@/hooks/useExportExcel";
 import { useGroupActions } from "@/hooks/useGroupActions";
+import type { LeadGroup } from "@/types/campaign";
 import { useGroupsData } from "@/hooks/useGroupsData";
 import { exportToExcel } from "@/lib/excel-export";
 import { mapStagesToOptions } from "@/lib/stage-utils";
@@ -38,12 +39,10 @@ export const GroupsContent = forwardRef<
 >(function GroupsContent({ groupModalOpen, onGroupModalClose }, ref) {
   const router = useRouter();
 
-  const { data: paginatedLeads, refetch: refetchLeads } = useGetLeadsQuery({
+  const { refetch: refetchLeads } = useGetLeadsQuery({
     page: 1,
     limit: 100,
   });
-
-  const allLeads = paginatedLeads?.data || [];
   const [exportGroupLeads, { isLoading: isExportingGroup }] =
     useExportGroupLeadsMutation();
 
@@ -77,7 +76,6 @@ export const GroupsContent = forwardRef<
     handleStageChange,
     handleDeleteLead,
     handleDeleteGroup,
-    handleAddLeadToGroup,
   } = useGroupActions({
     refetch,
     refetchLeads,
@@ -249,7 +247,7 @@ export const GroupsContent = forwardRef<
           const rows = formattedData.map((row) =>
             validColumns
               .map((col) => {
-                const value = (row as any)[col.key];
+                const value = (row as Record<string, unknown>)[col.key];
                 if (value === null || value === undefined) return '""';
                 const stringValue = String(value);
                 return `"${stringValue.replace(/"/g, '""')}"`;
@@ -289,7 +287,7 @@ export const GroupsContent = forwardRef<
       exportCSV,
       exportData,
     }),
-    [exportExcel, exportCSV],
+    [exportExcel, exportCSV, exportData],
   );
 
   useEffect(() => {
@@ -312,28 +310,10 @@ export const GroupsContent = forwardRef<
   //   }
   // }, [groups, isPageLoading, fetchGroupLeads]);
 
-  const handleLeadAdded = useCallback(
-    async (leadId: string) => {
-      if (!targetGroupId) return;
-
-      const leadData = allLeads.find((l) => l.id === leadId);
-      const success = await handleAddLeadToGroup(
-        targetGroupId,
-        leadId,
-        leadData,
-      );
-
-      if (success) {
-        setTargetGroupId(null);
-        setLeadModalOpen(false);
-      }
-    },
-    [targetGroupId, allLeads, handleAddLeadToGroup],
-  );
-
+  
   const handleGroupCreated = useCallback(
-    async (newGroup: any) => {
-      const optimisticGroup: any = {
+    async (newGroup: LeadGroup) => {
+      const optimisticGroup: LeadGroup = {
         id: newGroup.id || `temp_${Date.now()}`,
         name: newGroup.name,
         description: newGroup.description || "",

@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { ChevronDown, Users } from "lucide-react";
-import { Button } from "@/components/ui/Button";
 import { Icon } from "@/components/ui/Icon";
 
 interface Group {

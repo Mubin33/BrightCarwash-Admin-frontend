@@ -34,7 +34,8 @@ export function SetPasswordForm() {
             await setPassword({ email, token, password });
             toast.success("Password set successfully");
             router.push("/login");
-        } catch (error: any) {
+        } catch (err) {
+      const error = err as { response?: { data?: { message?: string } }; message?: string };
             const message = error?.response?.data?.message || error?.message || "Failed to set password";
             toast.error(message);
         } finally {

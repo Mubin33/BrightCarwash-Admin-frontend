@@ -4,7 +4,7 @@ import { useGroupsData } from "@/hooks/useGroupsData";
 import { mapStagesToOptions } from "@/lib/stage-utils";
 import { useGetLeadsQuery } from "@/services/leads.api";
 import { getStages } from "@/services/stage.service";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useMemo } from "react";
 import { toast } from "react-toastify";
 
 export function useGroupsContent() {
@@ -18,7 +18,7 @@ export function useGroupsContent() {
     page: 1,
     limit: 100,
   });
-  const allLeads = paginatedLeads?.data || [];
+  const allLeads = useMemo(() => paginatedLeads?.data || [], [paginatedLeads?.data]);
   const {
     groups,
     leads: groupLeads,
@@ -27,7 +27,6 @@ export function useGroupsContent() {
     refetch,
     fetchGroupLeads,
     addGroupOptimistic,
-    removeOptimisticGroup,
     addLeadToGroupOptimistic,
     updateLeadStageOptimistic,
     removeLeadOptimistic,
@@ -83,7 +82,7 @@ export function useGroupsContent() {
   );
 
   const handleGroupCreated = useCallback(
-    async (newGroup: any) => {
+    async (newGroup: { id?: string; name: string; description?: string; brevoListId?: number | null }) => {
       const optimisticGroup = {
         id: newGroup.id || `temp_${Date.now()}`,
         name: newGroup.name,

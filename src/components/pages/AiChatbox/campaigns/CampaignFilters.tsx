@@ -23,7 +23,8 @@ interface DropdownProps {
     onChange: (value: string) => void;
 }
 
-function FilterDropdown({ label, options, value, onChange }: DropdownProps) {
+function FilterDropdown({ label: _label, options, value, onChange }: DropdownProps) {
+  void _label;
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
 

@@ -79,6 +79,7 @@ export function AttachmentsSection({
     onDelete,
     onDownload,
 }: AttachmentsSectionProps) {
+    void onDownload;
     const [isDragging, setIsDragging] = useState(false);
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -118,12 +119,7 @@ export function AttachmentsSection({
         }
     };
 
-    const formatFileSize = (bytes: number): string => {
-        if (bytes < 1024) return bytes + ' B';
-        if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
-        return (bytes / 1048576).toFixed(1) + ' MB';
-    };
-
+    
     const getFileDate = (attachment: Attachment) => {
         if (attachment.uploadedAt) {
             return new Date(attachment.uploadedAt).toLocaleDateString('en-US', {

@@ -41,7 +41,7 @@ function mapPermissions(data: PermissionsMap): Permission[] {
   for (const [module, items] of Object.entries(data)) {
     for (const item of items) {
       result.push({
-        id: (item as any).id || `${module}:${item.action}`,
+        id: (item as { id?: string; action: string }).id || `${module}:${item.action}`,
         name: `${module}:${item.action}`,
         module,
       });
@@ -231,7 +231,7 @@ export const teamApi = createApi({
     }),
 
     updateRolePermissions: builder.mutation<
-      { success: boolean; message: string; data?: any },
+      { success: boolean; message: string; data?: unknown },
       { id: string; permissions: string[] }
     >({
       queryFn: async ({ id, permissions }) => {

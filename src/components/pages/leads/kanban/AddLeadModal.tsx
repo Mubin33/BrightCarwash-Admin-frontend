@@ -60,11 +60,11 @@ export function AddLeadModal({
   const [vehicle, setVehicle] = useState("");
   const [source, setSource] = useState("");
   const [deposit, setDeposit] = useState<number>(0);
+  void deposit;
   const [depositStatus, setDepositStatus] = useState<LeadDepositStatus>("NONE");
   const [priority, setPriority] = useState<string>("MEDIUM");
   const [createModalOpen, setCreateModalOpen] = useState(false);
-  const [open, setOpen] = useState(false);
-
+  
   const [currentStageId, setCurrentStageId] = useState(stageId);
   const [currentStageLabel, setCurrentStageLabel] = useState(stage);
 
@@ -141,7 +141,8 @@ export function AddLeadModal({
       setCurrentStageLabel(stage);
       onClose();
       onLeadCreated?.(result.id);
-    } catch (error: any) {
+    } catch (err) {
+      const error = err as { data?: { message?: string }; message?: string };
       const message =
         error?.data?.message || error?.message || "Failed to add lead";
       toast.error(message);

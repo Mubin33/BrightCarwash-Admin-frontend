@@ -1,4 +1,5 @@
 "use client";
+import type { Item } from "@/types/queries";
 import { ActionsDropdown } from "@/components/ui/ActionsDropdown";
 import { DataTable } from "@/components/ui/DataTable";
 import { FilterDropdown } from "@/components/ui/FilterDropdown";
@@ -41,7 +42,7 @@ export default function Queries() {
     search: queryState.search,
   });
 
-  const { data: queryDetail, isLoading: queryDetailLoading } =
+  const { data: queryDetail } =
     useQueriesDetailQuery({ id: selectedQueryId }, { skip: !selectedQueryId });
 
   const [updateStatus] = useUpdateStatusMutation();
@@ -92,7 +93,7 @@ export default function Queries() {
     {
       key: "status",
       header: "Status",
-      render: (row: any) => {
+      render: (row: Item) => {
         const statusStyles: Record<string, string> = {
           new: "bg-[#E6F5FD] text-[#0098E8]",
           replied: "bg-[#DCF7EA] text-[#006F1F]",
@@ -124,13 +125,13 @@ export default function Queries() {
     {
       key: "date",
       header: "Date",
-      render: (row: any) => format(new Date(row.date), "d MMM, yyyy") || "",
+      render: (row: Item) => format(new Date(row.date), "d MMM, yyyy") || "",
     },
     {
       key: "action",
       header: "Action",
       className: "w-12",
-      render: (row: any) => (
+      render: (row: Item) => (
         <ActionsDropdown
           items={[
             {
@@ -229,7 +230,7 @@ export default function Queries() {
       <QueryDetailPanel
         isOpen={isPanelOpen}
         onClose={() => setIsPanelOpen(false)}
-        data={queryDetail?.data}
+        data={queryDetail?.data ?? null}
         onStatusChange={handleUpdateStatus}
         onSendEmail={handleSendEmail}
         onDelete={handleDeleteQuote}

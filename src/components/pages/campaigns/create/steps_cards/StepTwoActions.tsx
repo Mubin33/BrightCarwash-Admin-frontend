@@ -24,19 +24,20 @@ interface StepTwoActionsProps {
 	};
 }
 
-const getErrorMessage = (error: any, defaultMessage: string): string => {
-	const data = error?.data;
+const getErrorMessage = (error: unknown, defaultMessage: string): string => {
+	const err = error as { data?: unknown; message?: unknown };
+	const data = err?.data as Record<string, unknown> | string | string[] | undefined;
 	if (Array.isArray(data)) {
 		return data.join('\n');
 	}
 	if (typeof data === 'string' && data.trim()) {
 		return data;
 	}
-	if (typeof data?.message === 'string' && data.message.trim()) {
-		return data.message;
+	if (typeof (data as Record<string, unknown>)?.message === 'string' && ((data as Record<string, unknown>).message as string).trim()) {
+		return (data as Record<string, unknown>).message as string;
 	}
-	if (typeof error?.message === 'string' && error.message.trim()) {
-		return error.message;
+	if (typeof err?.message === 'string' && err.message.trim()) {
+		return err.message;
 	}
 	return defaultMessage;
 };
@@ -103,7 +104,7 @@ export function StepTwoActions({
 			sessionStorage.removeItem('campaign_creation_draft');
 			dispatch(resetCampaignCreation());
 			router.push('/campaigns');
-		} catch (error: any) {
+		} catch (error) {
 			console.error('Send error:', error);
 			toast.error(getErrorMessage(error, 'Failed to send campaign'));
 		} finally {
@@ -150,7 +151,7 @@ export function StepTwoActions({
 			sessionStorage.removeItem('campaign_creation_draft');
 			dispatch(resetCampaignCreation());
 			router.push("/campaigns");
-		} catch (error: any) {
+		} catch (error) {
 			console.error("Schedule error:", error);
 			toast.error(getErrorMessage(error, "Failed to schedule campaign"));
 		} finally {
@@ -186,7 +187,7 @@ export function StepTwoActions({
 			sessionStorage.removeItem('campaign_creation_draft');
 			dispatch(resetCampaignCreation());
 			router.push('/campaigns');
-		} catch (error: any) {
+		} catch (error) {
 			console.error('Save draft error:', error);
 			toast.error(getErrorMessage(error, 'Failed to save draft'));
 		} finally {

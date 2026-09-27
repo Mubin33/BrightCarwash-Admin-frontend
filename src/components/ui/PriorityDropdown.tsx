@@ -5,7 +5,6 @@ import { createPortal } from 'react-dom';
 import { ChevronDown } from 'lucide-react';
 import { Icon } from '@/components/ui/Icon';
 import { Button } from '@/components/ui/Button';
-import { getPriorityConfig } from '@/lib/priority-utils';
 
 interface PriorityOption {
     value: string;

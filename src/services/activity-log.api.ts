@@ -1,6 +1,5 @@
 import { createApi } from "@reduxjs/toolkit/query/react";
-import type { ActivityLog, ActivityLogsResponse } from "@/types/activity-log";
-import { APP_CONFIG } from "@/configs/app.config";
+import type { ActivityLogsResponse } from "@/types/activity-log";
 import axiosInstance from "@/lib/axios-instance";
 
 interface GetActivityLogsParams {
@@ -21,7 +20,8 @@ export const activityLogApi = createApi({
               `/admin/activity-log?page=${params.page}&limit=${params.limit}`,
             );
             return { data };
-          } catch (error: any) {
+          } catch (err) {
+          const error = err as { response?: { data?: { message?: string }; status?: number } };
             return {
               error: {
                 status: error?.response?.status || 500,

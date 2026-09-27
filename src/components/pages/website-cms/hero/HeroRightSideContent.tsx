@@ -42,7 +42,7 @@ export function HeroRightSideContent({
       setImageUrl(bannerImageUrl);
       setImageError(false);
     }
-  }, [bannerImageUrl]);
+  }, [bannerImageUrl, imageUrl]);
 
   const handleFileSelect = (file: File) => {
     setSelectedFile(file);

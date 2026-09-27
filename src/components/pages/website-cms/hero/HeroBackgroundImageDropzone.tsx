@@ -24,7 +24,7 @@ export function HeroBackgroundImageDropzone({
     selectedFile,
     isLoading,
     isDragging,
-    onFileSelect,
+    onFileSelect: _onFileSelect,
     onFileChange,
     onDrop,
     onDragOver,
@@ -33,6 +33,7 @@ export function HeroBackgroundImageDropzone({
     onCancel,
     onOpenPicker,
 }: HeroBackgroundImageDropzoneProps) {
+    void _onFileSelect;
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     return (

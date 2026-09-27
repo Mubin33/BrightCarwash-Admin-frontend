@@ -34,7 +34,7 @@ export function FilterDropdown({
   const [dropdownStyle, setDropdownStyle] = useState<Record<string, string>>(
     {},
   );
-  const [position, setPosition] = useState<"bottom" | "top">("bottom");
+  const [, setPosition] = useState<"bottom" | "top">("bottom");
   const containerRef = useRef<HTMLDivElement>(null);
   const btnRef = useRef<HTMLButtonElement>(null);
   const dropdownMenuRef = useRef<HTMLDivElement>(null);
@@ -90,8 +90,7 @@ export function FilterDropdown({
   const defaultBtnClass =
     "border-[#E8E8E9] bg-white text-[#1B1B1B] hover:bg-[#F8FAFB]";
 
-  const dropdownPositionClass = position === "top" ? "bottom-full" : "";
-
+  
   return (
     <div
       ref={containerRef}

@@ -40,7 +40,7 @@ export const settingsApi = createApi({
                     const json = await res.json();
                     const uploaded = json.data?.[0] || json.data;
                     return { data: uploaded.url || uploaded.path || uploaded.fileUrl || '' };
-                } catch (error) {
+                } catch {
                     return { error: { status: 500, data: 'Upload failed' } };
                 }
             },
@@ -60,7 +60,7 @@ export const settingsApi = createApi({
                             avatar: (data.avatar_url || data.avatar || null),
                         },
                     };
-                } catch (error) {
+                } catch {
                     return { error: { status: 500, data: 'Failed to fetch profile' } };
                 }
             },
@@ -83,7 +83,7 @@ export const settingsApi = createApi({
                         headers: { 'Content-Type': 'multipart/form-data' },
                     });
                     return { data: null };
-                } catch (error) {
+                } catch {
                     return { error: { status: 500, data: 'Update failed' } };
                 }
             },
@@ -95,7 +95,8 @@ export const settingsApi = createApi({
                 try {
                     await axiosInstance.post('/auth/change-password', data);
                     return { data: null };
-                } catch (error: any) {
+                } catch (err) {
+                    const error = err as { response?: { data?: { message?: string }; status?: number } };
                     const message = error?.response?.data?.message || 'Password change failed';
                     return { error: { status: error?.response?.status || 500, data: message } };
                 }
@@ -114,7 +115,7 @@ export const settingsApi = createApi({
                             tagline: content.tagline || '',
                         },
                     };
-                } catch (error) {
+                } catch {
 
                     return {
                         data: { logo: null, business_name: '', tagline: '' },
@@ -136,7 +137,7 @@ export const settingsApi = createApi({
                         },
                     });
                     return { data: null };
-                } catch (error) {
+                } catch {
                     return { error: { status: 500, data: 'Update failed' } };
                 }
             },

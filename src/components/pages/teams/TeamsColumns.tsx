@@ -37,9 +37,10 @@ export function createTeamsColumns({
     onToggleBlock,
     onResendInvite,
     currentUserId,
-    currentUserRole,
+    currentUserRole: _currentUserRole,
     roles,
 }: TeamsColumnsParams): Column<TeamMember>[] {
+    void _currentUserRole;
 
     const superAdminRole = resolveSuperAdminRoleName(roles);
 
@@ -57,7 +58,8 @@ export function createTeamsColumns({
         return true;
     };
 
-    const canResendInvite = (member: TeamMember): boolean => {
+    const canResendInvite = (_member: TeamMember): boolean => {
+        void _member;
         return true; // Show for everyone
     };
 

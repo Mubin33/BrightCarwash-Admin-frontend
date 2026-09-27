@@ -12,7 +12,7 @@
 //     onClose: () => void;
 //     lead: LeadDetail;
 //     stages: StageOption[];
-//     onSave: (data: any) => Promise<void>;
+//     onSave: (data: Parameters<typeof import("@/services/lead-detail.service").updateLeadDetails>[1]) => Promise<void>;
 // }
 
 // const PRIORITY_OPTIONS = [
@@ -226,7 +226,7 @@ interface EditLeadModalProps {
     onClose: () => void;
     lead: LeadDetail;
     stages: StageOption[];
-    onSave: (data: any) => Promise<void>;
+    onSave: (data: Parameters<typeof import("@/services/lead-detail.service").updateLeadDetails>[1]) => Promise<void>;
 }
 
 const PRIORITY_OPTIONS = [

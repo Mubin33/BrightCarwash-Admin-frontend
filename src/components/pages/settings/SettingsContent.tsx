@@ -12,7 +12,7 @@ interface SettingsContentProps {
     security?: boolean;
 }
 
-export function SettingsContent({ profile, business, security }: SettingsContentProps) {
+export function SettingsContent({ profile, business }: SettingsContentProps) {
     const tab: SettingsTab = profile ? "profile" : business ? "business" : "security";
 
     return (

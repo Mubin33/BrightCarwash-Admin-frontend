@@ -4,7 +4,7 @@ import { toast } from 'react-toastify';
 import type { Lead } from '@/types/leads';
 
 export function useLeadsExport(
-    leads: Lead[],
+    _leads: Lead[],
     selectedIds: Set<string>,
     filters: {
         search?: string;
@@ -36,7 +36,8 @@ export function useLeadsExport(
                 const count = leadIds?.length || 'all';
                 toast.success(`Exported ${count} leads as Excel`);
             }
-        } catch (error: any) {
+        } catch (err) {
+            const error = err as { data?: string };
             toast.error(error?.data || 'Failed to export as Excel');
         }
     }, [exportLeads, selectedIds, filters]);
@@ -55,7 +56,8 @@ export function useLeadsExport(
                 const count = leadIds?.length || 'all';
                 toast.success(`Exported ${count} leads as CSV`);
             }
-        } catch (error: any) {
+        } catch (err) {
+            const error = err as { data?: string };
             toast.error(error?.data || 'Failed to export as CSV');
         }
     }, [exportLeads, selectedIds, filters]);

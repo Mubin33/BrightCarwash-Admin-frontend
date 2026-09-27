@@ -30,7 +30,8 @@ export function VerifyOtpForm() {
 			toast.success('OTP verified');
 			sessionStorage.setItem('verifiedOtp', otp);
 			router.push('/reset-password');
-		} catch (error: any) {
+		} catch (err) {
+      const error = err as { response?: { data?: { message?: string } }; message?: string };
 			const message = error?.response?.data?.message || error?.message || 'Invalid OTP';
 			toast.error(message);
 		} finally {

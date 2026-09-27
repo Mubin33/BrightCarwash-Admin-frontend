@@ -11,7 +11,7 @@ export function CampaignHeader({ onNewCampaignClick }: CampaignHeaderProps) {
     return (
         <div className="flex justify-between items-center w-full">
             <h1 className="text-neutral-800 text-2xl font-semibold font-['Inter'] leading-6">
-                AI Campaigns
+                {/* AI Campaigns */}
             </h1>
             <Button
                 variant="primary"

@@ -19,7 +19,8 @@ export function ForgotPasswordForm() {
       toast.success(response.message);
       sessionStorage.setItem("resetEmail", email);
       router.push("/verify-otp");
-    } catch (error: any) {
+    } catch (err) {
+      const error = err as { response?: { data?: { message?: string } }; message?: string };
       const message = error?.response?.data?.message || error?.message || "Something went wrong";
       toast.error(message);
     } finally {

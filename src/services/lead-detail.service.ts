@@ -17,10 +17,10 @@ async function fetchFromBackend<T>(url: string, options?: RequestInit): Promise<
 }
 
 function mapApiToLeadDetail(data: LeadDetailApiResponse): LeadDetail {
-	const assignee = data.assigned_to || (data as any).assignee || null;
+	const assignee = data.assigned_to || (data as { assignee?: typeof data.assigned_to }).assignee || null;
 
 
-	const activityItems: ActivityItem[] = (data.activity_timelines || []).map((item: any) => {
+	const activityItems: ActivityItem[] = (data.activity_timelines || []).map((item) => {
 		let type: ActivityItem['type'] = 'lead';
 		const desc = item.description?.toLowerCase() || '';
 
@@ -50,7 +50,7 @@ function mapApiToLeadDetail(data: LeadDetailApiResponse): LeadDetail {
 	});
 
 
-	const assignmentItems: ActivityItem[] = (data.assignment_history || []).map((item: any) => {
+	const assignmentItems: ActivityItem[] = (data.assignment_history || []).map((item) => {
 		const assigneeName = item.assignee
 			? `${item.assignee.first_name || ''} ${item.assignee.last_name || ''}`.trim() || 'Unknown'
 			: null;
@@ -82,7 +82,7 @@ function mapApiToLeadDetail(data: LeadDetailApiResponse): LeadDetail {
 	const mappedAttachments = (() => {
 
 		if (data.attachments_url_paths && data.attachments_url_paths.length > 0) {
-			return (data.attachments_url_paths as any[]).map((a, index) => ({
+			return (data.attachments_url_paths as { url?: string; filename?: string }[]).map((a, index) => ({
 				id: `att_${index}_${Date.now()}`,
 				url: a.url || '',
 				fileName: a.filename || a.url?.split('/').pop() || `file_${index}`,
@@ -108,7 +108,7 @@ function mapApiToLeadDetail(data: LeadDetailApiResponse): LeadDetail {
 				};
 			});
 		} else {
-			return (data.attachments as any[]).map((a) => ({
+			return (data.attachments as Array<{ id?: string; url?: string; fileName?: string; fileSize?: number; mimeType?: string; uploadedAt?: string }>).map((a) => ({
 				id: a.id || a.url || `att_${Date.now()}`,
 				url: a.url || '',
 				fileName: a.fileName || 'file',

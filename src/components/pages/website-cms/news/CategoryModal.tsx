@@ -3,7 +3,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { X, Plus, Edit2, Trash2, Check, X as XIcon } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
-import { Icon } from '@/components/ui/Icon';
 import { useGetCategoriesQuery, useCreateCategoryMutation, useDeleteCategoryMutation, useUpdateCategoryMutation } from '@/services/category.api';
 import type { Category } from '@/types/news';
 import { toast } from 'react-toastify';

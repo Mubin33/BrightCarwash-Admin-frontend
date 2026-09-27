@@ -1,5 +1,5 @@
 import { createApi } from "@reduxjs/toolkit/query/react";
-import type { notificationInterfece } from "@/types/notification";
+import type { notificationInterfece, NotificationMetricsResponse } from "@/types/notification";
 import axiosInstance from "@/lib/axios-instance";
 
 
@@ -25,7 +25,8 @@ export const notificationApi = createApi({
             `/admin/notifications/offset-feed?page=${params.page}&limit=${params.limit}`,
           );
           return { data };
-        } catch (error: any) {
+        } catch (err) {
+          const error = err as { response?: { data?: { message?: string }; status?: number } };
           return {
             error: {
               status: error?.response?.status || 500,
@@ -48,7 +49,8 @@ export const notificationApi = createApi({
               `/admin/notifications/read/all`,
             );
           return { data: response.data };
-        } catch (error: any) {
+        } catch (err) {
+          const error = err as { response?: { data?: { message?: string }; status?: number } };
           return {
             error: {
               status: error?.response?.status || 500,
@@ -62,14 +64,13 @@ export const notificationApi = createApi({
       invalidatesTags: ["Notification"],
     }),
 
-    getNotificationMetrics: builder.query<any, void>({
+    getNotificationMetrics: builder.query<NotificationMetricsResponse, void>({
       queryFn: async () => {
         try {
-          const { data } = await axiosInstance.get<any>(
-            "/admin/notifications/metrics"
-          );
+          const { data } = await axiosInstance.get<NotificationMetricsResponse>("/admin/notifications/metrics");
           return { data };
-        } catch (error: any) {
+        } catch (err) {
+          const error = err as { response?: { data?: { message?: string }; status?: number } };
           return {
             error: {
               status: error?.response?.status || 500,

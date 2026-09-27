@@ -12,7 +12,7 @@ export function ActivityLogHeader({ onRefresh, isRefreshing }: ActivityLogHeader
     return (
         <div className="flex justify-between items-center self-stretch">
             <h2 className="text-[#0B1220] font-lora text-xl font-bold leading-[100%]">
-                Activity Log
+                {/* Activity Log */}
             </h2>
             <Button
                 onClick={onRefresh}

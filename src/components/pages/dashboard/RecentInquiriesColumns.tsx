@@ -9,14 +9,6 @@ import {
 import type { RecentInquiry } from "@/types/dashboard";
 import Image from "next/image";
 
-const depositStyles: Record<string, string> = {
-  paid: "text-[#006F1F] border-[#E8E8E9] bg-white",
-  pending: "text-[#FFAF00] border-[#E8E8E9] bg-white",
-  refunded: "text-[#FF4345] border-[#E8E8E9] bg-white",
-  none: "text-[#777980] border-[#E8E8E9] bg-white",
-  failed: "text-[#FF4345] border-[#FF4345] bg-white",
-};
-
 function getStageFromName(
   name: string,
   stages: StageOption[],

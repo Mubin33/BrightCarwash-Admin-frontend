@@ -59,7 +59,7 @@ export function DataTable<T>({
                     key={`${rowId}-${col.key}`}
                     className={`py-2.5 px-4 border-r border-[#E8E8E9] last:border-r-0 ${col.className || ""}`}
                   >
-                    {col.render ? col.render(row) : (row as any)[col.key]}
+                    {col.render ? col.render(row) : (row as Record<string, React.ReactNode>)[col.key]}
                   </td>
                 ))}
               </tr>

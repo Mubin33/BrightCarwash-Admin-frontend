@@ -16,7 +16,7 @@ interface StepThreeTableProps {
 export function StepThreeTable({ onTemplateSelect }: StepThreeTableProps) {
 	const [savedTemplates, setSavedTemplates] = useState<Template[]>([]);
 	const [loading, setLoading] = useState(true);
-	const [selectedId, setSelectedId] = useState<string | null>(null);
+	const [, setSelectedId] = useState<string | null>(null);
 	const [previewTemplate, setPreviewTemplate] = useState<Template | null>(null);
 
 	useEffect(() => {

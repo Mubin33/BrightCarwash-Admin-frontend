@@ -89,12 +89,14 @@ export function mockVerifyOtp(email: string, otp: string): void {
   if (!stored || stored !== otp) throw new Error("Invalid OTP");
 }
 
-export function mockResetPassword(email: string, otp: string, newPassword: string): void {
+export function mockResetPassword(email: string, otp: string, _newPassword: string): void {
+  void _newPassword;
   mockVerifyOtp(email, otp);
   MOCK_OTP_STORE.delete(email);
 }
 
-export function mockChangePassword(oldPassword: string, newPassword: string): void {
+export function mockChangePassword(oldPassword: string, _newPassword: string): void {
+  void _newPassword;
   if (oldPassword !== AUTH_CONFIG.MOCK_CREDENTIALS.password) {
     throw new Error("Current password is incorrect");
   }

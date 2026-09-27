@@ -98,7 +98,7 @@ export function CampaignsContent() {
       toast.success("Campaign created successfully");
       setIsCreateModalOpen(false);
       refetch();
-    } catch (error) {
+    } catch {
       toast.error("Failed to create campaign");
     }
   };
@@ -118,7 +118,7 @@ export function CampaignsContent() {
       await updateCampaign({ id, ...data }).unwrap();
       toast.success("Campaign updated successfully");
       refetch();
-    } catch (error) {
+    } catch {
       toast.error("Failed to update campaign");
     }
   };
@@ -130,7 +130,7 @@ export function CampaignsContent() {
       setIsViewModalOpen(false);
       setSelectedCampaignId(null);
       refetch();
-    } catch (error) {
+    } catch {
       toast.error("Failed to delete campaign");
     }
   };

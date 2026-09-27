@@ -103,7 +103,7 @@ export function useHeroData() {
         return url;
       };
 
-      const content: Record<string, any> = {
+      const content: Record<string, unknown> = {
         eyebrow_text: data.eyebrowText,
         main_headline: data.mainHeadline,
         subtext: data.subtext,

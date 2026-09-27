@@ -136,7 +136,8 @@ export function LeadDetailContent({ leadId }: Props) {
 
 			toast.success(`"${attachment.fileName}" deleted`);
 			triggerRefresh();
-		} catch (error: any) {
+		} catch (err) {
+        const error = err as { data?: { message?: string }; message?: string };
 			toast.error(error.message || 'Failed to delete attachment');
 		}
 	};
@@ -182,12 +183,13 @@ export function LeadDetailContent({ leadId }: Props) {
 			window.URL.revokeObjectURL(url);
 
 			toast.success(`Downloading ${fileName}`);
-		} catch (error: any) {
+		} catch (err) {
+        const error = err as { data?: { message?: string }; message?: string };
 			toast.error(error.message || 'Failed to download file');
 		}
 	};
 
-	const handleEditSave = async (data: any) => {
+	const handleEditSave = async (data: Parameters<typeof updateLeadDetails>[1]) => {
 		await updateLeadDetails(leadId, data);
 
 		const now = new Date();

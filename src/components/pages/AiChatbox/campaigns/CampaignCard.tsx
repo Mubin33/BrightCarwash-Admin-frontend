@@ -96,7 +96,6 @@ const formatDate = (dateStr: string | null) => {
 export function CampaignCard({
   campaign,
   onView,
-  onDelete,
   isDeleting,
 }: CampaignCardProps) {
   return (
