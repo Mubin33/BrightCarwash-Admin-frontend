@@ -45,20 +45,20 @@ export function createCampaignColumns({
 			),
 		},
 		{
-			key: "recipients",
-			header: "Recipients",
+			key: "delivered",
+			header: "Delivered",
 			render: (row) => (
 				<span className="text-[#1B1B1B] font-inter text-sm">
-					{row.analytics.SENT.toLocaleString()}
+					{(row.analytics?.DELIVERED ?? 0).toLocaleString()}
 				</span>
 			),
 		},
 		{
-			key: "clicks",
-			header: "Clicks",
+			key: "opened",
+			header: "Opened",
 			render: (row) => (
 				<span className="text-[#1B1B1B] font-inter text-sm">
-					{row.analytics.CLICKED.toLocaleString()}
+					{(row.analytics?.OPENED ?? 0).toLocaleString()}
 				</span>
 			),
 		},

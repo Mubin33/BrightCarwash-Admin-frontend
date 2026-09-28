@@ -17,8 +17,15 @@ interface Props {
 export function MemberActivityContent({ startDate, endDate }: Props) {
     const { page, setPage } = usePaymentPageState();
 
-    const { data: highlights, isLoading: highlightsLoading } = useGetMemberHighlightsQuery({ startDate, endDate });
-    const { data: tableData, isLoading: tableLoading } = useGetMemberTableQuery({ page, limit: 10, startDate, endDate });
+    const { data: highlights, isLoading: highlightsLoading } = useGetMemberHighlightsQuery(
+        { startDate, endDate },
+        { refetchOnMountOrArgChange: true, refetchOnFocus: true, pollingInterval: 5000 }
+    );
+
+    const { data: tableData, isLoading: tableLoading } = useGetMemberTableQuery(
+        { page, limit: 10, startDate, endDate },
+        { refetchOnMountOrArgChange: true, refetchOnFocus: true, pollingInterval: 5000 }
+    );
 
     const tableDataArray = useMemo(() => tableData?.data || [], [tableData?.data]);
 
