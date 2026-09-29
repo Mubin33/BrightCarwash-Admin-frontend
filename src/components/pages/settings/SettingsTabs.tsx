@@ -6,8 +6,9 @@ import type { SettingsTab } from "@/types/settings";
 
 const TABS: { key: SettingsTab; label: string; href: string }[] = [
     { key: "profile", label: "Profile Setting", href: "/settings" },
-    { key: "business", label: "Business Profile", href: "/settings/business" },
+    // { key: "business", label: "Business Profile", href: "/settings/business" },
     { key: "security", label: "Security Setting", href: "/settings/security" },
+    { key: "business-hours", label: "Business Hours", href: "/settings/business-hours" },
 ];
 
 export function SettingsTabs() {

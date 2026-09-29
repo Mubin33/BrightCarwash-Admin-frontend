@@ -8,6 +8,7 @@ import {
   useGetCampaignsQuery,
   useUpdateCampaignMutation,
 } from "@/services/ai-campaign.api";
+import type { Campaign } from "@/types/ai-campaign";
 import { useMemo, useState } from "react";
 import { toast } from "react-toastify";
 import {
@@ -17,6 +18,7 @@ import {
   CampaignHeader,
   CampaignSkeleton,
   CampaignViewModal,
+  DeleteCampaignModal,
 } from "./";
 
 const ITEMS_PER_PAGE = 6;
@@ -27,6 +29,7 @@ export function CampaignsContent() {
   const [selectedCampaignId, setSelectedCampaignId] = useState<number | null>(
     null,
   );
+  const [campaignToDelete, setCampaignToDelete] = useState<Campaign | null>(null);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("All Status");
@@ -123,12 +126,29 @@ export function CampaignsContent() {
     }
   };
 
-  const handleDelete = async (id: number) => {
+  const handleDeleteClick = (campaignOrId: Campaign | number) => {
+    if (typeof campaignOrId === "number") {
+      const found =
+        campaigns?.find((c) => c.id === campaignOrId) ||
+        (campaignDetail?.id === campaignOrId ? campaignDetail : null);
+      if (found) {
+        setCampaignToDelete(found);
+      }
+    } else {
+      setCampaignToDelete(campaignOrId);
+    }
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!campaignToDelete) return;
     try {
-      await deleteCampaign(id).unwrap();
+      await deleteCampaign(campaignToDelete.id).unwrap();
       toast.success("Campaign deleted successfully");
-      setIsViewModalOpen(false);
-      setSelectedCampaignId(null);
+      if (isViewModalOpen && selectedCampaignId === campaignToDelete.id) {
+        setIsViewModalOpen(false);
+        setSelectedCampaignId(null);
+      }
+      setCampaignToDelete(null);
       refetch();
     } catch {
       toast.error("Failed to delete campaign");
@@ -170,7 +190,7 @@ export function CampaignsContent() {
                 key={campaign.id}
                 campaign={campaign}
                 onView={handleView}
-                onDelete={handleDelete}
+                onDelete={handleDeleteClick}
                 isDeleting={isDeleting}
               />
             ))}
@@ -199,9 +219,19 @@ export function CampaignsContent() {
         campaign={campaignDetail || null}
         isLoading={isDetailLoading}
         onUpdate={handleUpdate}
-        onDelete={handleDelete}
+        onDelete={handleDeleteClick}
         isUpdating={isUpdating}
         isDeleting={isDeleting}
+      />
+
+      <DeleteCampaignModal
+        isOpen={!!campaignToDelete}
+        onClose={() => {
+          if (!isDeleting) setCampaignToDelete(null);
+        }}
+        campaign={campaignToDelete}
+        onConfirm={handleConfirmDelete}
+        isLoading={isDeleting}
       />
     </>
   );

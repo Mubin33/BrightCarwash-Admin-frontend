@@ -12,4 +12,4 @@ export { CampaignViewDescription } from './CampaignViewDescription';
 export { CampaignViewDates } from './CampaignViewDates';
 export { CampaignViewStatus } from './CampaignViewStatus';
 export { CampaignViewCreatedAt } from './CampaignViewCreatedAt';
-export { CampaignViewActions } from './CampaignViewActions';
+export { CampaignViewActions } from './CampaignViewActions';export { DeleteCampaignModal } from './DeleteCampaignModal';

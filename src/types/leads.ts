@@ -16,6 +16,7 @@ export interface Lead {
   assignedToId: string | null;
   notes: string[];
   date: string;
+  rank?: string;
 }
 
 export interface CreateLeadRequest {
@@ -47,6 +48,7 @@ export interface LeadApiResponse {
   priority: string;
   deposit_status: string;
   stage_id: string;
+  rank?: string;
 
   stage?: {
     id: string;
@@ -112,3 +114,18 @@ export interface LeadFilterOptionsResponse {
 
 export type LeadDepositStatus = Lead["depositStatus"];
 export type LeadStage = string;
+
+export interface ReorderLeadRequest {
+  leadId: string;
+  target_stage_id: string;
+  prev_rank: string | null;
+  next_rank: string | null;
+}
+
+export interface ReorderLeadResponse {
+  id: string;
+  stage_id?: string;
+  stage?: string;
+  rank: string;
+  updatedAt?: string;
+}

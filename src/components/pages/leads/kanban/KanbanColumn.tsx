@@ -1,16 +1,16 @@
 "use client";
 
 import { AddLeadModal } from "@/components/pages/leads/kanban/AddLeadModal";
+import { DeleteStageModal } from "@/components/pages/leads/kanban/DeleteStageModal";
+import { EditStageModal } from "@/components/pages/leads/kanban/EditStageModal";
 import { KanbanCard } from "@/components/pages/leads/kanban/KanbanCard";
 import { Button } from "@/components/ui/Button";
 import type { StageOption } from "@/components/ui/StageDropdown";
 import { StageIcon } from "@/components/ui/StageIcon";
-import { deleteStage } from "@/services/stage.service";
 import type { Lead } from "@/types/leads";
 import { Draggable, Droppable } from "@hello-pangea/dnd";
-import { Trash2 } from "lucide-react";
+import { Pencil, Trash2 } from "lucide-react";
 import { useState } from "react";
-import { toast } from "react-toastify";
 
 interface KanbanColumnProps {
   id: string;
@@ -24,6 +24,7 @@ interface KanbanColumnProps {
   setStages: (stages: StageOption[]) => void;
   onDeleteLead: (lead: Lead) => void;
   onStageDeleted: () => void;
+  onStageUpdated?: () => void;
 }
 
 export function KanbanColumn({
@@ -37,9 +38,14 @@ export function KanbanColumn({
   setStages,
   onDeleteLead,
   onStageDeleted,
+  onStageUpdated,
 }: KanbanColumnProps) {
   const [modalOpen, setModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const badgeTint = borderColor + "26";
+
+  const handleStageRefresh = onStageUpdated || onStageDeleted;
 
   return (
     <>
@@ -75,30 +81,23 @@ export function KanbanColumn({
             </span>
           </div>
 
-          <div className="flex items-center gap-1">
-            {/* <Button
-							variant='icon'
-							onClick={() => setModalOpen(true)}
-							className='flex p-1.5 items-center rounded-lg border border-transparent text-[#777980] cursor-pointer hover:bg-white/70 hover:border-[#D0D5DD] hover:text-[#1B1B1B] transition-all duration-200'
-						>
-							<Plus size={18} />
-						</Button> */}
+          <div className="flex items-center gap-0">
             <Button
               variant="icon"
+              title="Edit stage"
+              onClick={() => setIsEditModalOpen(true)}
+              className="flex p-1.5 items-center rounded-lg border border-transparent text-[#777980] cursor-pointer hover:bg-white/70 hover:border-[#D0D5DD] hover:text-[#0098E8] transition-all duration-200"
+            >
+              <Pencil size={15} />
+            </Button>
+            <Button
+              variant="icon"
+              title="Delete stage"
               disabled={title === "Converted"}
-              onClick={async () => {
-                if (!confirm(`Delete stage "${title}"?`)) return;
-                try {
-                  await deleteStage(stageId);
-                  toast.success(`Stage "${title}" deleted`);
-                  onStageDeleted();
-                } catch {
-                  toast.error("Failed to delete stage");
-                }
-              }}
+              onClick={() => setIsDeleteModalOpen(true)}
               className="flex p-1.5 items-center rounded-lg border border-transparent text-[#777980] cursor-pointer hover:bg-white/70 hover:border-[#D0D5DD] hover:text-[#FF4345] transition-all duration-200 [&:disabled]:!cursor-not-allowed disabled:opacity-40"
             >
-              <Trash2 size={18} />
+              <Trash2 size={15} />
             </Button>
           </div>
         </div>
@@ -154,6 +153,30 @@ export function KanbanColumn({
         stages={stages}
         setStages={setStages}
       />
+
+      {isEditModalOpen && (
+        <EditStageModal
+          isOpen={isEditModalOpen}
+          onClose={() => setIsEditModalOpen(false)}
+          stageId={stageId}
+          initialName={title}
+          initialColor={borderColor}
+          initialIcon={icon}
+          initialSortOrder={stages.findIndex((s) => s.stageId === stageId) + 1}
+          onUpdated={handleStageRefresh}
+        />
+      )}
+
+      {isDeleteModalOpen && (
+        <DeleteStageModal
+          isOpen={isDeleteModalOpen}
+          onClose={() => setIsDeleteModalOpen(false)}
+          stageId={stageId}
+          stageTitle={title}
+          leadCount={items.length}
+          onDeleted={handleStageRefresh}
+        />
+      )}
     </>
   );
 }

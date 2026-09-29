@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { LeadInfoCard } from "@/components/pages/lead-detail/LeadInfoCard";
 import { NotesSection } from "@/components/pages/lead-detail/NotesSection";
 import { ActivityTimeline } from "@/components/pages/lead-detail/ActivityTimeline";
@@ -17,6 +17,7 @@ import { toast } from "react-toastify";
 import { EditLeadModal } from "@/components/pages/lead-detail/EditLeadModal";
 import { getAccessToken } from "@/lib/auth-client";
 import { APP_CONFIG } from "@/configs/app.config";
+import { formatStandardDate } from "@/lib/date-utils";
 
 interface Props {
 	leadId: string;
@@ -43,11 +44,57 @@ export function LeadDetailContent({ leadId }: Props) {
 		triggerRefresh
 	);
 
-	useEffect(() => {
+	const fetchStages = useCallback(() => {
 		getStages().then((s) => {
 			setStages(mapStagesToOptions(s));
 		});
 	}, []);
+
+	useEffect(() => {
+		fetchStages();
+	}, [fetchStages]);
+
+	const handleDepositStatusChange = async (newStatus: string) => {
+		try {
+			await updateLeadDetails(leadId, { deposit_status: newStatus });
+			toast.success(`Deposit status updated to ${newStatus}`);
+			const dateStr = formatStandardDate(new Date());
+			addLocalActivity({
+				id: `local_${Date.now()}`,
+				type: "lead",
+				title: `Deposit status changed to ${newStatus}`,
+				subtitle: "by You",
+				user: "You",
+				date: dateStr,
+			});
+			triggerRefresh();
+		} catch (err) {
+			const error = err as { message?: string };
+			toast.error(error.message || "Failed to update deposit status");
+			throw err;
+		}
+	};
+
+	const handleStageChange = async (newStage: string) => {
+		try {
+			await updateLeadDetails(leadId, { stage_name: newStage });
+			toast.success(`Stage updated to ${newStage}`);
+			const dateStr = formatStandardDate(new Date());
+			addLocalActivity({
+				id: `local_${Date.now()}`,
+				type: "stage",
+				title: `Stage changed to ${newStage}`,
+				subtitle: "by You",
+				user: "You",
+				date: dateStr,
+			});
+			triggerRefresh();
+		} catch (err) {
+			const error = err as { message?: string };
+			toast.error(error.message || "Failed to update stage");
+			throw err;
+		}
+	};
 
 	const handleNoteAdded = () => {
 		triggerRefresh();
@@ -56,6 +103,7 @@ export function LeadDetailContent({ leadId }: Props) {
 	const handleDeleteNote = async (noteContent: string) => {
 		try {
 			await deleteNote(noteContent);
+			triggerRefresh();
 			toast.success("Note deleted");
 		} catch {
 			toast.error("Failed to delete note");
@@ -67,11 +115,7 @@ export function LeadDetailContent({ leadId }: Props) {
 			await updateLeadDetails(leadId, { files });
 
 			const now = new Date();
-			const dateStr = now.toLocaleDateString("en-US", {
-				day: "numeric",
-				month: "short",
-				year: "numeric",
-			});
+			const dateStr = formatStandardDate(now);
 			addLocalActivity({
 				id: `local_${Date.now()}`,
 				type: "lead",
@@ -120,11 +164,7 @@ export function LeadDetailContent({ leadId }: Props) {
 
 
 			const now = new Date();
-			const dateStr = now.toLocaleDateString("en-US", {
-				day: "numeric",
-				month: "short",
-				year: "numeric",
-			});
+			const dateStr = formatStandardDate(now);
 			addLocalActivity({
 				id: `local_${Date.now()}`,
 				type: "lead",
@@ -193,11 +233,7 @@ export function LeadDetailContent({ leadId }: Props) {
 		await updateLeadDetails(leadId, data);
 
 		const now = new Date();
-		const dateStr = now.toLocaleDateString("en-US", {
-			day: "numeric",
-			month: "short",
-			year: "numeric",
-		});
+		const dateStr = formatStandardDate(now);
 		addLocalActivity({
 			id: `local_${Date.now()}`,
 			type: "lead",
@@ -226,7 +262,7 @@ export function LeadDetailContent({ leadId }: Props) {
 			{/* Main content */}
 			<div className="flex items-start gap-5 self-stretch max-lg:flex-col">
 				<div className="flex flex-col gap-5 flex-1 min-w-0">
-					<LeadInfoCard lead={lead} />
+					<LeadInfoCard lead={lead} stages={stages} onStageChange={handleStageChange} onStageCreated={fetchStages} onDepositStatusChange={handleDepositStatusChange} />
 					<NotesSection
 						leadId={leadId}
 						notes={lead.notes}
@@ -239,7 +275,7 @@ export function LeadDetailContent({ leadId }: Props) {
 					/>
 				</div>
 
-				<div className="flex flex-col gap-5 w-[320px] max-lg:w-full shrink-0">
+				<div className="flex flex-col gap-5 w-[450px] max-lg:w-full shrink-0 min-h-full sticky top-24">
 					<ActivityTimeline activities={activities} />
 					<AssignmentHistory activities={activities} />
 				</div>

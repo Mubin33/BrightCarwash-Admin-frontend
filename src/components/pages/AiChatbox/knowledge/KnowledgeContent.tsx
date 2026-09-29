@@ -15,6 +15,7 @@ import {
     KnowledgeSkeleton,
     getKnowledgeColumns,
     KnowledgeViewModal,
+    DeleteKnowledgeModal,
 } from './';
 import { downloadFile } from '@/lib/file-export';
 import type { KnowledgeFile } from '@/types/knowledge';
@@ -23,6 +24,7 @@ export function KnowledgeContent() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isViewModalOpen, setIsViewModalOpen] = useState(false);
     const [selectedFileId, setSelectedFileId] = useState<number | null>(null);
+    const [fileToDelete, setFileToDelete] = useState<KnowledgeFile | null>(null);
 
     const { data: files, isLoading, refetch } = useGetKnowledgeFilesQuery();
     const [uploadFile, { isLoading: isUploading }] = useUploadKnowledgeFileMutation();
@@ -32,12 +34,16 @@ export function KnowledgeContent() {
         { skip: !selectedFileId }
     );
 
-    
-    const handleDelete = async (id: number) => {
-        if (!confirm('Are you sure you want to delete this file?')) return;
+    const handleDeleteClick = (file: KnowledgeFile) => {
+        setFileToDelete(file);
+    };
+
+    const handleConfirmDelete = async () => {
+        if (!fileToDelete) return;
         try {
-            const result = await deleteFile(id).unwrap();
+            const result = await deleteFile(fileToDelete.id).unwrap();
             toast.success(result.message || 'File deleted successfully');
+            setFileToDelete(null);
             refetch();
         } catch {
             toast.error('Failed to delete file');
@@ -69,22 +75,17 @@ export function KnowledgeContent() {
             // Extract file extension from the URL
             const extension = fileUrl.split('.').pop()?.toLowerCase() || '';
 
-            if (!extension) {
-                toast.error('Unable to determine file type');
-                return;
-            }
-
-            // Download the actual file from the AI server
+            // Use the generic file download utility
             const result = await downloadFile({
-                fileUrl: fileUrl,
-                fileName: fileName,
+                fileUrl,
+                fileName,
                 fileExtension: extension,
             });
 
             if (result.success) {
-                toast.success(result.message);
+                toast.success('File downloaded successfully');
             } else {
-                toast.error(result.message);
+                toast.error('Failed to download file');
             }
         } catch (error) {
             console.error('Export error:', error);
@@ -103,7 +104,7 @@ export function KnowledgeContent() {
 
     const columns = getKnowledgeColumns(
         handleView,
-        handleDelete,
+        handleDeleteClick,
         (id: number) => {
             const file = files?.find((f) => f.id === id);
             if (file) {
@@ -140,6 +141,16 @@ export function KnowledgeContent() {
                 onClose={handleCloseView}
                 file={fileDetail || null}
                 isLoading={isDetailLoading}
+            />
+
+            <DeleteKnowledgeModal
+                isOpen={!!fileToDelete}
+                onClose={() => {
+                    if (!isDeleting) setFileToDelete(null);
+                }}
+                file={fileToDelete}
+                onConfirm={handleConfirmDelete}
+                isLoading={isDeleting}
             />
         </>
     );

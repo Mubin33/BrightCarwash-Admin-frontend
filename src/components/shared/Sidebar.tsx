@@ -1,25 +1,25 @@
 "use client";
 
-import { useState, useEffect } from 'react';
-import { usePathname } from 'next/navigation';
-import Link from 'next/link';
-import Image from 'next/image';
-import { Icon } from '@/components/ui/Icon';
-import { Button } from '@/components/ui/Button';
-import { ChevronDown } from 'lucide-react';
-import { NAVIGATION_CONFIG } from '@/configs/navigation.config';
-import { useAuth } from '@/hooks/useAuth';
-import { hasPermission } from '@/lib/permissions';
-import { useSelector } from 'react-redux';
-import type { RootState } from '@/lib/store';
-import type { SidebarProps, NavItem } from '@/types/navigation';
-import { useGetBusinessProfileQuery } from '@/services/settings.api';
+import { Button } from "@/components/ui/Button";
+import { Icon } from "@/components/ui/Icon";
+import { NAVIGATION_CONFIG } from "@/configs/navigation.config";
+import { useAuth } from "@/hooks/useAuth";
+import { hasPermission, PERMISSIONS } from "@/lib/permissions";
+import type { RootState } from "@/lib/store";
+import { useGetBusinessProfileQuery } from "@/services/settings.api";
+import type { NavItem, SidebarProps } from "@/types/navigation";
+import { ChevronDown } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useSelector } from "react-redux";
 
 const STORAGE_URL = process.env.NEXT_PUBLIC_STORAGE_URL;
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL?.replace(/\/$/, "");
 
-function filterItemsByPermission(
+export function filterItemsByPermission(
   items: NavItem[],
   userPermissions: string[],
 ): NavItem[] {
@@ -122,12 +122,14 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
   useEffect(() => {
     NAVIGATION_CONFIG.forEach((section) => {
       section.items.forEach((item) => {
-        if (item.subItems?.some((sub) => {
-          if (sub.href === '/ai-chatbox') {
-            return pathname === sub.href;
-          }
-          return pathname === sub.href || pathname.startsWith(sub.href + '/');
-        })) {
+        if (
+          item.subItems?.some((sub) => {
+            if (sub.href === "/ai-chatbox") {
+              return pathname === sub.href;
+            }
+            return pathname === sub.href || pathname.startsWith(sub.href + "/");
+          })
+        ) {
           setExpandedItems((prev) => {
             if (prev.has(item.id)) return prev;
             const next = new Set(prev);
@@ -208,6 +210,12 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
 
   const logoUrl = getLogoUrl();
 
+  const homeHref =
+    filteredConfig[0]?.items[0]?.href ||
+    (hasPermission(user, [PERMISSIONS.dashboard.view, "dashboard:*"])
+      ? "/dashboard"
+      : "#");
+
   return (
     <>
       {isOpen && (
@@ -224,11 +232,12 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         <div className="flex flex-col items-center w-full shrink-0 mb-4 pr-3 sm:pr-4">
           {logoUrl && !logoError ? (
             <Link
-              href="/dashboard"
+              href={homeHref}
               className="flex justify-center items-center w-full"
             >
               <Image
-                src={logoUrl}
+                src="/images/logo.png"
+                // src={logoUrl}
                 alt="Logo"
                 width={80}
                 height={80}

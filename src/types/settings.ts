@@ -19,4 +19,4 @@ export interface ChangePasswordFormData {
     new_password: string;
 }
 
-export type SettingsTab = 'profile' | 'business' | 'security';
+export type SettingsTab = 'profile' | 'business' | 'security' | 'business-hours';

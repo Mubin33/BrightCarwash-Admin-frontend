@@ -67,8 +67,7 @@ export function AddMemberModal({ isOpen, onClose, roles, onMemberAdded }: AddMem
 
     return (
         <Modal isOpen={isOpen} onClose={onClose} title="Add Member" size="md">
-            <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-                <div className="w-full h-px bg-[#DFE1E7]" />
+            <form onSubmit={handleSubmit} className="flex flex-col gap-4"> 
                 <div className="grid grid-cols-2 gap-3">
                     <div>
                         <label className="block text-sm font-medium text-[#1B1B1B] mb-1.5">First Name *</label>
@@ -116,7 +115,7 @@ export function AddMemberModal({ isOpen, onClose, roles, onMemberAdded }: AddMem
                         maxHeight={200}
                     />
                 </div>
-                <div className="flex gap-3 justify-end pt-2 border-t border-[#E8E8E9]">
+                <div className="flex gap-3 justify-end pt-2 ">
                     <Button type="button" variant="outline" onClick={onClose} className="px-6 w-auto!">Cancel</Button>
                     <Button type="submit" isLoading={isSubmitting} loadingText="Adding…" className="px-6 w-auto!">Invite</Button>
                 </div>

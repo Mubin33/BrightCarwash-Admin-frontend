@@ -2,6 +2,7 @@
 
 import { useMemo } from "react";
 import type { ActivityItem, ActivityType } from "@/types/lead-detail";
+import { formatStandardDate } from "@/lib/date-utils";
 
 interface Props {
     activities: ActivityItem[];
@@ -63,7 +64,7 @@ export function AssignmentHistory({ activities }: Props) {
                                             {item.date && " • "}
                                         </>
                                     )}
-                                    {item.date}
+                                    {formatStandardDate(item.date)}
                                 </span>
                             )}
                         </div>

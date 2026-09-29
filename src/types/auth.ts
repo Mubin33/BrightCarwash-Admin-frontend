@@ -42,6 +42,9 @@ export interface User {
   avatar: string | null;
   avatar_url?: string | undefined;
   role: string;
+  roleId?: string;
+  roles?: string[];
+  roleIds?: string[];
   permissions: string[];
 }
 

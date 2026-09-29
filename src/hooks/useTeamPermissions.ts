@@ -22,9 +22,15 @@ export function useTeamPermissions() {
       // Optimistically update current user's permissions in Redux if their role was edited
       const isCurrentRole =
         currentUser &&
-        roleName &&
-        currentUser.role?.trim().toLowerCase() ===
-          roleName.trim().toLowerCase();
+        ((roleId &&
+          (currentUser.roleId === roleId ||
+            currentUser.roleIds?.includes(roleId))) ||
+          (roleName &&
+            (currentUser.role?.trim().toLowerCase() ===
+              roleName.trim().toLowerCase() ||
+              currentUser.roles?.some(
+                (r) => r.trim().toLowerCase() === roleName.trim().toLowerCase(),
+              ))));
 
       if (isCurrentRole && permNames) {
         dispatch(
@@ -35,13 +41,26 @@ export function useTeamPermissions() {
         );
       }
 
+      // Broadcast update across browser tabs for real-time sync
+      if (typeof window !== "undefined" && "BroadcastChannel" in window) {
+        try {
+          const channel = new BroadcastChannel("auth_permissions_sync");
+          channel.postMessage({
+            type: "ROLE_PERMISSIONS_UPDATED",
+            roleId,
+            roleName,
+          });
+          channel.close();
+        } catch {}
+      }
+
       try {
         const result = await updateRolePermissions({
           id: roleId,
           permissions: perms,
         }).unwrap();
 
-        if (result.success) {
+        if (result.success !== false) {
           toast.success(result.message || "Permissions updated successfully");
           // Real-time sync: fetch updated profile from server and update Redux without reload
           try {

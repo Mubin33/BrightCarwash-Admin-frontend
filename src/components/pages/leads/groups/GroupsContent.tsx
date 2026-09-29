@@ -24,6 +24,7 @@ import {
 import { toast } from "react-toastify";
 import { AddGroupMemberModal } from "./AddGroupMemberModal";
 import { CreateGroupModal } from "./CreateGroupModal";
+import { DeleteGroupModal } from "./DeleteGroupModal";
 import { GroupsHeader } from "./GroupsHeader";
 import { GroupsList } from "./GroupsList";
 
@@ -70,6 +71,12 @@ export const GroupsContent = forwardRef<
   const [stages, setStages] = useState<StageOption[]>([]);
   const [leadModalOpen, setLeadModalOpen] = useState(false);
   const [targetGroupId, setTargetGroupId] = useState<string | null>(null);
+  const [groupToDelete, setGroupToDelete] = useState<{
+    id: string;
+    name: string;
+    leadIds: string[];
+    _count?: { leads: number };
+  } | null>(null);
   const [createGroupModalOpen, setCreateGroupModalOpen] = useState(false);
 
   const {
@@ -380,7 +387,10 @@ export const GroupsContent = forwardRef<
           setTargetGroupId(gid);
           setLeadModalOpen(true);
         }}
-        onDeleteGroup={handleDeleteGroup}
+        onDeleteGroup={(groupId: string) => {
+          const grp = groups.find((g) => g.id === groupId);
+          if (grp) setGroupToDelete(grp);
+        }}
         router={router}
         onGroupExpand={fetchGroupLeads}
         groupLeadPagination={groupLeadPagination}
@@ -425,6 +435,21 @@ export const GroupsContent = forwardRef<
           }
         }}
       />
+      {groupToDelete && (
+        <DeleteGroupModal
+          isOpen={!!groupToDelete}
+          onClose={() => setGroupToDelete(null)}
+          group={groupToDelete}
+          initialMembers={groupLeads.filter((lead) =>
+            groupToDelete.leadIds.includes(lead.id),
+          )}
+          fetchGroupLeads={fetchGroupLeads}
+          onConfirmDelete={async (groupId) => {
+            await handleDeleteGroup(groupId);
+            setGroupToDelete(null);
+          }}
+        />
+      )}
     </div>
   );
 });

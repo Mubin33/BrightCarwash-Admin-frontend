@@ -7,6 +7,7 @@ import {
   useGetLeadsQuery,
   useUpdateLeadPriorityMutation,
   useUpdateLeadStageMutation,
+  useReorderLeadMutation,
 } from "@/services/leads.api";
 import { getStages } from "@/services/stage.service";
 import type { Lead } from "@/types/leads";
@@ -60,6 +61,7 @@ export function useLeadsData(
   );
 
   const [updateStage] = useUpdateLeadStageMutation();
+  const [reorderLeadMutation] = useReorderLeadMutation();
   const [updatePriority] = useUpdateLeadPriorityMutation();
   const [deleteLead] = useDeleteLeadMutation();
   const { data: leadFilterOptions } = useGetLeadFilterOptionsQuery();
@@ -68,12 +70,11 @@ export function useLeadsData(
   const [stages, setStages] = useState<StageOption[]>([]);
   const [localLeads, setLocalLeads] = useState<Lead[]>([]);
 
-  // Sync local leads when paginatedData updates from server
-  useEffect(() => {
-    if (paginatedData?.data) {
-      setLocalLeads(paginatedData.data);
-    }
-  }, [paginatedData?.data]);
+  const [prevPaginatedData, setPrevPaginatedData] = useState(paginatedData?.data);
+  if (paginatedData?.data !== prevPaginatedData) {
+    setPrevPaginatedData(paginatedData?.data);
+    setLocalLeads(paginatedData?.data || []);
+  }
 
   // Always refetch on initial mount to guarantee fresh state after navigation
   useEffect(() => {
@@ -124,6 +125,80 @@ export function useLeadsData(
     setSearchSubmitted(true);
     setCurrentPage(1);
   }, []);
+
+    const handleReorderLead = useCallback(
+    async (
+      leadId: string,
+      targetStageId: string,
+      prevRank: string | null,
+      nextRank: string | null,
+      optimisticRank: string,
+    ) => {
+      const previousLeads = [...localLeads];
+
+      const targetLower = targetStageId.toLowerCase().trim();
+      const matchedOption = stages.find(
+        (s) =>
+          s.stageId === targetStageId ||
+          s.label.toLowerCase().trim() === targetLower ||
+          s.value.toLowerCase().trim() === targetLower ||
+          s.label.toLowerCase().replace(/[-_\s]/g, "") ===
+            targetLower.replace(/[-_\s]/g, ""),
+      );
+
+      const targetSlug =
+        matchedOption?.value ||
+        (targetLower === "new lead" ? "new" : targetLower.replace(/\s+/g, "_"));
+
+      const finalStageId = matchedOption?.stageId || targetStageId;
+
+      setLocalLeads((prev) =>
+        prev.map((lead) => {
+          if (lead.id === leadId) {
+            return {
+              ...lead,
+              stage: targetSlug,
+              stageId: finalStageId,
+              stageIcon:
+                matchedOption?.icon !== undefined
+                  ? matchedOption.icon
+                  : lead.stageIcon,
+              rank: optimisticRank,
+            };
+          }
+          return lead;
+        }),
+      );
+
+      try {
+        const res = await reorderLeadMutation({
+          leadId,
+          target_stage_id: finalStageId,
+          prev_rank: prevRank,
+          next_rank: nextRank,
+        }).unwrap();
+
+        if (res?.rank) {
+          setLocalLeads((prev) =>
+            prev.map((l) =>
+              l.id === leadId
+                ? {
+                    ...l,
+                    rank: res.rank,
+                    stageId: res.stage_id || l.stageId,
+                  }
+                : l,
+            ),
+          );
+        }
+        return res;
+      } catch (error) {
+        setLocalLeads(previousLeads);
+        throw error;
+      }
+    },
+    [localLeads, stages, reorderLeadMutation],
+  );
 
   const handleStageChange = useCallback(
     async (id: string, stageName: string) => {
@@ -270,6 +345,7 @@ export function useLeadsData(
     refreshStages,
     handleSearchSubmit,
     handleStageChange,
+    handleReorderLead,
     handlePriorityChange,
     handleDelete,
     handleSelectRow,

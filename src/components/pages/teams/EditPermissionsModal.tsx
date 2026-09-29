@@ -5,7 +5,7 @@ import { Modal } from "@/components/ui/Modal";
 import { usePermission } from "@/hooks/usePermission";
 import { PERMISSIONS } from "@/lib/permissions";
 import type { Permission, TeamRole } from "@/types/team";
-import { memo, useEffect, useMemo, useRef, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 interface EditPermissionsModalProps {
   isOpen: boolean;
@@ -46,27 +46,32 @@ export const EditPermissionsModal = memo(function EditPermissionsModal({
   const isLocked = role ? isSuperAdmin(role.name) : false;
   const isReadOnly = isLocked || !canEditPermissions;
 
-  const isReadPermission = (permission: Permission) =>
-    permission.name.endsWith(":read");
+  const isReadPermission = useCallback(
+    (permission: Permission) => permission.name.endsWith(":read"),
+    [],
+  );
 
-  const normalizePermissions = (permissions: string[]) => {
-    const next = new Set(permissions);
+  const normalizePermissions = useCallback(
+    (permissions: string[]) => {
+      const next = new Set(permissions);
 
-    for (const permission of allPermissions) {
-      if (isReadPermission(permission)) continue;
-      if (!next.has(permission.id)) continue;
+      for (const permission of allPermissions) {
+        if (isReadPermission(permission)) continue;
+        if (!next.has(permission.id)) continue;
 
-      const readPermission = allPermissions.find(
-        (p) => p.module === permission.module && isReadPermission(p),
-      );
+        const readPermission = allPermissions.find(
+          (p) => p.module === permission.module && isReadPermission(p),
+        );
 
-      if (readPermission) {
-        next.add(readPermission.id);
+        if (readPermission) {
+          next.add(readPermission.id);
+        }
       }
-    }
 
-    return next;
-  };
+      return next;
+    },
+    [allPermissions, isReadPermission],
+  );
 
   useEffect(() => {
     const prev = prevPermissionsRef.current;

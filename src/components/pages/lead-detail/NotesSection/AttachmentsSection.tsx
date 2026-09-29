@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
+import { formatFileDateTime } from "@/lib/date-utils";
 import { toast } from "react-toastify";
 import {
     Upload,
@@ -121,15 +122,17 @@ export function AttachmentsSection({
 
     
     const getFileDate = (attachment: Attachment) => {
-        if (attachment.uploadedAt) {
-            return new Date(attachment.uploadedAt).toLocaleDateString('en-US', {
-                day: 'numeric',
-                month: 'short',
-                year: 'numeric',
-            });
-        }
-        return 'Recently added';
+        return formatFileDateTime(attachment.uploadedAt);
     };
+
+    // Sort attachments in descending order (newest first)
+    const sortedAttachments = useMemo(() => {
+        return [...attachments].sort((a, b) => {
+            const timeA = a.uploadedAt ? new Date(a.uploadedAt).getTime() : 0;
+            const timeB = b.uploadedAt ? new Date(b.uploadedAt).getTime() : 0;
+            return timeB - timeA;
+        });
+    }, [attachments]);
 
     const FileIcon = ({ mimeType, fileName }: { mimeType: string; fileName: string }) => {
         const { icon: IconComponent, color, bg } = getFileIcon(mimeType, fileName);
@@ -179,7 +182,7 @@ export function AttachmentsSection({
                 {attachments.length === 0 ? (
                     <p className="text-sm text-[#777980] text-center py-4">No attachments yet</p>
                 ) : (
-                    attachments.map((attachment) => (
+                    sortedAttachments.map((attachment) => (
                         <div
                             key={attachment.id}
                             className="flex items-center gap-3 p-3 rounded-lg border border-[#DFE1E7] bg-white hover:shadow-sm transition-shadow"

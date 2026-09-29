@@ -10,6 +10,23 @@ import { usePathname, useRouter } from "next/navigation";
 // Explicit route-to-permission mapping with regex pattern matching
 const ROUTE_PERMISSIONS: { pattern: RegExp; permission: string | string[] }[] =
   [
+    // Dashboard & Subroutes
+    {
+      pattern: /^\/dashboard(\/.*)?$/,
+      permission: [PERMISSIONS.dashboard.view, "dashboard:*"],
+    },
+
+    // Reports & Subroutes
+    {
+      pattern: /^\/reports(\/.*)?$/,
+      permission: [
+        PERMISSIONS.report.stage,
+        PERMISSIONS.report.campaign,
+        PERMISSIONS.report.member,
+        "report:*",
+      ],
+    },
+
     // Leads & Subroutes
     { pattern: /^\/leads(\/.*)?$/, permission: PERMISSIONS.lead.read },
 
@@ -118,8 +135,13 @@ interface AccessDeniedProps {
 
 function AccessDeniedView({ requiredPermission }: AccessDeniedProps) {
   const router = useRouter();
+  const user = useAppSelector((state) => state.auth.user);
+  const canAccessDashboard = hasPermission(user, [
+    PERMISSIONS.dashboard.view,
+    "dashboard:*",
+  ]);
   const displayPermission = Array.isArray(requiredPermission)
-    ? requiredPermission.join(" or ")
+    ? requiredPermission.filter((p) => !p.endsWith(":*")).join(" or ")
     : requiredPermission;
 
   return (
@@ -166,13 +188,15 @@ function AccessDeniedView({ requiredPermission }: AccessDeniedProps) {
             Go Back
           </button>
 
-          <Link
-            href="/dashboard"
-            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg bg-[#B23730] text-white text-sm font-medium hover:bg-[#962e28] transition-colors shadow-sm cursor-pointer no-underline"
-          >
-            <LayoutDashboard className="w-4 h-4" />
-            Back to Dashboard
-          </Link>
+          {canAccessDashboard && (
+            <Link
+              href="/dashboard"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg bg-[#B23730] text-white text-sm font-medium hover:bg-[#962e28] transition-colors shadow-sm cursor-pointer no-underline"
+            >
+              <LayoutDashboard className="w-4 h-4" />
+              Back to Dashboard
+            </Link>
+          )}
         </div>
       </div>
     </div>

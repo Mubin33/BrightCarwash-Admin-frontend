@@ -75,6 +75,7 @@ export const LeadsTable = forwardRef<LeadsTableHandle, LeadsTableExternalProps>(
       selectedIds,
       handleSelectRow,
       handleStageChange,
+      handleReorderLead,
       handlePriorityChange,
       handleDelete,
       handleSearchSubmit,
@@ -147,7 +148,6 @@ export const LeadsTable = forwardRef<LeadsTableHandle, LeadsTableExternalProps>(
         handleSelectAllCurrentPage,
         allCurrentPageSelected,
         selectedIds,
-        leads,
         router,
         stages,
         refreshStages,
@@ -236,8 +236,10 @@ export const LeadsTable = forwardRef<LeadsTableHandle, LeadsTableExternalProps>(
               stages={stages}
               setStages={setStages}
               onStageChange={handleStageChange}
+              onReorderLead={handleReorderLead}
               onDeleteLead={handleDelete}
               onStageDeleted={refreshStages}
+              onStageUpdated={refreshStages}
             />
           </div>
         )}

@@ -57,11 +57,13 @@ export function useLeadDetail(leadId: string) {
     }, [leadId, loadLocalActivities]);
 
     useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         fetchData().finally(() => setInitialLoading(false));
     }, [fetchData]);
 
     useEffect(() => {
         if (refresh > 0) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             fetchData();
         }
     }, [refresh, fetchData]);
@@ -71,14 +73,17 @@ export function useLeadDetail(leadId: string) {
     }, []);
 
     const deleteNote = useCallback(
-        async (noteContent: string) => {
+        async (noteIdentifier: string) => {
             if (!lead) return;
 
-            const updatedNotes = lead.notes.filter((n) => n.content !== noteContent);
-            setLead({ ...lead, notes: updatedNotes });
+            const updatedNotes = (lead.notes || []).filter(
+                (n) => n.id !== noteIdentifier && n.content !== noteIdentifier
+            );
+            setLead((prev) => (prev ? { ...prev, notes: updatedNotes } : prev));
 
             try {
-                await deleteLeadNote(leadId, noteContent);
+                await deleteLeadNote(leadId, noteIdentifier);
+                await fetchData();
             } catch {
                 await fetchData();
                 throw new Error("Failed to delete note");

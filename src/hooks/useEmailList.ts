@@ -60,8 +60,7 @@ export function useEmailList() {
     );
 
     const handleDelete = useCallback(
-        async (log: { id: string; subject: string }) => {
-            if (!confirm(`Delete "${log.subject}"?`)) return;
+        async (log: { id: string; subject?: string }) => {
             try {
                 await deleteLog(log.id).unwrap();
                 toast.success("Email log deleted");

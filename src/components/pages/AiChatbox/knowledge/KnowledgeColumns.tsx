@@ -25,7 +25,7 @@ const formatDate = (dateStr: string) => {
 
 export const getKnowledgeColumns = (
     onView: (id: number) => void,
-    onDelete: (id: number) => void,
+    onDelete: (file: KnowledgeFile) => void,
     onExport: (id: number) => void,
     isDeleting: boolean
 ) => [
@@ -84,7 +84,7 @@ export const getKnowledgeColumns = (
             render: (row: KnowledgeFile) => (
                 <KnowledgeActionDropdown
                     onView={() => onView(row.id)}
-                    onDelete={() => onDelete(row.id)}
+                    onDelete={() => onDelete(row)}
                     onExport={() => onExport(row.id)}
                     isDeleting={isDeleting}
                 />

@@ -1,5 +1,7 @@
 "use client";
 
+import { BlockMemberModal } from "@/components/pages/teams/BlockMemberModal";
+import { DeleteRoleModal } from "@/components/pages/teams/DeleteRoleModal";
 import { EditMemberRoleModal } from "@/components/pages/teams/EditMemberRoleModal";
 import { TeamsMembersSection } from "@/components/pages/teams/TeamsMembersSection";
 import { TeamsModals } from "@/components/pages/teams/TeamsModals";
@@ -85,16 +87,33 @@ export function TeamsContent() {
     useState<TeamMember | null>(null);
   const [deleteRole] = useDeleteRoleMutation();
 
-  const handleDeleteRole = async (role: TeamRole) => {
+  const [memberToToggleBlock, setMemberToToggleBlock] =
+    useState<TeamMember | null>(null);
+  const [isTogglingBlock, setIsTogglingBlock] = useState(false);
+
+  const [roleToDelete, setRoleToDelete] = useState<TeamRole | null>(null);
+  const [isDeletingRole, setIsDeletingRole] = useState(false);
+
+  const handleDeleteRole = (role: TeamRole) => {
     if (!canDeleteRole) return;
-    if (!confirm(`Delete role "${role.name}"?`)) return;
+    setRoleToDelete(role);
+  };
+
+  const handleConfirmDeleteRole = async () => {
+    if (!roleToDelete || !canDeleteRole) return;
+    setIsDeletingRole(true);
     try {
-      await deleteRole(role.id).unwrap();
-      toast.success(`Role "${role.name}" deleted`);
+      await deleteRole(roleToDelete.id).unwrap();
+      toast.success(`Role "${roleToDelete.name}" deleted`);
+      setRoleToDelete(null);
+      refetchRoles();
     } catch {
       toast.error("Failed to delete role");
+    } finally {
+      setIsDeletingRole(false);
     }
   };
+
   const currentUser = useSelector((state: RootState) => state.auth.user);
 
   const { data: rolePerms = [] } = useGetRoleByIdQuery(editRole?.name || "", {
@@ -133,19 +152,34 @@ export function TeamsContent() {
     }
   };
 
-  const handleToggleBlock = async (member: TeamMember) => {
+  const handleToggleBlock = (member: TeamMember) => {
+    setMemberToToggleBlock(member);
+  };
+
+  const handleConfirmToggleBlock = async () => {
+    if (!memberToToggleBlock) return;
+    setIsTogglingBlock(true);
     try {
-      if (member.status === 1) {
-        await blockMember(member.id).unwrap();
-        toast.success(`${member.email} blocked`);
+      if (memberToToggleBlock.status === 1) {
+        await blockMember(memberToToggleBlock.id).unwrap();
+        toast.success(`${memberToToggleBlock.email} blocked`);
       } else {
-        await unblockMember(member.id).unwrap();
-        toast.success(`${member.email} unblocked`);
+        await unblockMember(memberToToggleBlock.id).unwrap();
+        toast.success(`${memberToToggleBlock.email} unblocked`);
       }
+      setMemberToToggleBlock(null);
+      refetchMembers();
     } catch {
       toast.error("Action failed");
+    } finally {
+      setIsTogglingBlock(false);
     }
   };
+
+  const roleToDeleteMemberCount = roleToDelete
+    ? allMembers.filter((m) => m.role === roleToDelete.name).length
+    : 0;
+
   const isPageLoading =
     (canReadMembers && isMembersLoading) || (canReadRoles && isRolesLoading);
 
@@ -235,6 +269,27 @@ export function TeamsContent() {
         onClose={() => setEditMemberRoleTarget(null)}
         member={editMemberRoleTarget}
         roles={roles}
+      />
+
+      <BlockMemberModal
+        isOpen={!!memberToToggleBlock}
+        onClose={() => {
+          if (!isTogglingBlock) setMemberToToggleBlock(null);
+        }}
+        member={memberToToggleBlock}
+        onConfirm={handleConfirmToggleBlock}
+        isLoading={isTogglingBlock}
+      />
+
+      <DeleteRoleModal
+        isOpen={!!roleToDelete}
+        onClose={() => {
+          if (!isDeletingRole) setRoleToDelete(null);
+        }}
+        role={roleToDelete}
+        memberCount={roleToDeleteMemberCount}
+        onConfirm={handleConfirmDeleteRole}
+        isLoading={isDeletingRole}
       />
     </div>
   );

@@ -3,6 +3,8 @@ import type { LeadGroupsListResponse } from "@/types/campaign";
 import type {
   CreateLeadRequest,
   Lead,
+  ReorderLeadRequest,
+  ReorderLeadResponse,
   LeadApiResponse,
   LeadFilterOptions,
   LeadFilterOptionsResponse,
@@ -45,6 +47,7 @@ function mapApiToLead(data: LeadApiResponse): Lead {
     assignedToId: data.assigned_to_id || null,
     notes: data.notes || [],
     date: data.created_at?.split("T")[0] || "",
+    rank: data.rank || undefined,
   };
 }
 
@@ -745,6 +748,54 @@ export const leadsApi = createApi({
       },
       providesTags: ["Leads"],
     }),
+    reorderLead: builder.mutation<
+      ReorderLeadResponse,
+      ReorderLeadRequest
+    >({
+      queryFn: async ({ leadId, target_stage_id, prev_rank, next_rank }) => {
+        try {
+          const body = JSON.stringify({
+            target_stage_id,
+            prev_rank,
+            next_rank,
+          });
+
+          const json = await fetchFromBackend<{
+            success: boolean;
+            message?: string;
+            data?: {
+              id: string;
+              rank: string;
+              stage_id: string;
+              [key: string]: unknown;
+            };
+          }>(`/admin/lead/${leadId}/move`, {
+            method: "PATCH",
+            body,
+          });
+
+          const leadData = json?.data;
+          return {
+            data: {
+              id: leadData?.id || leadId,
+              stage_id: leadData?.stage_id || target_stage_id,
+              stage: typeof leadData?.stage === "string" ? leadData.stage : undefined,
+              rank: leadData?.rank || prev_rank || next_rank || "",
+            },
+          };
+        } catch (error) {
+          return {
+            error: {
+              status: 500,
+              data:
+                error instanceof Error
+                  ? error.message
+                  : "Failed to move lead",
+            },
+          };
+        }
+      },
+    }),
   }),
 });
 
@@ -762,6 +813,7 @@ export const {
   useExportGroupLeadsMutation,
   useGetLeadFilterOptionsQuery,
   useGetNonGroupLeadsQuery,
+  useReorderLeadMutation,
 } = leadsApi;
 
 export const useGetLeadGroupsFilterQuery = useGetLeadGroupsQuery;

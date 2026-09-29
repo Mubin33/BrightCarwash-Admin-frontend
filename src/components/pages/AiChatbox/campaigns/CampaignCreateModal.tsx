@@ -1,5 +1,7 @@
 'use client';
 
+import Image from 'next/image';
+
 import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Icon } from '@/components/ui/Icon';
@@ -133,9 +135,12 @@ export function CampaignCreateModal({
                             <div className="flex items-start gap-4">
                                 <div className="p-5 bg-gray-50 rounded-lg outline outline-2 outline-offset-[-2px] outline-zinc-200 flex justify-start items-center">
                                     {previewUrl ? (
-                                        <img
+                                        <Image
                                             src={previewUrl}
                                             alt="Preview"
+                                            unoptimized
+                                            width={32}
+                                            height={32}
                                             className="w-8 h-8 object-cover rounded"
                                         />
                                     ) : (

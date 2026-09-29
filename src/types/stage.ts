@@ -18,6 +18,13 @@ export interface SingleStageResponse {
 	data: Stage;
 }
 
+export interface UpdateStageRequest {
+	name?: string;
+	color?: string;
+	sort_order?: number;
+	file?: File | null;
+}
+
 export interface CreateStageRequest {
 	name: string;
 	color: string;

@@ -10,6 +10,7 @@ export const NAVIGATION_CONFIG: NavSection[] = [
         label: "Dashboard",
         icon: "dashboard",
         href: "/dashboard",
+        permission: [PERMISSIONS.dashboard.view, "dashboard:*"],
       },
       {
         id: "leads",
@@ -119,13 +120,13 @@ export const NAVIGATION_CONFIG: NavSection[] = [
             href: "/website-cms/wash-with-purpose",
             permission: PERMISSIONS.section.read,
           },
-          {
-            id: "cms-business-hours",
-            label: "Timing",
-            icon: "clock",
-            href: "/website-cms/business-hours",
-            permission: PERMISSIONS.section.read,
-          },
+          // {
+          //   id: "cms-business-hours",
+          //   label: "Timing",
+          //   icon: "clock",
+          //   href: "/website-cms/business-hours",
+          //   permission: PERMISSIONS.section.read,
+          // },
         ],
       },
       {
@@ -154,7 +155,18 @@ export const NAVIGATION_CONFIG: NavSection[] = [
           },
         ],
       },
-      { id: "reports", label: "Reports", icon: "reports", href: "/reports" },
+      {
+        id: "reports",
+        label: "Reports",
+        icon: "reports",
+        href: "/reports",
+        permission: [
+          PERMISSIONS.report.stage,
+          PERMISSIONS.report.campaign,
+          PERMISSIONS.report.member,
+          "report:*",
+        ],
+      },
       {
         id: "activity-log",
         label: "Activity Log",

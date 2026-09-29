@@ -3,6 +3,7 @@ import type {
 	Stage,
 	StageResponse,
 	CreateStageRequest,
+	UpdateStageRequest,
 } from '@/types/stage';
 import { mockStages } from '@/mocks/stage.mock';
 import { getAccessToken } from '@/lib/auth-client';
@@ -64,6 +65,41 @@ export async function createStage(data: CreateStageRequest): Promise<Stage> {
 
 	const res = await fetch(`${APP_CONFIG.API_BASE_URL}/admin/stage`, {
 		method: 'POST',
+		headers: { Authorization: `Bearer ${token}` },
+		body: formData,
+	});
+
+	const json = await res.json();
+
+	if (!res.ok) {
+		throw new Error(json.message || `Request failed: ${res.status}`);
+	}
+
+	return json.data;
+}
+export async function updateStage(
+	id: string,
+	data: UpdateStageRequest,
+): Promise<Stage> {
+	if (APP_CONFIG.MOCK_MODE || APP_CONFIG.DASHBOARD_MOCK) {
+		await delay(APP_CONFIG.MOCK_DELAY_MS);
+		const stage = mockStages.find((s) => s.id === id);
+		if (stage) {
+			if (data.name) stage.name = data.name;
+			if (data.color) stage.color = data.color;
+			if (data.sort_order !== undefined) stage.sort_order = data.sort_order;
+			return { ...stage };
+		}
+	}
+	const token = getAccessToken();
+	const formData = new FormData();
+	if (data.name) formData.append('name', data.name);
+	if (data.color) formData.append('color', data.color);
+	if (data.sort_order !== undefined) formData.append('sort_order', String(data.sort_order));
+	if (data.file) formData.append('file', data.file);
+
+	const res = await fetch(`${APP_CONFIG.API_BASE_URL}/admin/stage/${id}`, {
+		method: 'PATCH',
 		headers: { Authorization: `Bearer ${token}` },
 		body: formData,
 	});

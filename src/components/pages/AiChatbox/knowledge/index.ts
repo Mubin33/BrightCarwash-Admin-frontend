@@ -4,3 +4,4 @@ export { KnowledgeSkeleton } from './KnowledgeSkeleton';
 export { getKnowledgeColumns } from './KnowledgeColumns';
 export { KnowledgeActionDropdown } from './KnowledgeActionDropdown';
 export { KnowledgeViewModal } from './KnowledgeViewModal';
+export { DeleteKnowledgeModal } from './DeleteKnowledgeModal';

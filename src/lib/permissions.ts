@@ -1,4 +1,7 @@
 export const PERMISSIONS = {
+  dashboard: {
+    view: "dashboard:view" as const,
+  },
   lead: {
     read: "lead:read" as const,
     create: "lead:create" as const,
@@ -40,10 +43,10 @@ export const PERMISSIONS = {
     delete: "faq:delete" as const,
   },
   section: {
-    read: "section:read" as const,
-    create: "section:create" as const,
-    update: "section:update" as const,
-    delete: "section:delete" as const,
+    read: "website-sections:read" as const,
+    create: "website-sections:create" as const,
+    update: "website-sections:update" as const,
+    delete: "website-sections:delete" as const,
   },
   gallery: {
     read: "gallery:read" as const,
@@ -119,6 +122,12 @@ export const PERMISSIONS = {
     disconnect: "lead_group:disconnect" as const,
     export: "lead_group:export" as const,
   },
+  report: {
+    stage: "report:stage" as const,
+    campaign: "report:campaign" as const,
+    member: "report:member" as const,
+    deposit_revenue: "report:deposit_revenue" as const,
+  },
   admin_override: {
     delete: "admin_override:delete" as const,
   },
@@ -129,8 +138,28 @@ export function hasPermission(
   permission: string | string[],
 ): boolean {
   if (!user?.permissions) return false;
+  const check = (perm: string) => {
+    const lowerPerm = perm.toLowerCase();
+    if (lowerPerm.endsWith(":*")) {
+      const prefix = lowerPerm.slice(0, -1);
+      return user.permissions!.some((p) => p.toLowerCase().startsWith(prefix));
+    }
+    return (
+      user.permissions!.includes(perm) ||
+      user.permissions!.some((p) => {
+        const lowerP = p.toLowerCase();
+        if (lowerP === "*" || lowerP === "all") return true;
+        if (lowerP.endsWith(":*")) {
+          const prefix = lowerP.slice(0, -1);
+          return lowerPerm.startsWith(prefix);
+        }
+        return lowerP === lowerPerm;
+      })
+    );
+  };
+
   if (Array.isArray(permission)) {
-    return permission.some((p) => user.permissions?.includes(p));
+    return permission.some(check);
   }
-  return user.permissions.includes(permission);
+  return check(permission);
 }

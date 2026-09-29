@@ -5,7 +5,7 @@ import axiosInstance from "@/lib/axios-instance";
 import { useGetLeadGroupsQuery } from "@/services/leads.api";
 import type { LeadGroup } from "@/types/campaign";
 import type { Lead } from "@/types/leads";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "react-toastify";
 
 function mapApiLeadToLead(apiLead: {
@@ -79,6 +79,16 @@ export function useGroupsData() {
     Record<string, GroupLeadPagination>
   >({});
 
+  const groupLeadsMapRef = useRef(groupLeadsMap);
+  const fetchingGroupsRef = useRef(fetchingGroups);
+  const groupLeadPaginationRef = useRef(groupLeadPagination);
+
+  useEffect(() => {
+    groupLeadsMapRef.current = groupLeadsMap;
+    fetchingGroupsRef.current = fetchingGroups;
+    groupLeadPaginationRef.current = groupLeadPagination;
+  }, [groupLeadsMap, fetchingGroups, groupLeadPagination]);
+
   // Groups list
   const {
     data: apiGroupsResponse,
@@ -141,19 +151,27 @@ export function useGroupsData() {
   // );
 
   const fetchGroupLeads = useCallback(
-    async (groupId: string, pageOrForce: number | boolean = 1, limit = 10, force = false) => {
+    async (
+      groupId: string,
+      pageOrForce: number | boolean = 1,
+      limit = 10,
+      force = false,
+    ) => {
       const page = typeof pageOrForce === "number" ? pageOrForce : 1;
-      const shouldForce = typeof pageOrForce === "boolean" ? pageOrForce : force;
-      const existingPagination = groupLeadPagination[groupId];
-      if (!shouldForce && existingPagination?.currentPage === page &&
+      const shouldForce =
+        typeof pageOrForce === "boolean" ? pageOrForce : force;
+      const existingPagination = groupLeadPaginationRef.current[groupId];
+      if (
+        !shouldForce &&
+        existingPagination?.currentPage === page &&
         existingPagination?.itemsPerPage === limit &&
-        groupLeadsMap[groupId]?.length > 0
+        (groupLeadsMapRef.current[groupId]?.length || 0) > 0
       ) {
-        return groupLeadsMap[groupId] || [];
+        return groupLeadsMapRef.current[groupId] || [];
       }
 
-      if (!shouldForce && fetchingGroups.has(groupId)) {
-        return groupLeadsMap[groupId] || [];
+      if (!shouldForce && fetchingGroupsRef.current.has(groupId)) {
+        return groupLeadsMapRef.current[groupId] || [];
       }
 
       setFetchingGroups((prev) => new Set(prev).add(groupId));
@@ -198,7 +216,7 @@ export function useGroupsData() {
         });
       }
     },
-    [groupLeadsMap, fetchingGroups, groupLeadPagination],
+    [],
   );
 
   const addGroupOptimistic = useCallback((group: LeadGroup) => {

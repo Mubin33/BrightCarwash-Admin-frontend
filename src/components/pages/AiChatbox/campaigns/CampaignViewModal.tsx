@@ -31,7 +31,7 @@ interface CampaignViewModalProps {
       end_date?: string;
     },
   ) => Promise<void>;
-  onDelete: (id: number) => Promise<void>;
+  onDelete: (id: number) => void | Promise<void>;
   isUpdating: boolean;
   isDeleting: boolean;
 }
@@ -67,18 +67,19 @@ export function CampaignViewModal({
     };
   }, [isOpen]);
 
-  useEffect(() => {
+  const [prevCampaign, setPrevCampaign] = useState(campaign);
+
+  if (campaign !== prevCampaign) {
+    setPrevCampaign(campaign);
     if (campaign) {
       setTitle(campaign.title);
       setDescription(campaign.description);
       setIsActive(campaign.is_active);
       setStartDate(campaign.start_date || "");
       setEndDate(campaign.end_date || "");
-      if (campaign.image) {
-        setPreviewUrl(campaign.image);
-      }
+      setPreviewUrl(campaign.image || null);
     }
-  }, [campaign]);
+  }
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -120,11 +121,9 @@ export function CampaignViewModal({
     setSelectedFile(null);
   };
 
-  const handleDelete = async () => {
+  const handleDelete = () => {
     if (!campaign) return;
-    if (!confirm("Are you sure you want to delete this campaign?")) return;
-    await onDelete(campaign.id);
-    onClose();
+    onDelete(campaign.id);
   };
 
   const handleClose = () => {

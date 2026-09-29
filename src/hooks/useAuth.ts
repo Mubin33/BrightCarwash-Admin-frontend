@@ -1,21 +1,24 @@
 "use client";
 
-import { useEffect, useCallback } from "react";
-import { useRouter } from "next/navigation";
-import { useAppDispatch, useAppSelector } from "@/lib/store";
+import { filterItemsByPermission } from "@/components/shared/Sidebar";
+import { NAVIGATION_CONFIG } from "@/configs/navigation.config";
 import {
-  setUser,
-  setLoading,
+  isAuthenticated as checkAuth,
+  clearTokens,
+  setTokens,
+} from "@/lib/auth-client";
+import { hasPermission, PERMISSIONS } from "@/lib/permissions";
+import { useAppDispatch, useAppSelector } from "@/lib/store";
+import * as authService from "@/services/auth.service";
+import {
   clearAuth,
   initAuth,
+  setLoading,
+  setUser,
 } from "@/store/slices/authSlice";
-import {
-  setTokens,
-  clearTokens,
-  isAuthenticated as checkAuth,
-} from "@/lib/auth-client";
-import * as authService from "@/services/auth.service";
 import type { LoginCredentials } from "@/types/auth";
+import { useRouter } from "next/navigation";
+import { useCallback, useEffect } from "react";
 import { toast } from "react-toastify";
 
 export function useAuth() {
@@ -42,6 +45,41 @@ export function useAuth() {
     }
   }, [user, dispatch]);
 
+  // Real-time synchronization across browser tabs and window focus
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const refreshProfile = async () => {
+      if (checkAuth()) {
+        try {
+          const profile = await authService.getProfile();
+          dispatch(setUser(profile));
+        } catch {}
+      }
+    };
+
+    let channel: BroadcastChannel | null = null;
+    if ("BroadcastChannel" in window) {
+      channel = new BroadcastChannel("auth_permissions_sync");
+      channel.onmessage = () => {
+        refreshProfile();
+      };
+    }
+
+    const handleFocus = () => {
+      refreshProfile();
+    };
+
+    window.addEventListener("focus", handleFocus);
+
+    return () => {
+      window.removeEventListener("focus", handleFocus);
+      if (channel) {
+        channel.close();
+      }
+    };
+  }, [dispatch]);
+
   const login = useCallback(
     async (credentials: LoginCredentials) => {
       try {
@@ -53,10 +91,31 @@ export function useAuth() {
         const profile = await authService.getProfile();
         dispatch(setUser(profile));
         toast.success("Login successful");
-        router.replace("/dashboard");
+        const canDashboard = hasPermission(profile, [
+          PERMISSIONS.dashboard.view,
+          "dashboard:*",
+        ]);
+        if (canDashboard) {
+          router.replace("/dashboard");
+        } else {
+          const filteredSections = NAVIGATION_CONFIG.map((section) => ({
+            ...section,
+            items: filterItemsByPermission(
+              section.items,
+              profile.permissions || [],
+            ),
+          })).filter((s) => s.items.length > 0);
+          const firstItem = filteredSections[0]?.items[0];
+          const target =
+            firstItem?.href || firstItem?.subItems?.[0]?.href || "/dashboard";
+          router.replace(target);
+        }
         return true;
       } catch (err) {
-        const error = err as { response?: { data?: { message?: string } }; message?: string };
+        const error = err as {
+          response?: { data?: { message?: string } };
+          message?: string;
+        };
         clearTokens();
         dispatch(clearAuth());
         const message =

@@ -59,14 +59,13 @@ export function CreateRoleModal({ isOpen, onClose, onRoleCreated }: CreateRoleMo
 
     return (
         <Modal isOpen={isOpen} onClose={onClose} title="Create Role" size="sm">
-            <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-                <div className="w-full h-px bg-[#DFE1E7]" />
+            <form onSubmit={handleSubmit} className="flex flex-col gap-4"> 
                 <div>
                     <label className="block text-sm font-medium text-[#1B1B1B] mb-1.5">Role Name *</label>
                     <input type="text" value={roleName} onChange={(e) => setRoleName(e.target.value)} required placeholder="e.g. Marketing"
                         className="w-full px-4 py-2.5 border border-[#DFE1E7] rounded-lg bg-white text-[#1B1B1B] placeholder-[#777980] font-inter text-sm outline-none focus:border-[#0098E8] focus:ring-2 focus:ring-[#0098E8]/10 transition-all" />
                 </div>
-                <div className="flex gap-3 justify-end pt-2 border-t border-[#E8E8E9]">
+                <div className="flex gap-3 justify-end pt-2 ">
                     <Button type="button" variant="outline" onClick={onClose} className="px-6 w-auto!">Cancel</Button>
                     <Button type="submit" permission={PERMISSIONS.role.create} isLoading={isSubmitting} loadingText="Creating…" className="px-6 w-auto!">Create</Button>
                 </div>

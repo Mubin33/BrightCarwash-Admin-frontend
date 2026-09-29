@@ -1,5 +1,7 @@
 'use client';
 
+import Image from 'next/image';
+
 import { useRef } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Icon } from '@/components/ui/Icon';
@@ -35,9 +37,12 @@ export function CampaignViewPhoto({
             <div className="flex items-start gap-4">
                 <div className="p-5 bg-gray-50 rounded-lg outline outline-2 outline-offset-[-2px] outline-zinc-200 flex justify-start items-center">
                     {previewUrl ? (
-                        <img
+                        <Image
                             src={previewUrl}
                             alt="Preview"
+                            unoptimized
+                            width={64}
+                            height={64}
                             className="w-16 h-16 object-cover rounded"
                         />
                     ) : (
