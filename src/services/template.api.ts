@@ -1,3 +1,4 @@
+import { apiFetch } from '@/lib/api-fetch';
 import { createApi } from '@reduxjs/toolkit/query/react';
 import type {
     Template,
@@ -6,9 +7,7 @@ import type {
     TemplateListResponse,
     TemplateResponse,
 } from '@/types/template';
-import { APP_CONFIG } from '@/configs/app.config';
 import axiosInstance from '@/lib/axios-instance';
-import { getAccessToken } from '@/lib/auth-client';
 
 interface GetTemplatesParams {
     search?: string;
@@ -100,13 +99,8 @@ export const templateApi = createApi({
         createTemplate: builder.mutation<Template, CreateTemplateRequest>({
             queryFn: async (templateData) => {
                 try {
-                    const token = getAccessToken();
-                    const response = await fetch(`${APP_CONFIG.API_BASE_URL}/admin/templates`, {
+                    const response = await apiFetch('/admin/templates', {
                         method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            Authorization: `Bearer ${token}`,
-                        },
                         body: JSON.stringify(templateData),
                     });
 
@@ -138,13 +132,8 @@ export const templateApi = createApi({
         updateTemplate: builder.mutation<Template, { id: string; data: UpdateTemplateRequest }>({
             queryFn: async ({ id, data }) => {
                 try {
-                    const token = getAccessToken();
-                    const response = await fetch(`${APP_CONFIG.API_BASE_URL}/admin/templates/${id}`, {
+                    const response = await apiFetch(`/admin/templates/${id}`, {
                         method: 'PATCH',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            Authorization: `Bearer ${token}`,
-                        },
                         body: JSON.stringify(data),
                     });
 
@@ -176,12 +165,8 @@ export const templateApi = createApi({
         deleteTemplate: builder.mutation<{ success: boolean }, string>({
             queryFn: async (id) => {
                 try {
-                    const token = getAccessToken();
-                    const response = await fetch(`${APP_CONFIG.API_BASE_URL}/admin/templates/${id}`, {
+                    const response = await apiFetch(`/admin/templates/${id}`, {
                         method: 'DELETE',
-                        headers: {
-                            Authorization: `Bearer ${token}`,
-                        },
                     });
 
                     const responseData = await response.json();
@@ -212,12 +197,8 @@ export const templateApi = createApi({
         archiveTemplate: builder.mutation<{ success: boolean }, string>({
             queryFn: async (id) => {
                 try {
-                    const token = getAccessToken();
-                    const response = await fetch(`${APP_CONFIG.API_BASE_URL}/admin/templates/${id}/archive`, {
+                    const response = await apiFetch(`/admin/templates/${id}/archive`, {
                         method: 'PATCH',
-                        headers: {
-                            Authorization: `Bearer ${token}`,
-                        },
                     });
 
                     const responseData = await response.json();
@@ -248,15 +229,11 @@ export const templateApi = createApi({
         uploadTemplateImage: builder.mutation<{ url: string }, File>({
             queryFn: async (file) => {
                 try {
-                    const token = getAccessToken();
                     const formData = new FormData();
                     formData.append('image', file);
 
-                    const response = await fetch(`${APP_CONFIG.API_BASE_URL}/admin/templates/upload-image`, {
+                    const response = await apiFetch('/admin/templates/upload-image', {
                         method: 'POST',
-                        headers: {
-                            Authorization: `Bearer ${token}`,
-                        },
                         body: formData,
                     });
 

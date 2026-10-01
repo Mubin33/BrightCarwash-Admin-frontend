@@ -1,7 +1,6 @@
+import { apiFetch } from '@/lib/api-fetch';
 import { createApi } from '@reduxjs/toolkit/query/react';
 import type { EmailLog, EmailLogListResponse, EmailLogDetailResponse } from '@/types/email-list';
-import { getAccessToken } from '@/lib/auth-client';
-import { APP_CONFIG } from '@/configs/app.config';
 
 interface GetLogsParams {
     page?: number;
@@ -26,16 +25,13 @@ export const emailListApi = createApi({
         getEmailLogs: builder.query<EmailLogListResponse, GetLogsParams>({
             queryFn: async (params = {}) => {
                 try {
-                    const token = getAccessToken();
-                    const queryParams = new URLSearchParams();
+                                        const queryParams = new URLSearchParams();
                     if (params.page) queryParams.append('page', String(params.page));
                     if (params.limit) queryParams.append('limit', String(params.limit));
                     if (params.search) queryParams.append('search', params.search);
 
                     const url = `/admin/mail-management/logs${queryParams.toString() ? `?${queryParams}` : ''}`;
-                    const res = await fetch(`${APP_CONFIG.API_BASE_URL}${url}`, {
-                        headers: { Authorization: `Bearer ${token}` },
-                    });
+                    const res = await apiFetch(url);
 
                     if (!res.ok) throw new Error(`Request failed: ${res.status}`);
                     const json = await res.json();
@@ -55,10 +51,7 @@ export const emailListApi = createApi({
         getEmailLogById: builder.query<EmailLog, string>({
             queryFn: async (id) => {
                 try {
-                    const token = getAccessToken();
-                    const res = await fetch(`${APP_CONFIG.API_BASE_URL}/admin/mail-management/logs/${id}`, {
-                        headers: { Authorization: `Bearer ${token}` },
-                    });
+                    const res = await apiFetch(`/admin/mail-management/logs/${id}`);
                     if (!res.ok) throw new Error(`Request failed: ${res.status}`);
                     const json: EmailLogDetailResponse = await res.json();
                     return { data: json.data };
@@ -76,10 +69,8 @@ export const emailListApi = createApi({
         deleteEmailLog: builder.mutation<{ success: boolean }, string>({
             queryFn: async (id) => {
                 try {
-                    const token = getAccessToken();
-                    const res = await fetch(`${APP_CONFIG.API_BASE_URL}/admin/mail-management/logs/${id}`, {
+                    const res = await apiFetch(`/admin/mail-management/logs/${id}`, {
                         method: 'DELETE',
-                        headers: { Authorization: `Bearer ${token}` },
                     });
                     if (!res.ok) throw new Error(`Request failed: ${res.status}`);
                     const json = await res.json();
@@ -99,8 +90,7 @@ export const emailListApi = createApi({
         sendEmail: builder.mutation<{ success: boolean; message: string }, SendEmailParams>({
             queryFn: async ({ to, cc, bcc, subject, body, files }) => {
                 try {
-                    const token = getAccessToken();
-                    const formData = new FormData();
+                                        const formData = new FormData();
                     formData.append('to', to);
                     formData.append('subject', subject);
                     formData.append('body', body);
@@ -110,9 +100,8 @@ export const emailListApi = createApi({
                         files.forEach((file) => formData.append('files', file));
                     }
 
-                    const res = await fetch(`${APP_CONFIG.API_BASE_URL}/admin/mail-management/send`, {
+                    const res = await apiFetch('/admin/mail-management/send', {
                         method: 'POST',
-                        headers: { Authorization: `Bearer ${token}` },
                         body: formData,
                     });
 

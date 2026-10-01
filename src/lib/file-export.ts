@@ -1,3 +1,4 @@
+import { apiFetch } from '@/lib/api-fetch';
 import { saveAs } from 'file-saver';
 
 export type ExportFormat = 'excel' | 'csv' | 'txt' | 'pdf' | 'word';
@@ -77,7 +78,7 @@ class FileExportService {
             const safeFileName = fileName.replace(/[^a-zA-Z0-9]/g, '_');
 
             // Fetch the file from AI server
-            const response = await fetch(fullUrl, {
+            const response = await apiFetch(fullUrl, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/octet-stream',

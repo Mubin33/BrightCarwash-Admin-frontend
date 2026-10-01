@@ -1,10 +1,11 @@
 "use client";
 
+import { apiFetch } from "@/lib/api-fetch";
+
 import { useState } from "react";
 import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
 import { toast } from "react-toastify";
-import { getAccessToken } from "@/lib/auth-client";
 import { APP_CONFIG } from "@/configs/app.config";
 import { usePermission } from "@/hooks/usePermission";
 import { PERMISSIONS } from "@/lib/permissions";
@@ -35,13 +36,8 @@ export function CreateRoleModal({ isOpen, onClose, onRoleCreated }: CreateRoleMo
                 await new Promise((r) => setTimeout(r, 400));
                 toast.success(`Role "${roleName}" created`);
             } else {
-                const token = getAccessToken();
-                const res = await fetch(`${APP_CONFIG.API_BASE_URL}/admin/role`, {
+                const res = await apiFetch("/admin/role", {
                     method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        Authorization: `Bearer ${token}`,
-                    },
                     body: JSON.stringify({ name: roleName }),
                 });
                 if (!res.ok) throw new Error("Failed to create role");

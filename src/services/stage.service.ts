@@ -1,3 +1,4 @@
+import { fetchFromBackend, apiFetch } from "@/lib/api-fetch";
 import { APP_CONFIG } from '@/configs/app.config';
 import type {
 	Stage,
@@ -6,24 +7,12 @@ import type {
 	UpdateStageRequest,
 } from '@/types/stage';
 import { mockStages } from '@/mocks/stage.mock';
-import { getAccessToken } from '@/lib/auth-client';
 
 function delay(ms: number): Promise<void> {
 	return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-async function fetchFromBackend<T>(
-	url: string,
-	options?: RequestInit,
-): Promise<T> {
-	const token = getAccessToken();
-	const res = await fetch(`${APP_CONFIG.API_BASE_URL}${url}`, {
-		...options,
-		headers: { Authorization: `Bearer ${token}`, ...options?.headers },
-	});
-	if (!res.ok) throw new Error(`Request failed: ${res.status}`);
-	return res.json();
-}
+// Centralized fetchFromBackend imported from @/lib/api-fetch
 
 export async function getStages(): Promise<Stage[]> {
 	if (APP_CONFIG.MOCK_MODE || APP_CONFIG.DASHBOARD_MOCK) {
@@ -35,10 +24,8 @@ export async function getStages(): Promise<Stage[]> {
 }
 
 export async function deleteStage(id: string): Promise<void> {
-	const token = getAccessToken();
-	const res = await fetch(`${APP_CONFIG.API_BASE_URL}/admin/stage/${id}`, {
+	const res = await apiFetch(`/admin/stage/${id}`, {
 		method: 'DELETE',
-		headers: { Authorization: `Bearer ${token}` },
 	});
 	if (!res.ok) throw new Error(`Request failed: ${res.status}`);
 }
@@ -56,16 +43,14 @@ export async function createStage(data: CreateStageRequest): Promise<Stage> {
 		mockStages.push(newStage);
 		return { ...newStage };
 	}
-	const token = getAccessToken();
 	const formData = new FormData();
 	formData.append('name', data.name);
 	formData.append('color', data.color);
 	if (data.sort_order) formData.append('sort_order', String(data.sort_order));
 	if (data.file) formData.append('file', data.file);
 
-	const res = await fetch(`${APP_CONFIG.API_BASE_URL}/admin/stage`, {
+	const res = await apiFetch('/admin/stage', {
 		method: 'POST',
-		headers: { Authorization: `Bearer ${token}` },
 		body: formData,
 	});
 
@@ -91,16 +76,14 @@ export async function updateStage(
 			return { ...stage };
 		}
 	}
-	const token = getAccessToken();
 	const formData = new FormData();
 	if (data.name) formData.append('name', data.name);
 	if (data.color) formData.append('color', data.color);
 	if (data.sort_order !== undefined) formData.append('sort_order', String(data.sort_order));
 	if (data.file) formData.append('file', data.file);
 
-	const res = await fetch(`${APP_CONFIG.API_BASE_URL}/admin/stage/${id}`, {
+	const res = await apiFetch(`/admin/stage/${id}`, {
 		method: 'PATCH',
-		headers: { Authorization: `Bearer ${token}` },
 		body: formData,
 	});
 

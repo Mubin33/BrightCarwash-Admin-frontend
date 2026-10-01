@@ -1,43 +1,8 @@
 import { createApi } from "@reduxjs/toolkit/query/react";
 
-import { getAccessToken } from "@/lib/auth-client";
-import { APP_CONFIG } from "@/configs/app.config";
+import { fetchFromBackend } from "@/lib/api-fetch";
 
-export async function fetchFromBackend<T>(
-  url: string,
-  options?: RequestInit,
-): Promise<T> {
-  const token = getAccessToken();
-
-  const headers = new Headers(options?.headers);
-
-  headers.set("Authorization", `Bearer ${token}`);
-
-  if (!(options?.body instanceof FormData) && !headers.has("Content-Type")) {
-    headers.set("Content-Type", "application/json");
-  }
-
-  const res = await fetch(`${APP_CONFIG.API_BASE_URL}${url}`, {
-    ...options,
-    headers,
-  });
-
-  if (!res.ok) {
-    throw new Error(`Request failed: ${res.status}`);
-  }
-
-  const text = await res.text();
-
-  if (!text) {
-    return null as unknown as T;
-  }
-
-  try {
-    return JSON.parse(text) as T;
-  } catch {
-    throw new Error("Failed to parse JSON response");
-  }
-}
+export { fetchFromBackend };
 
 export interface BusinessHoursContent {
   sunday: {

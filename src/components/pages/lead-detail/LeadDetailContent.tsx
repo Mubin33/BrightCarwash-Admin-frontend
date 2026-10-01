@@ -1,5 +1,7 @@
 "use client";
 
+import { apiFetch } from "@/lib/api-fetch";
+
 import { useState, useEffect, useCallback } from "react";
 import { LeadInfoCard } from "@/components/pages/lead-detail/LeadInfoCard";
 import { NotesSection } from "@/components/pages/lead-detail/NotesSection";
@@ -15,8 +17,6 @@ import { mapStagesToOptions } from "@/lib/stage-utils";
 import type { StageOption } from "@/components/ui/StageDropdown";
 import { toast } from "react-toastify";
 import { EditLeadModal } from "@/components/pages/lead-detail/EditLeadModal";
-import { getAccessToken } from "@/lib/auth-client";
-import { APP_CONFIG } from "@/configs/app.config";
 import { formatStandardDate } from "@/lib/date-utils";
 
 interface Props {
@@ -142,16 +142,11 @@ export function LeadDetailContent({ leadId }: Props) {
 				return;
 			}
 
-			const token = getAccessToken();
 			const payload = { path: attachment.fileName };
-			const response = await fetch(
-				`${APP_CONFIG.API_BASE_URL}/admin/lead/${leadId}/attachments`,
+			const response = await apiFetch(
+				`/admin/lead/${leadId}/attachments`,
 				{
 					method: 'DELETE',
-					headers: {
-						'Content-Type': 'application/json',
-						Authorization: `Bearer ${token}`,
-					},
 					body: JSON.stringify(payload),
 				}
 			);
@@ -192,12 +187,7 @@ export function LeadDetailContent({ leadId }: Props) {
 			}
 
 
-			const token = getAccessToken();
-			const response = await fetch(attachment.url, {
-				headers: {
-					Authorization: `Bearer ${token}`,
-				},
-			});
+			const response = await apiFetch(attachment.url);
 
 			if (!response.ok) {
 				throw new Error('Failed to download file');

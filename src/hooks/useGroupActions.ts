@@ -1,11 +1,11 @@
 "use client";
 
+import { apiFetch } from "@/lib/api-fetch";
+
 import { useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 import { useUpdateLeadStageMutation, useDisconnectLeadsFromGroupMutation } from "@/services/leads.api";
-import { getAccessToken } from "@/lib/auth-client";
-import { APP_CONFIG } from "@/configs/app.config";
 import type { Lead } from "@/types/leads";
 
 export function useGroupActions({
@@ -66,10 +66,8 @@ export function useGroupActions({
 
     const handleDeleteGroup = useCallback(async (groupId: string) => {
         try {
-            const token = getAccessToken();
-            const res = await fetch(`${APP_CONFIG.API_BASE_URL}/admin/lead-groups/${groupId}`, {
+            const res = await apiFetch(`/admin/lead-groups/${groupId}`, {
                 method: "DELETE",
-                headers: { Authorization: `Bearer ${token}` },
             });
             if (!res.ok) throw new Error("Failed");
             toast.success("Group deleted");
@@ -82,18 +80,8 @@ export function useGroupActions({
     const handleAddLeadToGroup = useCallback(async (groupId: string, leadId: string, _leadData?: Lead) => {
         void _leadData;
         try {
-            const token = getAccessToken();
-            if (!token) {
-                toast.error("Please login");
-                return false;
-            }
-
-            const res = await fetch(`${APP_CONFIG.API_BASE_URL}/admin/lead-groups/connect-leads`, {
+            const res = await apiFetch("/admin/lead-groups/connect-leads", {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
-                },
                 body: JSON.stringify({ groupId, leadIds: [leadId] }),
             });
 

@@ -1,24 +1,21 @@
 'use client';
 
+import { apiFetch } from '@/lib/api-fetch';
+
 import { useCallback } from 'react';
-import { getAccessToken } from '@/lib/auth-client';
 import { APP_CONFIG } from '@/configs/app.config';
 
 export function useExportCSV() {
     const exportCSV = useCallback(
         async (search?: string, status?: string) => {
-            const token = getAccessToken();
-            if (!token) throw new Error('Not authenticated');
-
+            
             const params = new URLSearchParams();
             if (search) params.set('search', search);
             if (status) params.set('status', status);
 
             const url = `${APP_CONFIG.API_BASE_URL}/payment-transaction/export/csv?${params.toString()}`;
 
-            const response = await fetch(url, {
-                headers: { Authorization: `Bearer ${token}` },
-            });
+            const response = await apiFetch(url);
             if (!response.ok) throw new Error('CSV export failed');
 
             const blob = await response.blob();

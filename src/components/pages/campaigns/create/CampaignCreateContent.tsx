@@ -1,5 +1,7 @@
 'use client';
 
+import { apiFetch } from "@/lib/api-fetch";
+
 import { useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useDispatch } from 'react-redux';
@@ -18,7 +20,6 @@ import {
 } from '@/store/slices/campaignCreationSlice';
 import { useGetCampaignByIdQuery } from '@/services/campaign.api';
 import { useGetTemplateByIdQuery } from '@/services/template.api';
-import { getAccessToken } from '@/lib/auth-client';
 import CampaignsSkeleton from '../CampaignSkeleton';
 
 const DRAFT_STORAGE_KEY = 'campaign_creation_draft';
@@ -189,14 +190,7 @@ export function CampaignCreateContent() {
 	// Fallback fetch for template name if needed
 	const fetchTemplateName = useCallback(async (id: string) => {
 		try {
-			const response = await fetch(
-				`${process.env.NEXT_PUBLIC_API_BASE_URL}/admin/templates/${id}`,
-				{
-					headers: {
-						'Authorization': `Bearer ${getAccessToken()}`,
-					},
-				}
-			);
+			const response = await apiFetch(`/admin/templates/${id}`);
 
 			if (response.ok) {
 				const data = await response.json();

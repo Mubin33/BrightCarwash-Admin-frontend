@@ -1,20 +1,6 @@
 import { createApi } from '@reduxjs/toolkit/query/react';
 import type { NewsItem, CreateNewsRequest, UpdateNewsRequest, NewsListResponse, NewsSingleResponse } from '@/types/news';
-import { getAccessToken } from '@/lib/auth-client';
-import { APP_CONFIG } from '@/configs/app.config';
-
-async function fetchFromBackend<T>(url: string, options?: RequestInit): Promise<T> {
-    const token = getAccessToken();
-    const res = await fetch(`${APP_CONFIG.API_BASE_URL}${url}`, {
-        ...options,
-        headers: {
-            Authorization: `Bearer ${token}`,
-            ...options?.headers,
-        },
-    });
-    if (!res.ok) throw new Error(`Request failed: ${res.status}`);
-    return res.json();
-}
+import { fetchFromBackend, apiFetch } from '@/lib/api-fetch';
 
 export const newsApi = createApi({
     reducerPath: 'newsApi',
@@ -82,10 +68,8 @@ export const newsApi = createApi({
                         formData.append('is_published', String(body.is_published));
                     }
 
-                    const token = getAccessToken();
-                    const res = await fetch(`${APP_CONFIG.API_BASE_URL}/admin/news-and-events`, {
+                    const res = await apiFetch('/admin/news-and-events', {
                         method: 'POST',
-                        headers: { Authorization: `Bearer ${token}` },
                         body: formData,
                     });
                     if (!res.ok) throw new Error('Failed to create news');
@@ -117,10 +101,8 @@ export const newsApi = createApi({
                         formData.append('is_published', String(data.is_published));
                     }
 
-                    const token = getAccessToken();
-                    const res = await fetch(`${APP_CONFIG.API_BASE_URL}/admin/news-and-events/${id}`, {
+                    const res = await apiFetch(`/admin/news-and-events/${id}`, {
                         method: 'PATCH',
-                        headers: { Authorization: `Bearer ${token}` },
                         body: formData,
                     });
                     if (!res.ok) throw new Error('Failed to update news');

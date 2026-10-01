@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { SettingsTab } from "@/types/settings";
+import { usePermission } from "@/hooks/usePermission";
+import { PERMISSIONS } from "@/lib/permissions";
 
 const TABS: { key: SettingsTab; label: string; href: string }[] = [
     { key: "profile", label: "Profile Setting", href: "/settings" },
@@ -13,10 +15,18 @@ const TABS: { key: SettingsTab; label: string; href: string }[] = [
 
 export function SettingsTabs() {
     const pathname = usePathname();
+    const canReadWebsiteSections = usePermission(PERMISSIONS.section.read);
+
+    const visibleTabs = TABS.filter((tab) => {
+        if (tab.key === "business-hours") {
+            return canReadWebsiteSections;
+        }
+        return true;
+    });
 
     return (
         <div className="flex p-1 items-center gap-0.5 rounded-lg border border-[#DFE1E7] bg-[#F6F6F6] w-fit">
-            {TABS.map((tab) => {
+            {visibleTabs.map((tab) => {
                 const isActive = tab.key === "profile" ? pathname === "/settings" : pathname.startsWith(tab.href);
                 return (
                     <Link

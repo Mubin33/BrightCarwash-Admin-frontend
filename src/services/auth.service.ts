@@ -47,12 +47,47 @@ export async function getProfile(): Promise<User> {
   return mapUser(data.data);
 }
 
+interface TokenPayload {
+  sessionId?: string;
+  [key: string]: unknown;
+}
+
+function parseTokenPayload(token: string): TokenPayload | null {
+  try {
+    const parts = token.split(".");
+    if (parts.length < 2) return null;
+    const base64Url = parts[1];
+    if (!base64Url) return null;
+    const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+    const padded = base64.padEnd(
+      base64.length + ((4 - (base64.length % 4)) % 4),
+      "=",
+    );
+    const jsonPayload = atob(padded);
+    return JSON.parse(jsonPayload) as TokenPayload;
+  } catch {
+    return null;
+  }
+}
+
 export async function logout(): Promise<void> {
-  const token = getAccessToken();
-  if (!token) return;
-  const payload = JSON.parse(atob(token.split(".")[1]));
-  const sessionId = payload.sessionId;
-  await axiosInstance.post("/auth/logout", { sessionId });
+  const accessToken = getAccessToken();
+  const refreshToken = getRefreshToken();
+
+  // Safely extract sessionId from accessToken or refreshToken
+  const payload =
+    (accessToken ? parseTokenPayload(accessToken) : null) ||
+    (refreshToken ? parseTokenPayload(refreshToken) : null);
+
+  const sessionId = payload?.sessionId;
+
+  if (sessionId) {
+    try {
+      await axiosInstance.post("/auth/logout", { sessionId });
+    } catch {
+      // Continue client-side session cleanup even if server-side logout encounters an error
+    }
+  }
 }
 
 export async function forgotPassword(
@@ -116,6 +151,7 @@ export async function refreshAccessToken(): Promise<{
   const { data } = await axios.post(
     `${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/refresh-tokens`,
     { refresh_token: refreshToken },
+    { timeout: 15000 },
   );
   return data;
 }

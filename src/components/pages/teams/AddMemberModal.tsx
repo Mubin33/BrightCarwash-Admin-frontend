@@ -1,12 +1,13 @@
 "use client";
 
+import { apiFetch } from "@/lib/api-fetch";
+
 import { useState } from "react";
 import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
 import { FilterDropdown } from "@/components/ui/FilterDropdown";
 import type { TeamRole } from "@/types/team";
 import { toast } from "react-toastify";
-import { getAccessToken } from "@/lib/auth-client";
 import { APP_CONFIG } from "@/configs/app.config";
 
 interface AddMemberModalProps {
@@ -37,13 +38,8 @@ export function AddMemberModal({ isOpen, onClose, roles, onMemberAdded }: AddMem
                 await new Promise((r) => setTimeout(r, 400));
                 toast.success(`Invitation sent to ${email}`);
             } else {
-                const token = getAccessToken();
-                const res = await fetch(`${APP_CONFIG.API_BASE_URL}/auth/invite-staff`, {
+                const res = await apiFetch("/auth/invite-staff", {
                     method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        Authorization: `Bearer ${token}`,
-                    },
                     body: JSON.stringify({ firstName, lastName, email, role: roleName }),
                 });
                 if (!res.ok) {

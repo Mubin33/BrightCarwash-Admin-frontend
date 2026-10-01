@@ -1,21 +1,6 @@
 import { createApi } from '@reduxjs/toolkit/query/react';
 import type { Category, CreateCategoryRequest, UpdateCategoryRequest, CategoryListResponse } from '@/types/news';
-import { getAccessToken } from '@/lib/auth-client';
-import { APP_CONFIG } from '@/configs/app.config';
-
-async function fetchFromBackend<T>(url: string, options?: RequestInit): Promise<T> {
-    const token = getAccessToken();
-    const res = await fetch(`${APP_CONFIG.API_BASE_URL}${url}`, {
-        ...options,
-        headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json',
-            ...options?.headers,
-        },
-    });
-    if (!res.ok) throw new Error(`Request failed: ${res.status}`);
-    return res.json();
-}
+import { fetchFromBackend } from '@/lib/api-fetch';
 
 export const categoryApi = createApi({
     reducerPath: 'categoryApi',

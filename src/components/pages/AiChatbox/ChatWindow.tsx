@@ -1,9 +1,14 @@
+"use client";
+
+import { useRouter } from "next/navigation";
 import ChatBubble from "./ChatBubble";
 import { ChatMessage, ChatUser } from "@/types/aiChatbox";
 import ArrowLeftIcon from "../../../../public/icons/custom/ArrowLeftIcon";
 import MailIcon from "../../../../public/icons/custom/MailIcon";
 import { CopyIcon } from "lucide-react";
 import { toast } from "react-toastify";
+import { Button } from "@/components/ui/Button";
+import { PERMISSIONS } from "@/lib/permissions";
 
 type Props = {
   user: ChatUser;
@@ -18,6 +23,18 @@ export default function ChatWindow({
   isLoading,
   onCloseSession,
 }: Props) {
+  const router = useRouter();
+
+  const handleSendEmail = () => {
+    const email = user?.email?.trim();
+    if (!email || email === "No email address") {
+      toast.error("No valid email address found for this user");
+      return;
+    }
+    const params = new URLSearchParams({ to: email });
+    router.push(`/marketing/email-list/create?${params.toString()}`);
+  };
+
   const copyEmail = () => {
     navigator.clipboard.writeText(user?.email || "");
     toast.success("Email copied to clipboard");
@@ -44,9 +61,15 @@ export default function ChatWindow({
           </div>
         </div>
 
-        <button className="rounded-md bg-sky-500 p-1.5 text-white shadow-sm transition hover:bg-sky-600">
+        <Button
+          variant="icon"
+          onClick={handleSendEmail}
+          permission={PERMISSIONS.mail_management.send_email}
+          className="rounded-md bg-sky-500 p-1.5 text-white shadow-sm transition hover:bg-sky-600"
+          title="Send Email"
+        >
           <MailIcon />
-        </button>
+        </Button>
       </div>
       <div className="min-h-0 flex-1 overflow-y-auto custom-scroll bg-gray-50 p-5">
         <div>

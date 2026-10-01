@@ -42,6 +42,12 @@ const ROUTE_PERMISSIONS: { pattern: RegExp; permission: string | string[] }[] =
       permission: [PERMISSIONS.member.read, PERMISSIONS.role.read],
     },
 
+    // Templates & Subroutes
+    {
+      pattern: /^\/templates(\/.*)?$/,
+      permission: PERMISSIONS.template.read,
+    },
+
     // Campaigns & Subroutes (both /campaigns and /marketing/campaigns)
     { pattern: /^\/campaigns(\/.*)?$/, permission: PERMISSIONS.campaign.read },
     {
@@ -67,6 +73,15 @@ const ROUTE_PERMISSIONS: { pattern: RegExp; permission: string | string[] }[] =
       permission: PERMISSIONS.activity_log.read,
     },
 
+    // AI Chatbox & Subroutes
+    {
+      pattern: /^\/ai-chatbox(\/.*)?$/,
+      permission: [
+        PERMISSIONS.chatbot_dashboard.view,
+        "chatbot-dashboard:*",
+      ],
+    },
+
     // Website CMS Subroutes with specific permissions
     {
       pattern: /^\/website-cms\/testimonials(\/.*)?$/,
@@ -89,7 +104,15 @@ const ROUTE_PERMISSIONS: { pattern: RegExp; permission: string | string[] }[] =
       permission: PERMISSIONS.section.read,
     },
     {
+      pattern: /^\/website-cms\/hero-section(\/.*)?$/,
+      permission: PERMISSIONS.section.read,
+    },
+    {
       pattern: /^\/website-cms\/business-hours(\/.*)?$/,
+      permission: PERMISSIONS.section.read,
+    },
+    {
+      pattern: /^\/settings\/business-hours(\/.*)?$/,
       permission: PERMISSIONS.section.read,
     },
   ];
@@ -214,16 +237,27 @@ export function PermissionGuard({ children }: { children: React.ReactNode }) {
 
   const requiredPermission = getRequiredPermission(pathname);
 
-  // If no specific permission is required for this route, allow access
-  if (!requiredPermission) {
+  // 1. If a specific permission is mapped for this route, enforce it strictly
+  if (requiredPermission) {
+    const allowed = hasPermission(user, requiredPermission);
+    if (!allowed) {
+      return <AccessDeniedView requiredPermission={requiredPermission} />;
+    }
     return <>{children}</>;
   }
 
-  // Check if user has the required permission
-  const allowed = hasPermission(user, requiredPermission);
+  // 2. Smart Safe-Guard for unmapped routes (/marketing/queries, /ai-chatbox/*, /settings/*, /notifications):
+  // Ensure user has at least valid dashboard/administrative access (not an unassigned/empty role).
+  // This blocks uninvited/empty role users from driving unmapped screens without breaking legitimate users.
+  const hasBasicAccess = hasPermission(user, [
+    PERMISSIONS.dashboard.view,
+    "dashboard:*",
+    "*",
+    "all",
+  ]);
 
-  if (!allowed) {
-    return <AccessDeniedView requiredPermission={requiredPermission} />;
+  if (!hasBasicAccess) {
+    return <AccessDeniedView requiredPermission="dashboard:view" />;
   }
 
   return <>{children}</>;

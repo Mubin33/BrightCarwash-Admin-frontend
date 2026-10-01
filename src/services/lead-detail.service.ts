@@ -1,20 +1,7 @@
-import { APP_CONFIG } from "@/configs/app.config";
+import { fetchFromBackend, apiFetch } from "@/lib/api-fetch";
 import type { LeadDetail, ActivityItem, LeadDetailApiResponse } from "@/types/lead-detail";
-import { getAccessToken } from "@/lib/auth-client";
 
-async function fetchFromBackend<T>(url: string, options?: RequestInit): Promise<T> {
-	const token = getAccessToken();
-	const res = await fetch(`${APP_CONFIG.API_BASE_URL}${url}`, {
-		...options,
-		headers: {
-			Authorization: `Bearer ${token}`,
-			...(options?.body instanceof FormData ? {} : { "Content-Type": "application/json" }),
-			...options?.headers,
-		},
-	});
-	if (!res.ok) throw new Error(`Request failed: ${res.status}`);
-	return res.json();
-}
+// Centralized fetchFromBackend imported from @/lib/api-fetch
 
 
 export function parseApiNotes(
@@ -296,7 +283,6 @@ export async function getLeadActivities(id: string): Promise<ActivityItem[]> {
 
 export async function addLeadNote(id: string, content: string): Promise<void> {
 	const currentLead = await getLeadDetail(id);
-	const token = getAccessToken();
 	const nowIso = new Date().toISOString();
 
 	const newNote = {
@@ -319,11 +305,9 @@ export async function addLeadNote(id: string, content: string): Promise<void> {
 	// Serialize each note object into JSON string (pure application/json, never FormData)
 	const notesPayload = currentNotes.map((note) => JSON.stringify(note));
 
-	const res = await fetch(`${APP_CONFIG.API_BASE_URL}/admin/lead/${id}`, {
+	const res = await apiFetch(`/admin/lead/${id}`, {
 		method: "PATCH",
 		headers: {
-			Authorization: `Bearer ${token}`,
-			"Content-Type": "application/json",
 			Accept: "application/json",
 		},
 		body: JSON.stringify({ notes: notesPayload }),
@@ -337,7 +321,6 @@ export async function addLeadNote(id: string, content: string): Promise<void> {
 
 export async function deleteLeadNote(leadId: string, noteIdentifier: string): Promise<void> {
 	const lead = await getLeadDetail(leadId);
-	const token = getAccessToken();
 
 	const remainingNotes = (lead.notes || [])
 		.filter((n) => n.id !== noteIdentifier && n.content !== noteIdentifier)
@@ -351,11 +334,9 @@ export async function deleteLeadNote(leadId: string, noteIdentifier: string): Pr
 
 	const notesPayload = remainingNotes.map((note) => JSON.stringify(note));
 
-	const res = await fetch(`${APP_CONFIG.API_BASE_URL}/admin/lead/${leadId}`, {
+	const res = await apiFetch(`/admin/lead/${leadId}`, {
 		method: "PATCH",
 		headers: {
-			Authorization: `Bearer ${token}`,
-			"Content-Type": "application/json",
 			Accept: "application/json",
 		},
 		body: JSON.stringify({ notes: notesPayload }),
@@ -371,14 +352,10 @@ export async function assignLeadToMember(
 	leadId: string,
 	assignedToId: string | null
 ): Promise<void> {
-	const token = getAccessToken();
 
 	if (assignedToId === null) {
-		const res = await fetch(`${APP_CONFIG.API_BASE_URL}/admin/lead/${leadId}/unassign`, {
+		const res = await apiFetch(`/admin/lead/${leadId}/unassign`, {
 			method: "PATCH",
-			headers: {
-				Authorization: `Bearer ${token}`,
-			},
 		});
 
 		if (!res.ok) {
@@ -393,12 +370,8 @@ export async function assignLeadToMember(
 		assignment_source: "Admin Panel",
 	};
 
-	const res = await fetch(`${APP_CONFIG.API_BASE_URL}/admin/lead/${leadId}/assign`, {
+	const res = await apiFetch(`/admin/lead/${leadId}/assign`, {
 		method: "PATCH",
-		headers: {
-			"Content-Type": "application/json",
-			Authorization: `Bearer ${token}`,
-		},
 		body: JSON.stringify(payload),
 	});
 
@@ -424,7 +397,6 @@ export async function updateLeadDetails(
 		files?: File[];
 	}
 ): Promise<LeadDetail> {
-	const token = getAccessToken();
 	const formData = new FormData();
 
 	// Text fields
@@ -451,9 +423,8 @@ export async function updateLeadDetails(
 		});
 	}
 
-	const res = await fetch(`${APP_CONFIG.API_BASE_URL}/admin/lead/${leadId}`, {
+	const res = await apiFetch(`/admin/lead/${leadId}`, {
 		method: 'PATCH',
-		headers: { Authorization: `Bearer ${token}` },
 		body: formData,
 	});
 

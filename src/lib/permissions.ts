@@ -2,6 +2,12 @@ export const PERMISSIONS = {
   dashboard: {
     view: "dashboard:view" as const,
   },
+  chatbot_dashboard: {
+    view: "chatbot-dashboard:view" as const,
+  },
+  chatbot: {
+    view: "chatbot-dashboard:view" as const,
+  },
   lead: {
     read: "lead:read" as const,
     create: "lead:create" as const,
@@ -134,10 +140,18 @@ export const PERMISSIONS = {
 } as const;
 
 export function hasPermission(
-  user: { permissions?: string[] } | null | undefined,
+  user: { permissions?: string[]; role?: string } | null | undefined,
   permission: string | string[],
 ): boolean {
-  if (!user?.permissions) return false;
+  if (!user) return false;
+
+  // SuperAdmin role bypass
+  const normalizedRole = user.role?.toLowerCase().replace(/[\s_-]/g, "");
+  if (normalizedRole === "superadmin" || normalizedRole === "superuser") {
+    return true;
+  }
+
+  if (!user.permissions) return false;
   const check = (perm: string) => {
     const lowerPerm = perm.toLowerCase();
     if (lowerPerm.endsWith(":*")) {

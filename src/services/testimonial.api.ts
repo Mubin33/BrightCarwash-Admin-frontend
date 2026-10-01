@@ -6,21 +6,7 @@ import type {
     TestimonialListResponse,
     TestimonialSingleResponse,
 } from '@/types/testimonial';
-import { getAccessToken } from '@/lib/auth-client';
-import { APP_CONFIG } from '@/configs/app.config';
-
-async function fetchFromBackend<T>(url: string, options?: RequestInit): Promise<T> {
-    const token = getAccessToken();
-    const res = await fetch(`${APP_CONFIG.API_BASE_URL}${url}`, {
-        ...options,
-        headers: {
-            Authorization: `Bearer ${token}`,
-            ...options?.headers,
-        },
-    });
-    if (!res.ok) throw new Error(`Request failed: ${res.status}`);
-    return res.json();
-}
+import { fetchFromBackend, apiFetch } from '@/lib/api-fetch';
 
 export const testimonialApi = createApi({
     reducerPath: 'testimonialApi',
@@ -86,10 +72,8 @@ export const testimonialApi = createApi({
                         formData.append('is_active', String(body.is_active));
                     }
 
-                    const token = getAccessToken();
-                    const res = await fetch(`${APP_CONFIG.API_BASE_URL}/admin/testimonials`, {
+                    const res = await apiFetch('/admin/testimonials', {
                         method: 'POST',
-                        headers: { Authorization: `Bearer ${token}` },
                         body: formData,
                     });
                     if (!res.ok) throw new Error('Failed to create testimonial');
@@ -124,10 +108,8 @@ export const testimonialApi = createApi({
                         formData.append('is_avatar_deleted', String(data.is_avatar_deleted));
                     }
 
-                    const token = getAccessToken();
-                    const res = await fetch(`${APP_CONFIG.API_BASE_URL}/admin/testimonials/${id}`, {
+                    const res = await apiFetch(`/admin/testimonials/${id}`, {
                         method: 'PATCH',
-                        headers: { Authorization: `Bearer ${token}` },
                         body: formData,
                     });
                     if (!res.ok) throw new Error('Failed to update testimonial');

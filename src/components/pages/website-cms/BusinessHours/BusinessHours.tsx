@@ -1,12 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import { format, parse } from "date-fns";
+import { toast } from "react-toastify";
+
 import { Button } from "@/components/ui/Button";
 import { Icon } from "@/components/ui/Icon";
-import { toast } from "react-toastify";
 import { PERMISSIONS } from "@/lib/permissions";
-import { format, parse } from "date-fns";
-
 import {
   useGetBusinessHoursQuery,
   useEditBusinessHoursMutation,
@@ -21,16 +21,16 @@ export default function BusinessHours() {
 
   const [hours, setHours] = useState<BusinessHoursForm>({
     sunday: {
-      start_time: "",
-      end_time: "",
+      start_time: "08:00",
+      end_time: "18:00",
     },
     mondayThursday: {
-      start_time: "",
-      end_time: "",
+      start_time: "08:00",
+      end_time: "18:00",
     },
     fridaySaturday: {
-      start_time: "",
-      end_time: "",
+      start_time: "08:00",
+      end_time: "18:00",
     },
   });
 
@@ -46,26 +46,21 @@ export default function BusinessHours() {
     useEditBusinessHoursMutation();
 
   // Open modal
-  const handleEditBusinessHours = () => {
-    if (!businessHours) {
-      toast.error("Timing data not found");
-      return;
-    }
-
+  const handleOpenBusinessHoursModal = () => {
     setHours({
       sunday: {
-        start_time: businessHours.content?.sunday?.start_time || "",
-        end_time: businessHours.content?.sunday?.end_time || "",
+        start_time: businessHours?.content?.sunday?.start_time || "08:00",
+        end_time: businessHours?.content?.sunday?.end_time || "18:00",
       },
 
       mondayThursday: {
-        start_time: businessHours.content?.mondayThursday?.start_time || "",
-        end_time: businessHours.content?.mondayThursday?.end_time || "",
+        start_time: businessHours?.content?.mondayThursday?.start_time || "08:00",
+        end_time: businessHours?.content?.mondayThursday?.end_time || "18:00",
       },
 
       fridaySaturday: {
-        start_time: businessHours.content?.fridaySaturday?.start_time || "",
-        end_time: businessHours.content?.fridaySaturday?.end_time || "",
+        start_time: businessHours?.content?.fridaySaturday?.start_time || "08:00",
+        end_time: businessHours?.content?.fridaySaturday?.end_time || "18:00",
       },
     });
 
@@ -87,20 +82,15 @@ export default function BusinessHours() {
     }));
   };
 
-  // Update API
-  const handleUpdateBusinessHours = async () => {
-    if (!businessHours) {
-      toast.error("Timing data not found");
-      return;
-    }
-
+  // Update or Create API
+  const handleSaveBusinessHours = async () => {
     try {
       await editBusinessHours({
         section_name: "business_hours",
 
         body: {
-          section_key: businessHours.section_key,
-          section_type: businessHours.section_type,
+          section_key: businessHours?.section_key || "business_hours",
+          section_type: businessHours?.section_type || "business_hours",
 
           content: {
             sunday: {
@@ -119,25 +109,35 @@ export default function BusinessHours() {
             },
           },
 
-          is_active: businessHours.is_active,
-          sort_order: businessHours.sort_order,
+          is_active: businessHours?.is_active ?? true,
+          sort_order: businessHours?.sort_order ?? 1,
         },
       }).unwrap();
 
-      toast.success("Timing updated successfully");
+      toast.success(
+        businessHours
+          ? "Timing updated successfully"
+          : "Timing created successfully",
+      );
 
       setIsModalOpen(false);
     } catch (error) {
-      console.error("Failed to update Timing:", error);
+      console.error("Failed to save Timing:", error);
 
-      toast.error("Failed to update Timing");
+      toast.error(
+        businessHours ? "Failed to update Timing" : "Failed to create Timing",
+      );
     }
   };
 
   // Date Time Format
   const formatTime = (start: string, end: string) => {
     const formatTimeValue = (time: string) => {
-      return format(parse(time, "HH:mm", new Date()), "h:mm a");
+      try {
+        return format(parse(time, "HH:mm", new Date()), "h:mm a");
+      } catch {
+        return time;
+      }
     };
 
     return `${formatTimeValue(start)} - ${formatTimeValue(end)}`;
@@ -168,14 +168,18 @@ export default function BusinessHours() {
             </h3>
 
             <Button
-              onClick={handleEditBusinessHours}
+              onClick={handleOpenBusinessHoursModal}
               permission={PERMISSIONS.section.create}
-              disabled={isLoading || isFetching || !businessHours}
+              disabled={isLoading || isFetching}
               className="flex w-auto! items-center gap-2 rounded-md bg-[#0098E8] px-4 py-2 text-white transition-colors hover:bg-[#0088D8] disabled:cursor-not-allowed disabled:opacity-50"
             >
               <Icon name="plus" width={16} height={16} color="white" />
 
-              {isFetching ? "Loading..." : "Edit Hours"}
+              {isFetching
+                ? "Loading..."
+                : businessHours
+                ? "Edit Hours"
+                : "Create Hours"}
             </Button>
           </div>
 
@@ -194,8 +198,18 @@ export default function BusinessHours() {
               ))}
             </div>
           ) : !businessHours ? (
-            <div className="rounded-lg border border-[#DFE1E7] bg-white p-6 text-center text-sm text-[#667085]">
-              No Timing found.
+            <div className="flex flex-col items-center justify-center gap-3 rounded-lg border border-[#DFE1E7] bg-white p-8 text-center">
+              <p className="text-sm font-medium text-[#667085]">
+                No business hours configured yet.
+              </p>
+              <Button
+                onClick={handleOpenBusinessHoursModal}
+                permission={PERMISSIONS.section.create}
+                className="flex w-auto! items-center gap-2 rounded-md bg-[#0098E8] px-4 py-2 text-sm text-white transition-colors hover:bg-[#0088D8]"
+              >
+                <Icon name="plus" width={14} height={14} color="white" />
+                Create Business Hours
+              </Button>
             </div>
           ) : (
             <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
@@ -252,13 +266,14 @@ export default function BusinessHours() {
         </div>
       </div>
 
-      {/* Edit Modal */}
+      {/* Edit/Create Modal */}
       <EditBusinessHoursModal
         isOpen={isModalOpen}
         hours={hours}
         isUpdating={isUpdating}
+        isCreating={!businessHours}
         onClose={() => setIsModalOpen(false)}
-        onSave={handleUpdateBusinessHours}
+        onSave={handleSaveBusinessHours}
         onChange={handleTimeChange}
       />
     </>

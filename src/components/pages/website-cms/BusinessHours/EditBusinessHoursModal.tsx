@@ -23,6 +23,7 @@ interface EditBusinessHoursModalProps {
   isOpen: boolean;
   hours: BusinessHoursForm;
   isUpdating: boolean;
+  isCreating?: boolean;
   onClose: () => void;
   onSave: () => void;
   onChange: (
@@ -36,6 +37,7 @@ export default function EditBusinessHoursModal({
   isOpen,
   hours,
   isUpdating,
+  isCreating = false,
   onClose,
   onSave,
   onChange,
@@ -49,6 +51,7 @@ export default function EditBusinessHoursModal({
         setVisible(true);
       });
     } else {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setVisible(false);
     }
   }, [isOpen]);
@@ -78,11 +81,13 @@ export default function EditBusinessHoursModal({
         <div className="flex items-center justify-between border-b border-[#DFE1E7] px-6 py-4">
           <div>
             <h3 className="text-lg font-semibold text-[#1D2939]">
-              Edit Business Hours
+              {isCreating ? "Create Business Hours" : "Edit Business Hours"}
             </h3>
 
             <p className="mt-1 text-sm text-[#667085]">
-              Update your business operating hours.
+              {isCreating
+                ? "Set up your business operating hours."
+                : "Update your business operating hours."}
             </p>
           </div>
 
@@ -148,7 +153,13 @@ export default function EditBusinessHoursModal({
             disabled={isUpdating}
             className="w-auto! cursor-pointer rounded-md bg-[#0098E8] px-5 py-2 text-sm font-medium text-white hover:bg-[#0088D8] disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {isUpdating ? "Updating..." : "Update Hours"}
+            {isUpdating
+              ? isCreating
+                ? "Creating..."
+                : "Updating..."
+              : isCreating
+              ? "Create Hours"
+              : "Update Hours"}
           </Button>
         </div>
       </div>

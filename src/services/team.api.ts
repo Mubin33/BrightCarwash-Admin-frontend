@@ -1,5 +1,5 @@
+import { apiFetch } from "@/lib/api-fetch";
 import { APP_CONFIG } from "@/configs/app.config";
-import { getAccessToken } from "@/lib/auth-client";
 import axiosInstance from "@/lib/axios-instance";
 import {
   mockPermissions,
@@ -21,13 +21,26 @@ function delay(ms: number): Promise<void> {
 }
 
 function mapMember(data: MembersApiResponse["data"][0]): TeamMember {
+  const isActive =
+    typeof data.isActive === "boolean"
+      ? data.isActive
+      : typeof data.is_active === "boolean"
+        ? data.is_active
+        : data.status !== undefined
+          ? data.status === 1
+          : true;
+
+  const status = data.status !== undefined ? data.status : isActive ? 1 : 0;
+
   return {
     id: data.id,
     name: `${data.first_name || ""} ${data.last_name || ""}`.trim() || null,
     username: null,
     email: data.email,
     avatar: data.avatar,
-    status: data.status,
+    status,
+    isActive,
+    is_active: isActive,
     first_name: data.first_name,
     last_name: data.last_name,
     role: data.roleUsers?.[0]?.role?.name || "Staff",
@@ -41,7 +54,9 @@ function mapPermissions(data: PermissionsMap): Permission[] {
   for (const [module, items] of Object.entries(data)) {
     for (const item of items) {
       result.push({
-        id: (item as { id?: string; action: string }).id || `${module}:${item.action}`,
+        id:
+          (item as { id?: string; action: string }).id ||
+          `${module}:${item.action}`,
         name: `${module}:${item.action}`,
         module,
       });
@@ -106,18 +121,10 @@ export const teamApi = createApi({
     resendInvite: builder.mutation<{ success: boolean }, string>({
       queryFn: async (email) => {
         try {
-          const token = getAccessToken();
-          const response = await fetch(
-            `${APP_CONFIG.API_BASE_URL}/auth/resend-invite`,
-            {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${token}`,
-              },
-              body: JSON.stringify({ email }),
-            },
-          );
+          const response = await apiFetch("/auth/resend-invite", {
+            method: "POST",
+            body: JSON.stringify({ email }),
+          });
 
           const responseData = await response.json();
 
@@ -247,24 +254,10 @@ export const teamApi = createApi({
             };
           }
 
-          const token = getAccessToken();
-          if (!token) {
-            return {
-              error: { status: 401, data: "No access token found" },
-            };
-          }
-
-          const response = await fetch(
-            `${APP_CONFIG.API_BASE_URL}/admin/role/${id}`,
-            {
-              method: "PATCH",
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${token}`,
-              },
-              body: JSON.stringify({ permissionIds: permissions }),
-            },
-          );
+          const response = await apiFetch(`/admin/role/${id}`, {
+            method: "PATCH",
+            body: JSON.stringify({ permissionIds: permissions }),
+          });
 
           const responseData = await response.json();
 
@@ -329,7 +322,11 @@ export const teamApi = createApi({
           if (APP_CONFIG.MOCK_MODE) {
             await delay(APP_CONFIG.MOCK_DELAY_MS);
             const member = mockTeamMembers.find((m) => m.id === id);
-            if (member) member.status = 0;
+            if (member) {
+              member.status = 0;
+              member.isActive = false;
+              member.is_active = false;
+            }
             return { data: { success: true } };
           }
           await axiosInstance.put(`/admin/members/${id}/block`);
@@ -355,7 +352,11 @@ export const teamApi = createApi({
           if (APP_CONFIG.MOCK_MODE) {
             await delay(APP_CONFIG.MOCK_DELAY_MS);
             const member = mockTeamMembers.find((m) => m.id === id);
-            if (member) member.status = 1;
+            if (member) {
+              member.status = 1;
+              member.isActive = true;
+              member.is_active = true;
+            }
             return { data: { success: true } };
           }
           await axiosInstance.put(`/admin/members/${id}/unblock`);
@@ -393,6 +394,31 @@ export const teamApi = createApi({
       },
       invalidatesTags: ["TeamRoles"],
     }),
+
+    revokedInvite: builder.mutation<{ success: boolean }, string>({
+      queryFn: async (id) => {
+        try {
+          await axiosInstance.delete(`/auth/${id}/remove-invitation`);
+
+          return {
+            data: {
+              success: true,
+            },
+          };
+        } catch (error) {
+          return {
+            error: {
+              status: 500,
+              data:
+                error instanceof Error
+                  ? error.message
+                  : "Failed to revoke invitation",
+            },
+          };
+        }
+      },
+      invalidatesTags: ["TeamMembers"],
+    }),
   }),
 });
 
@@ -408,4 +434,5 @@ export const {
   useUnblockMemberMutation,
   useDeleteRoleMutation,
   useResendInviteMutation,
+  useRevokedInviteMutation,
 } = teamApi;

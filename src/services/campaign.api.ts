@@ -1,3 +1,4 @@
+import { apiFetch } from '@/lib/api-fetch';
 import { createApi } from '@reduxjs/toolkit/query/react';
 import type {
 	Campaign,
@@ -9,7 +10,6 @@ import type {
 import { APP_CONFIG } from '@/configs/app.config';
 import { mockCampaigns } from '@/mocks/campaign.mock';
 import axiosInstance from '@/lib/axios-instance';
-import { getAccessToken } from '@/lib/auth-client';
 
 function delay(ms: number): Promise<void> {
 	return new Promise((resolve) => setTimeout(resolve, ms));
@@ -146,18 +146,10 @@ export const campaignApi = createApi({
 						return { data: mock };
 					}
 
-					const token = getAccessToken();
-					const response = await fetch(
-						`${APP_CONFIG.API_BASE_URL}/admin/campaigns/campaigns`,
-						{
-							method: 'POST',
-							headers: {
-								'Content-Type': 'application/json',
-								Authorization: `Bearer ${token}`,
-							},
-							body: JSON.stringify(campaignData),
-						}
-					);
+					const response = await apiFetch('/admin/campaigns/campaigns', {
+						method: 'POST',
+						body: JSON.stringify(campaignData),
+					});
 
 					const responseData = await response.json();
 
@@ -200,18 +192,10 @@ export const campaignApi = createApi({
 						return { data: transformCampaign({ ...mock, ...data }) };
 					}
 
-					const token = getAccessToken();
-					const response = await fetch(
-						`${APP_CONFIG.API_BASE_URL}/admin/campaigns/campaigns/${id}`,
-						{
-							method: 'PATCH',
-							headers: {
-								'Content-Type': 'application/json',
-								Authorization: `Bearer ${token}`,
-							},
-							body: JSON.stringify(data),
-						}
-					);
+					const response = await apiFetch(`/admin/campaigns/campaigns/${id}`, {
+						method: 'PATCH',
+						body: JSON.stringify(data),
+					});
 
 					const responseData = await response.json();
 
@@ -252,16 +236,9 @@ export const campaignApi = createApi({
 						return { data: { success: true } };
 					}
 
-					const token = getAccessToken();
-					const response = await fetch(
-						`${APP_CONFIG.API_BASE_URL}/admin/campaigns/campaigns/${id}`,
-						{
-							method: 'DELETE',
-							headers: {
-								Authorization: `Bearer ${token}`,
-							},
-						}
-					);
+					const response = await apiFetch(`/admin/campaigns/campaigns/${id}`, {
+						method: 'DELETE',
+					});
 
 					const responseData = await response.json();
 
@@ -299,16 +276,9 @@ export const campaignApi = createApi({
 						return { data: { success: true } };
 					}
 
-					const token = getAccessToken();
-					const response = await fetch(
-						`${APP_CONFIG.API_BASE_URL}/admin/campaigns/campaigns/${id}/launch`,
-						{
-							method: 'POST',
-							headers: {
-								Authorization: `Bearer ${token}`,
-							},
-						}
-					);
+					const response = await apiFetch(`/admin/campaigns/campaigns/${id}/launch`, {
+						method: 'POST',
+					});
 
 					const responseData = await response.json();
 
@@ -352,18 +322,10 @@ export const campaignApi = createApi({
 						return { data: { success: true } };
 					}
 
-					const token = getAccessToken();
-					const response = await fetch(
-						`${APP_CONFIG.API_BASE_URL}/admin/campaigns/campaigns/${id}/status-action`,
-						{
-							method: 'POST',
-							headers: {
-								'Content-Type': 'application/json',
-								Authorization: `Bearer ${token}`,
-							},
-							body: JSON.stringify({ action, newScheduledAt }),
-						}
-					);
+					const response = await apiFetch(`/admin/campaigns/campaigns/${id}/status-action`, {
+						method: 'POST',
+						body: JSON.stringify({ action, newScheduledAt }),
+					});
 
 					const responseData = await response.json();
 

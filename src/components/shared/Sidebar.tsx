@@ -22,13 +22,14 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL?.replace(/\/$/, "");
 export function filterItemsByPermission(
   items: NavItem[],
   userPermissions: string[],
+  userRole?: string,
 ): NavItem[] {
   return items
     .map((item) => {
       if (item.subItems) {
         return {
           ...item,
-          subItems: filterItemsByPermission(item.subItems, userPermissions),
+          subItems: filterItemsByPermission(item.subItems, userPermissions, userRole),
         };
       }
       return item;
@@ -36,7 +37,7 @@ export function filterItemsByPermission(
     .filter((item) => {
       if (
         item.permission &&
-        !hasPermission({ permissions: userPermissions }, item.permission)
+        !hasPermission({ permissions: userPermissions, role: userRole }, item.permission)
       ) {
         return false;
       }
@@ -146,7 +147,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
 
   const filteredConfig = NAVIGATION_CONFIG.map((section) => ({
     ...section,
-    items: filterItemsByPermission(section.items, userPermissions),
+    items: filterItemsByPermission(section.items, userPermissions, user?.role),
   })).filter((section) => section.items.length > 0);
 
   function isActive(href: string): boolean {

@@ -1,9 +1,9 @@
 "use client";
 
+import { apiFetch } from "@/lib/api-fetch";
+
 import { useState, useCallback, useEffect } from "react";
 import { toast } from "react-toastify";
-import { APP_CONFIG } from "@/configs/app.config";
-import { getAccessToken } from "@/lib/auth-client";
 import { useUpdateBusinessProfileMutation } from "@/services/settings.api";
 import type { BusinessProfileData } from "@/services/settings.api";
 
@@ -13,8 +13,8 @@ export function useBusinessSettings(initialData: BusinessProfileData) {
     const [isUploading, setIsUploading] = useState(false);
     const [updateBusinessProfile, { isLoading: isSaving }] = useUpdateBusinessProfileMutation();
 
-    useEffect(() => {
-        if (initialData) {
+    useEffect(() => {        if (initialData) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setForm(initialData);
             setLogoPreview(initialData.logo);
         }
@@ -28,13 +28,11 @@ export function useBusinessSettings(initialData: BusinessProfileData) {
     const handleLogoUpload = useCallback(async (file: File) => {
         setIsUploading(true);
         try {
-            const token = getAccessToken();
             const formData = new FormData();
             formData.append('files', file);
 
-            const res = await fetch(`${APP_CONFIG.API_BASE_URL}/admin/files/upload`, {
+            const res = await apiFetch('/admin/files/upload', {
                 method: 'POST',
-                headers: { Authorization: `Bearer ${token}` },
                 body: formData,
             });
 

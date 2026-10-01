@@ -1,20 +1,6 @@
 import { createApi } from '@reduxjs/toolkit/query/react';
 import type { GalleryItem, CreateGalleryRequest, UpdateGalleryRequest, GalleryListResponse, GallerySingleResponse } from '@/types/gallery';
-import { getAccessToken } from '@/lib/auth-client';
-import { APP_CONFIG } from '@/configs/app.config';
-
-async function fetchFromBackend<T>(url: string, options?: RequestInit): Promise<T> {
-    const token = getAccessToken();
-    const res = await fetch(`${APP_CONFIG.API_BASE_URL}${url}`, {
-        ...options,
-        headers: {
-            Authorization: `Bearer ${token}`,
-            ...options?.headers,
-        },
-    });
-    if (!res.ok) throw new Error(`Request failed: ${res.status}`);
-    return res.json();
-}
+import { fetchFromBackend, apiFetch } from '@/lib/api-fetch';
 
 export interface GalleryQueryResult {
     items: GalleryItem[];
@@ -88,10 +74,8 @@ export const galleryApi = createApi({
                         formData.append('is_published', String(body.is_published));
                     }
 
-                    const token = getAccessToken();
-                    const res = await fetch(`${APP_CONFIG.API_BASE_URL}/admin/gallery`, {
+                    const res = await apiFetch('/admin/gallery', {
                         method: 'POST',
-                        headers: { Authorization: `Bearer ${token}` },
                         body: formData,
                     });
                     if (!res.ok) throw new Error('Failed to create gallery item');
@@ -119,10 +103,8 @@ export const galleryApi = createApi({
                         formData.append('is_published', String(data.is_published));
                     }
 
-                    const token = getAccessToken();
-                    const res = await fetch(`${APP_CONFIG.API_BASE_URL}/admin/gallery/${id}`, {
+                    const res = await apiFetch(`/admin/gallery/${id}`, {
                         method: 'PATCH',
-                        headers: { Authorization: `Bearer ${token}` },
                         body: formData,
                     });
                     if (!res.ok) throw new Error('Failed to update gallery item');

@@ -1,6 +1,5 @@
+import { apiFetch } from '@/lib/api-fetch';
 import { createApi } from '@reduxjs/toolkit/query/react';
-import { getAccessToken } from '@/lib/auth-client';
-import { APP_CONFIG } from '@/configs/app.config';
 import axiosInstance from '@/lib/axios-instance';
 import { ProfileFormData } from '@/types/settings';
 
@@ -26,13 +25,11 @@ export const settingsApi = createApi({
         uploadAvatar: builder.mutation<string, File>({
             queryFn: async (file) => {
                 try {
-                    const token = getAccessToken();
                     const formData = new FormData();
                     formData.append('files', file);
 
-                    const res = await fetch(`${APP_CONFIG.API_BASE_URL}/admin/files/upload`, {
+                    const res = await apiFetch('/admin/files/upload', {
                         method: 'POST',
-                        headers: { Authorization: `Bearer ${token}` },
                         body: formData,
                     });
 

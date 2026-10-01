@@ -1,4 +1,4 @@
-import { getAccessToken } from "@/lib/auth-client";
+import axiosInstance from "@/lib/axios-instance";
 import {
   ApiMessage,
   ApiResponse,
@@ -7,9 +7,8 @@ import {
   GetUsersParams,
 } from "@/types/aiChatbox";
 import { createApi } from "@reduxjs/toolkit/query/react";
-import axios from "axios";
 
-const API_BASE = process.env.NEXT_PUBLIC_AI_BASE_URL?.replace(/\/$/, "");
+const API_BASE = (process.env.NEXT_PUBLIC_AI_BASE_URL || "").replace(/\/$/, "");
 
 export const chatboxApis = createApi({
   reducerPath: "chatboxApi",
@@ -19,15 +18,11 @@ export const chatboxApis = createApi({
     getUsers: builder.query<ApiResponse<ApiUser[]>, GetUsersParams>({
       queryFn: async ({ cursor, pageSize = 20, search }) => {
         try {
-          const response = await axios.get(`${API_BASE}/admin/users/`, {
+          const response = await axiosInstance.get(`${API_BASE}/admin/users/`, {
             params: {
               page_size: pageSize,
               ...(cursor ? { cursor } : {}),
               ...(search ? { search } : {}),
-            },
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${getAccessToken()}`,
             },
           });
           return { data: response.data };
@@ -46,14 +41,8 @@ export const chatboxApis = createApi({
     getUserSessions: builder.query<ApiResponse<ApiSession[]>, string>({
       queryFn: async (userId) => {
         try {
-          const response = await axios.get(
+          const response = await axiosInstance.get(
             `${API_BASE}/admin/users/${userId}/sessions/`,
-            {
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${getAccessToken()}`,
-              },
-            },
           );
           return { data: response.data };
         } catch (error) {
@@ -73,14 +62,8 @@ export const chatboxApis = createApi({
     getSessionChats: builder.query<ApiResponse<ApiMessage[]>, string>({
       queryFn: async (sessionId) => {
         try {
-          const response = await axios.get(
+          const response = await axiosInstance.get(
             `${API_BASE}/admin/sessions/${sessionId}/`,
-            {
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${getAccessToken()}`,
-              },
-            },
           );
           return { data: response.data };
         } catch (error) {
@@ -105,15 +88,9 @@ export const chatboxApis = createApi({
     >({
       queryFn: async (data) => {
         try {
-          const response = await axios.post(
+          const response = await axiosInstance.post(
             `${API_BASE}/admin/users/${data.userId}/resolve/`,
             {},
-            {
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${getAccessToken()}`,
-              },
-            },
           );
           return { data: response.data };
         } catch (error) {

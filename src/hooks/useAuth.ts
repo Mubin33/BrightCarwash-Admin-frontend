@@ -103,6 +103,7 @@ export function useAuth() {
             items: filterItemsByPermission(
               section.items,
               profile.permissions || [],
+              profile.role,
             ),
           })).filter((s) => s.items.length > 0);
           const firstItem = filteredSections[0]?.items[0];

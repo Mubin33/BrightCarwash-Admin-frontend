@@ -1,6 +1,5 @@
 import { createApi } from '@reduxjs/toolkit/query/react';
-import { getAccessToken } from '@/lib/auth-client';
-import axios from 'axios';
+import axiosInstance from '@/lib/axios-instance';
 import type {
     KnowledgeFile,
     KnowledgeFileDetail,
@@ -11,7 +10,7 @@ import type {
     UploadKnowledgeRequest,
 } from '@/types/knowledge';
 
-const API_BASE = process.env.NEXT_PUBLIC_AI_BASE_URL?.replace(/\/$/, '');
+const API_BASE = (process.env.NEXT_PUBLIC_AI_BASE_URL || '').replace(/\/$/, '');
 
 export const knowledgeApi = createApi({
     reducerPath: 'knowledgeApi',
@@ -21,14 +20,8 @@ export const knowledgeApi = createApi({
         getKnowledgeFiles: builder.query<KnowledgeFile[], void>({
             queryFn: async () => {
                 try {
-                    const response = await axios.get<KnowledgeListResponse>(
+                    const response = await axiosInstance.get<KnowledgeListResponse>(
                         `${API_BASE}/admin/kb/`,
-                        {
-                            headers: {
-                                'Content-Type': 'application/json',
-                                Authorization: `Bearer ${getAccessToken()}`,
-                            },
-                        }
                     );
                     return { data: response.data.data };
                 } catch (error) {
@@ -45,14 +38,8 @@ export const knowledgeApi = createApi({
         getKnowledgeFileDetail: builder.query<KnowledgeFileDetail, number>({
             queryFn: async (id) => {
                 try {
-                    const response = await axios.get<KnowledgeDetailResponse>(
+                    const response = await axiosInstance.get<KnowledgeDetailResponse>(
                         `${API_BASE}/admin/kb/${id}/`,
-                        {
-                            headers: {
-                                'Content-Type': 'application/json',
-                                Authorization: `Bearer ${getAccessToken()}`,
-                            },
-                        }
                     );
                     return { data: response.data.data };
                 } catch (error) {
@@ -72,15 +59,9 @@ export const knowledgeApi = createApi({
                     formData.append('title', title);
                     formData.append('file', file);
 
-                    const response = await axios.post<KnowledgeUploadResponse>(
+                    const response = await axiosInstance.post<KnowledgeUploadResponse>(
                         `${API_BASE}/admin/kb/upload/`,
                         formData,
-                        {
-                            headers: {
-                                'Content-Type': 'multipart/form-data',
-                                Authorization: `Bearer ${getAccessToken()}`,
-                            },
-                        }
                     );
                     return { data: response.data.data };
                 } catch (error) {
@@ -97,14 +78,8 @@ export const knowledgeApi = createApi({
         deleteKnowledgeFile: builder.mutation<{ success: boolean; message: string }, number>({
             queryFn: async (id) => {
                 try {
-                    const response = await axios.delete<KnowledgeDeleteResponse>(
+                    const response = await axiosInstance.delete<KnowledgeDeleteResponse>(
                         `${API_BASE}/admin/kb/${id}/`,
-                        {
-                            headers: {
-                                'Content-Type': 'application/json',
-                                Authorization: `Bearer ${getAccessToken()}`,
-                            },
-                        }
                     );
                     return {
                         data: {

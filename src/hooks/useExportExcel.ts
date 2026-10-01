@@ -1,10 +1,11 @@
 'use client';
 
+import { apiFetch } from '@/lib/api-fetch';
+
 import { useCallback } from 'react';
 import { exportToExcel } from '@/lib/excel-export';
 import { toast } from 'react-toastify';
 import { formatCurrency } from '@/lib/payment-utils';
-import { getAccessToken } from '@/lib/auth-client';
 import { APP_CONFIG } from '@/configs/app.config';
 
 interface UseExportExcelProps<T> {
@@ -27,17 +28,13 @@ export function useExportExcel<T>({
 	const handleExport = useCallback(
 		async (selectedIds?: Set<string>) => {
 			if (endpoint) {
-				const token = getAccessToken();
-				if (!token) throw new Error('Not authenticated');
-
+				
 				const query = new URLSearchParams();
 				Object.entries(params ?? {}).forEach(([key, value]) => {
 					if (value) query.set(key, value);
 				});
 				const url = `${APP_CONFIG.API_BASE_URL}${endpoint}?${query.toString()}`;
-				const response = await fetch(url, {
-					headers: { Authorization: `Bearer ${token}` },
-				});
+				const response = await apiFetch(url);
 				if (!response.ok) throw new Error('Excel export failed');
 
 				const blob = await response.blob();

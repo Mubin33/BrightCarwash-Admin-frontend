@@ -1,4 +1,4 @@
-import { getAccessToken } from "@/lib/auth-client";
+import { fetchFromBackend, apiFetch } from "@/lib/api-fetch";
 import type { LeadGroupsListResponse } from "@/types/campaign";
 import type {
   CreateLeadRequest,
@@ -51,35 +51,7 @@ function mapApiToLead(data: LeadApiResponse): Lead {
   };
 }
 
-async function fetchFromBackend<T>(
-  url: string,
-  options?: RequestInit,
-): Promise<T> {
-  const token = getAccessToken();
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}${url}`, {
-    ...options,
-    headers: {
-      Authorization: `Bearer ${token}`,
-      ...(options?.body instanceof FormData
-        ? {}
-        : { "Content-Type": "application/json" }),
-      ...options?.headers,
-    },
-  });
-  if (!res.ok) {
-    let errorMsg = `Request failed: ${res.status}`;
-    try {
-      const errorData = await res.json();
-      if (errorData?.message) {
-        errorMsg = Array.isArray(errorData.message)
-          ? errorData.message.join(", ")
-          : errorData.message;
-      }
-    } catch {}
-    throw new Error(errorMsg);
-  }
-  return res.json();
-}
+// Centralized fetchFromBackend imported from @/lib/api-fetch
 
 export const leadsApi = createApi({
   reducerPath: "leadsApi",
@@ -447,7 +419,6 @@ export const leadsApi = createApi({
     >({
       queryFn: async (params) => {
         try {
-          const token = getAccessToken();
 
           // Build request body
           const requestBody: Record<string, unknown> = {
@@ -472,17 +443,10 @@ export const leadsApi = createApi({
           if (params.dateFrom) requestBody.date_from = params.dateFrom;
           if (params.dateTo) requestBody.date_to = params.dateTo;
 
-          const response = await fetch(
-            `${process.env.NEXT_PUBLIC_API_BASE_URL}/admin/lead/export`,
-            {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${token}`,
-              },
-              body: JSON.stringify(requestBody),
-            },
-          );
+          const response = await apiFetch("/admin/lead/export", {
+            method: "POST",
+            body: JSON.stringify(requestBody),
+          });
 
           if (!response.ok) {
             const errorData = await response.json().catch(() => ({}));
@@ -530,18 +494,13 @@ export const leadsApi = createApi({
     >({
       queryFn: async ({ id, priority }) => {
         try {
-          const token = getAccessToken();
           const formData = new FormData();
           formData.append("priority", priority);
 
-          const res = await fetch(
-            `${process.env.NEXT_PUBLIC_API_BASE_URL}/admin/lead/${id}`,
-            {
-              method: "PATCH",
-              headers: { Authorization: `Bearer ${token}` },
-              body: formData,
-            },
-          );
+          const res = await apiFetch(`/admin/lead/${id}`, {
+            method: "PATCH",
+            body: formData,
+          });
 
           if (!res.ok) throw new Error("Failed to update priority");
           const json = await res.json();
@@ -593,15 +552,12 @@ export const leadsApi = createApi({
     >({
       queryFn: async ({ groupId, format }) => {
         try {
-          const token = getAccessToken();
-
-          const response = await fetch(
-            `${process.env.NEXT_PUBLIC_API_BASE_URL}/admin/lead-groups/${groupId}/export-leads?format=${format}`,
+          const response = await apiFetch(
+            `/admin/lead-groups/${groupId}/export-leads?format=${format}`,
             {
               method: "GET",
               headers: {
                 Accept: "*/*",
-                Authorization: `Bearer ${token}`,
               },
             },
           );

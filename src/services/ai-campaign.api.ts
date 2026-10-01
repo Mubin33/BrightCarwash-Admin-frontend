@@ -1,4 +1,4 @@
-import { getAccessToken } from "@/lib/auth-client";
+import axiosInstance from "@/lib/axios-instance";
 import type {
   Campaign,
   CampaignCreateResponse,
@@ -9,9 +9,8 @@ import type {
   UpdateCampaignRequest,
 } from "@/types/ai-campaign";
 import { createApi } from "@reduxjs/toolkit/query/react";
-import axios from "axios";
 
-const API_BASE = process.env.NEXT_PUBLIC_AI_BASE_URL?.replace(/\/$/, "");
+const API_BASE = (process.env.NEXT_PUBLIC_AI_BASE_URL || "").replace(/\/$/, "");
 
 export const aiCampaignApi = createApi({
   reducerPath: "aiCampaignApi",
@@ -21,14 +20,8 @@ export const aiCampaignApi = createApi({
     getCampaigns: builder.query<Campaign[], void>({
       queryFn: async () => {
         try {
-          const response = await axios.get<CampaignListResponse>(
+          const response = await axiosInstance.get<CampaignListResponse>(
             `${API_BASE}/admin/campaigns/`,
-            {
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${getAccessToken()}`,
-              },
-            },
           );
           return { data: response.data.data };
         } catch (error) {
@@ -48,14 +41,8 @@ export const aiCampaignApi = createApi({
     getCampaignDetail: builder.query<Campaign, number>({
       queryFn: async (id) => {
         try {
-          const response = await axios.get<CampaignDetailResponse>(
+          const response = await axiosInstance.get<CampaignDetailResponse>(
             `${API_BASE}/admin/campaigns/${id}/`,
-            {
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${getAccessToken()}`,
-              },
-            },
           );
           return { data: response.data.data };
         } catch (error) {
@@ -85,15 +72,9 @@ export const aiCampaignApi = createApi({
             formData.append("start_date", payload.start_date);
           if (payload.end_date) formData.append("end_date", payload.end_date);
 
-          const response = await axios.post<CampaignCreateResponse>(
+          const response = await axiosInstance.post<CampaignCreateResponse>(
             `${API_BASE}/admin/campaigns/`,
             formData,
-            {
-              headers: {
-                "Content-Type": "multipart/form-data",
-                Authorization: `Bearer ${getAccessToken()}`,
-              },
-            },
           );
           return { data: response.data.data };
         } catch (error) {
@@ -127,15 +108,9 @@ export const aiCampaignApi = createApi({
             formData.append("start_date", payload.start_date);
           if (payload.end_date) formData.append("end_date", payload.end_date);
 
-          const response = await axios.patch<CampaignCreateResponse>(
+          const response = await axiosInstance.patch<CampaignCreateResponse>(
             `${API_BASE}/admin/campaigns/${id}/`,
             formData,
-            {
-              headers: {
-                "Content-Type": "multipart/form-data",
-                Authorization: `Bearer ${getAccessToken()}`,
-              },
-            },
           );
           return { data: response.data.data };
         } catch (error) {
@@ -158,14 +133,8 @@ export const aiCampaignApi = createApi({
     >({
       queryFn: async (id) => {
         try {
-          const response = await axios.delete<CampaignDeleteResponse>(
+          const response = await axiosInstance.delete<CampaignDeleteResponse>(
             `${API_BASE}/admin/campaigns/${id}/`,
-            {
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${getAccessToken()}`,
-              },
-            },
           );
           return {
             data: {

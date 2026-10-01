@@ -1,12 +1,15 @@
 "use client";
 
+import { useSyncExternalStore } from "react";
+import DOMPurify from "dompurify";
+
 type Props = {
   sender: "bot" | "user";
   text: string;
   time?: string;
 };
 
-const allowedTags = new Set([
+const ALLOWED_TAGS = [
   "a",
   "br",
   "strong",
@@ -18,37 +21,48 @@ const allowedTags = new Set([
   "ul",
   "ol",
   "li",
-]);
+];
+
+const ALLOWED_ATTR = ["href", "target", "rel", "title"];
+
+// Setup link security hook in browser
+if (typeof window !== "undefined" && typeof DOMPurify?.addHook === "function") {
+  DOMPurify.addHook("afterSanitizeAttributes", (node) => {
+    if (node.tagName === "A") {
+      node.setAttribute("target", "_blank");
+      node.setAttribute("rel", "noopener noreferrer");
+    }
+  });
+}
+
+const emptySubscribe = () => () => {};
 
 const hasHtml = (text: string) => /<\/?[a-z][\s\S]*>/i.test(text);
 
 const stripHtml = (text: string) => text.replace(/<[^>]*>/g, "");
 
-const sanitizeHtml = (text: string) =>
-  text.replace(/<!--[\s\S]*?-->|<[^>]*>/g, (tag) => {
-    const match = tag.match(/^<\s*(\/?)\s*([a-z0-9]+)([^>]*)>$/i);
-    if (!match) return "";
+function sanitizeChatHtml(dirty: string): string {
+  if (typeof window === "undefined" || typeof DOMPurify?.sanitize !== "function") {
+    return stripHtml(dirty);
+  }
 
-    const [, closingTag, tagName, attributes] = match;
-    const normalizedTag = tagName.toLowerCase();
-    if (!allowedTags.has(normalizedTag)) return "";
-    if (closingTag) return `</${normalizedTag}>`;
-    if (normalizedTag !== "a") return `<${normalizedTag}>`;
-
-    const href = attributes.match(
-      /\bhref\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))/i,
-    );
-    const url = href?.[1] || href?.[2] || href?.[3] || "";
-
-    return /^(https?:|mailto:)/i.test(url)
-      ? `<a href="${url.replace(/&/g, "&amp;").replace(/"/g, "&quot;")}" target="_blank" rel="noreferrer noopener">`
-      : "<a>";
+  return DOMPurify.sanitize(dirty, {
+    ALLOWED_TAGS,
+    ALLOWED_ATTR,
+    ALLOWED_URI_REGEXP: /^(?:(?:https?|mailto):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i,
   });
+}
 
 export default function ChatBubble({ sender, text, time }: Props) {
   const isUser = sender === "user";
+  const isMounted = useSyncExternalStore(
+    emptySubscribe,
+    () => true,
+    () => false,
+  );
+
   const isRichText = hasHtml(text);
-  const safeHtml = isRichText ? sanitizeHtml(text) : "";
+  const safeHtml = isMounted && isRichText ? sanitizeChatHtml(text) : "";
 
   return (
     <div className={`flex ${isUser ? "justify-end" : "justify-start"}`}>
@@ -61,7 +75,7 @@ export default function ChatBubble({ sender, text, time }: Props) {
           </div>
         ) : null}
         <div
-          className={`max-w-md  px-3 py-2.5 text-sm leading-[160%] my-3
+          className={`max-w-md px-3 py-2.5 text-sm leading-[160%] my-3
         ${isUser ? "bg-[#0f2746] text-white rounded-l-2xl rounded-tr-2xl" : "bg-white text-slate-900 border border-slate-200 rounded-r-2xl rounded-tl-2xl"}`}
         >
           {isRichText ? (

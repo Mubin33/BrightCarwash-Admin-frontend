@@ -84,6 +84,7 @@ export const NAVIGATION_CONFIG: NavSection[] = [
             label: "Hero Section",
             icon: "hero",
             href: "/website-cms/hero-section",
+            permission: PERMISSIONS.section.read,
           },
           {
             id: "cms-testimonials",
@@ -134,24 +135,40 @@ export const NAVIGATION_CONFIG: NavSection[] = [
         label: "AI Chatbox",
         icon: "bot",
         href: "",
+        permission: [
+          PERMISSIONS.chatbot_dashboard.view,
+          "chatbot-dashboard:*",
+        ],
         subItems: [
           {
             id: "ai-chatbox-all-chats",
             label: "All Chats",
             icon: "bot",
             href: "/ai-chatbox",
+            permission: [
+              PERMISSIONS.chatbot_dashboard.view,
+              "chatbot-dashboard:*",
+            ],
           },
           {
             id: "ai-chatbox-knowledge",
             label: "Knowledge",
             icon: "website-cms",
             href: "/ai-chatbox/knowledge",
+            permission: [
+              PERMISSIONS.chatbot_dashboard.view,
+              "chatbot-dashboard:*",
+            ],
           },
           {
             id: "ai-chatbox-campaigns",
             label: "Campaigns",
             icon: "campaigns",
             href: "/ai-chatbox/campaigns",
+            permission: [
+              PERMISSIONS.chatbot_dashboard.view,
+              "chatbot-dashboard:*",
+            ],
           },
         ],
       },

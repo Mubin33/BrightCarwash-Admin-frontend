@@ -4,50 +4,16 @@ import type {
   UpdateHeroSectionRequest,
   SectionSingleResponse,
 } from "@/types/hero";
-import { getAccessToken } from "@/lib/auth-client";
-import { APP_CONFIG } from "@/configs/app.config";
-
-async function fetchFromBackend<T>(
-  url: string,
-  options?: RequestInit,
-): Promise<T> {
-  const token = getAccessToken();
-  const headers: Record<string, string> = {
-    Authorization: `Bearer ${token}`,
-  };
-
-  // Only add Content-Type if the request has a body
-  if (options?.body !== undefined && options.body !== null) {
-    headers["Content-Type"] = "application/json";
-  }
-
-  const res = await fetch(`${APP_CONFIG.API_BASE_URL}${url}`, {
-    ...options,
-    headers: {
-      ...headers,
-      ...options?.headers,
-    },
-  });
-
-  if (!res.ok) throw new Error(`Request failed: ${res.status}`);
-  return res.json();
-}
+import { fetchFromBackend, apiFetch } from "@/lib/api-fetch";
 
 export async function uploadHeroImage(file: File): Promise<string> {
-  const token = getAccessToken();
   const formData = new FormData();
   formData.append("files", file);
 
-  const response = await fetch(
-    `${APP_CONFIG.API_BASE_URL}/admin/files/upload`,
-    {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-      body: formData,
-    },
-  );
+  const response = await apiFetch("/admin/files/upload", {
+    method: "POST",
+    body: formData,
+  });
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
