@@ -17,7 +17,13 @@ export const activityLogApi = createApi({
         queryFn: async (params = { page: 1, limit: 10 }) => {
           try {
             const { data } = await axiosInstance.get<ActivityLogsResponse>(
-              `/admin/activity-log?page=${params.page}&limit=${params.limit}`,
+              "/admin/activity-log",
+              {
+                params: {
+                  page: params.page,
+                  limit: params.limit,
+                },
+              },
             );
             return { data };
           } catch (err) {

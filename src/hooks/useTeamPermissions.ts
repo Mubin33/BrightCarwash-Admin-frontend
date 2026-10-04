@@ -19,6 +19,9 @@ export function useTeamPermissions() {
       roleName?: string,
       permNames?: string[],
     ) => {
+      // Snapshot previous user before any optimistic update to guarantee synchronous rollback on failure
+      const previousUser = currentUser;
+
       // Optimistically update current user's permissions in Redux if their role was edited
       const isCurrentRole =
         currentUser &&
@@ -51,7 +54,9 @@ export function useTeamPermissions() {
             roleName,
           });
           channel.close();
-        } catch {}
+        } catch (e) {
+          console.warn("Failed to broadcast permission sync:", e);
+        }
       }
 
       try {
@@ -67,26 +72,36 @@ export function useTeamPermissions() {
             const profile = await authService.getProfile();
             dispatch(setUser(profile));
           } catch (e) {
-            console.error("Failed to refresh user profile:", e);
+            console.error("Failed to refresh user profile from server:", e);
           }
         } else {
           toast.error(result.message || "Failed to update permissions");
-          // Revert if API returned error
+          // Revert immediately using local snapshot if API returned error
+          if (isCurrentRole && previousUser) {
+            dispatch(setUser(previousUser));
+          }
           try {
             const profile = await authService.getProfile();
             dispatch(setUser(profile));
-          } catch {}
+          } catch (e) {
+            console.error("Failed to re-sync user profile after rejected permission update:", e);
+          }
         }
         return true;
       } catch (err) {
         const error = err as { data?: string };
         console.error("Error updating permissions:", error);
         toast.error(error?.data || "Failed to save permissions");
-        // Revert on failure
+        // Revert immediately using local snapshot to guarantee rollback even if offline
+        if (isCurrentRole && previousUser) {
+          dispatch(setUser(previousUser));
+        }
         try {
           const profile = await authService.getProfile();
           dispatch(setUser(profile));
-        } catch {}
+        } catch (e) {
+          console.error("Failed to re-sync user profile after permission update failure:", e);
+        }
         return false;
       }
     },

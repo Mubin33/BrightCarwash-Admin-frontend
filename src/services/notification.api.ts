@@ -22,7 +22,13 @@ export const notificationApi = createApi({
       queryFn: async (params = { page: 1, limit: 10 }) => {
         try {
           const { data } = await axiosInstance.get<notificationInterfece>(
-            `/admin/notifications/offset-feed?page=${params.page}&limit=${params.limit}`,
+            "/admin/notifications/offset-feed",
+            {
+              params: {
+                page: params.page,
+                limit: params.limit,
+              },
+            },
           );
           return { data };
         } catch (err) {

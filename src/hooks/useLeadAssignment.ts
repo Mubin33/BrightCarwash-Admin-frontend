@@ -3,37 +3,18 @@
 import { useCallback } from "react";
 import { assignLeadToMember } from "@/services/lead-detail.service";
 import { toast } from "react-toastify";
-import type { LeadDetail, ActivityItem } from "@/types/lead-detail";
+import type { LeadDetail } from "@/types/lead-detail";
 
 export function useLeadAssignment(
     leadId: string,
     _currentLead: LeadDetail | null,
-    addLocalActivity: (activity: ActivityItem) => void,
     triggerRefresh: () => void
 ) {
     const handleAssign = useCallback(
-        async (memberId: string | null, memberName: string | null) => {
+        async (memberId: string | null) => {
             try {
                 await assignLeadToMember(leadId, memberId);
                 toast.success(memberId ? "Member assigned successfully" : "Member unassigned successfully");
-
-                const now = new Date();
-                const dateStr = now.toLocaleDateString("en-US", {
-                    day: "numeric",
-                    month: "short",
-                    year: "numeric",
-                });
-                const displayName = memberName || "a team member";
-
-                const newActivity: ActivityItem = {
-                    id: `local_${Date.now()}`,
-                    type: "staff",
-                    title: memberId ? "Lead assigned" : "Lead unassigned",
-                    subtitle: memberId ? `to ${displayName}` : undefined,
-                    user: "You",
-                    date: dateStr,
-                };
-                addLocalActivity(newActivity);
                 triggerRefresh();
             } catch (err) {
                 const error = err as Error;
@@ -41,7 +22,7 @@ export function useLeadAssignment(
                 throw error;
             }
         },
-        [leadId, addLocalActivity, triggerRefresh]
+        [leadId, triggerRefresh]
     );
 
     return { handleAssign };

@@ -1,4 +1,5 @@
 "use client";
+import { getPasswordValidationError } from "@/configs/auth.config";
 
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -21,6 +22,11 @@ export function SetPasswordForm() {
 
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
+        const passwordError = getPasswordValidationError(password);
+        if (passwordError) {
+            toast.error(passwordError);
+            return;
+        }
         if (password !== confirmPassword) {
             toast.error("Passwords do not match");
             return;

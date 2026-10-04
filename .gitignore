@@ -11,6 +11,9 @@
 !.yarn/versions
 
 /markdowns
+upload-issues-to-github.mjs
+upload-qa-issues-to-github.mjs
+codebase-audit-report-2026-09-30 (1).md
 
 # testing
 /coverage

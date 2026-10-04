@@ -1,4 +1,5 @@
 "use client";
+import { getPasswordValidationError } from "@/configs/auth.config";
 
 import { Button } from "@/components/ui/Button";
 import { useChangePasswordMutation } from "@/services/settings.api";
@@ -21,6 +22,50 @@ interface FormErrors {
   old_password?: string;
   new_password?: string;
   confirm_password?: string;
+}
+
+interface PasswordFieldProps {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  show: boolean;
+  setShow: (v: boolean) => void;
+  error?: string;
+  placeholder: string;
+}
+
+function PasswordField({
+  label,
+  value,
+  onChange,
+  show,
+  setShow,
+  error,
+  placeholder,
+}: PasswordFieldProps) {
+  return (
+    <div className="flex flex-col gap-2">
+      <label className={labelClass}>{label}</label>
+      <div className="relative">
+        <input
+          type={show ? "text" : "password"}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={placeholder}
+          className={`${inputClass} ${error ? "border-[#FF4345]" : ""}`}
+        />
+        <button
+          type="button"
+          onClick={() => setShow(!show)}
+          className="absolute right-3 top-1/2 -translate-y-1/2 text-[#777980] hover:text-[#1B1B1B] transition-colors"
+          tabIndex={-1}
+        >
+          {show ? <EyeOff size={18} /> : <Eye size={18} />}
+        </button>
+      </div>
+      {error && <span className={errorClass}>{error}</span>}
+    </div>
+  );
 }
 
 export function SecuritySettings() {
@@ -49,8 +94,11 @@ export function SecuritySettings() {
 
     if (!form.new_password) {
       newErrors.new_password = "New password is required";
-    } else if (form.new_password.length < 8) {
-      newErrors.new_password = "Password must be at least 8 characters";
+    } else {
+      const passwordError = getPasswordValidationError(form.new_password);
+      if (passwordError) {
+        newErrors.new_password = passwordError;
+      }
     }
 
     if (!form.confirm_password) {
@@ -109,47 +157,7 @@ export function SecuritySettings() {
     }
   };
 
-  const PasswordField = ({
-    label,
-    value,
-    onChange,
-    show,
-    setShow,
-    error,
-    placeholder,
-  }: {
-    label: string;
-    value: string;
-    onChange: (v: string) => void;
-    show: boolean;
-    setShow: (v: boolean) => void;
-    error?: string;
-    placeholder: string;
-  }) => (
-    <div className="flex flex-col gap-2">
-      <label className={labelClass}>{label}</label>
-      <div className="relative">
-        <input
-          type={show ? "text" : "password"}
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          placeholder={placeholder}
-          className={`${inputClass} ${error ? "border-[#FF4345]" : ""}`}
-        />
-        <button
-          type="button"
-          onClick={() => setShow(!show)}
-          className="absolute right-3 top-1/2 -translate-y-1/2 text-[#777980] hover:text-[#1B1B1B] transition-colors"
-          tabIndex={-1}
-        >
-          {show ? <EyeOff size={18} /> : <Eye size={18} />}
-        </button>
-      </div>
-      {error && <span className={errorClass}>{error}</span>}
-    </div>
-  );
-
-  return (
+return (
     <div className="p-6 bg-[#F8FAFB] rounded-lg border border-[#DFE1E7] flex flex-col gap-6">
       <div className="flex flex-col gap-4 max-w-md">
         <PasswordField

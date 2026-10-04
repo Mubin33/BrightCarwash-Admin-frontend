@@ -3,12 +3,9 @@
 import { useState, useEffect, useCallback } from "react";
 import {
     getLeadDetail,
-    getLeadActivities,
     deleteLeadNote,
 } from "@/services/lead-detail.service";
 import type { LeadDetail, ActivityItem } from "@/types/lead-detail";
-
-const LOCAL_ACTIVITIES_KEY = (leadId: string) => `leadActivities_${leadId}`;
 
 export function useLeadDetail(leadId: string) {
     const [lead, setLead] = useState<LeadDetail | null>(null);
@@ -16,45 +13,24 @@ export function useLeadDetail(leadId: string) {
     const [initialLoading, setInitialLoading] = useState(true);
     const [refresh, setRefresh] = useState(0);
 
-    // Load local activities from sessionStorage
-    const loadLocalActivities = useCallback((): ActivityItem[] => {
-        try {
-            const stored = sessionStorage.getItem(LOCAL_ACTIVITIES_KEY(leadId));
-            if (stored) {
-                return JSON.parse(stored);
-            }
-        } catch { }
-        return [];
-    }, [leadId]);
-
-    // Save local activities to sessionStorage
-    const saveLocalActivities = useCallback((activities: ActivityItem[]) => {
-        try {
-            sessionStorage.setItem(LOCAL_ACTIVITIES_KEY(leadId), JSON.stringify(activities));
-        } catch { }
-    }, [leadId]);
-
     const fetchData = useCallback(async () => {
-        const [l, a] = await Promise.all([
-            getLeadDetail(leadId),
-            getLeadActivities(leadId),
-        ]);
+        try {
+            const l = await getLeadDetail(leadId);
+            setLead(l);
+            setActivities(l.activities || []);
+        } catch (error) {
+            console.error("Failed to fetch lead details:", error);
+        }
+    }, [leadId]);
 
-
-        const localActivities = loadLocalActivities();
-
-
-        const merged = [...a];
-        localActivities.forEach((localAct) => {
-            if (!merged.some((act) => act.id === localAct.id)) {
-                merged.push(localAct);
-            }
-        });
-
-        merged.sort((x, y) => new Date(y.date).getTime() - new Date(x.date).getTime());
-        setActivities(merged);
-        setLead(l);
-    }, [leadId, loadLocalActivities]);
+    // Clean up any legacy sessionStorage keys from prior client-fabricated activities
+    useEffect(() => {
+        try {
+            sessionStorage.removeItem(`leadActivities_${leadId}`);
+        } catch (e) {
+            console.debug("sessionStorage cleanup skipped:", e);
+        }
+    }, [leadId]);
 
     useEffect(() => {
         // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -92,19 +68,10 @@ export function useLeadDetail(leadId: string) {
         [lead, leadId, fetchData]
     );
 
-    const addLocalActivity = useCallback((activity: ActivityItem) => {
-        const currentLocal = loadLocalActivities();
-        const updated = [activity, ...currentLocal];
-        const unique = updated.filter(
-            (act, index, self) => index === self.findIndex((a) => a.id === act.id)
-        );
-        saveLocalActivities(unique);
-        setActivities((prev) => {
-            const merged = [activity, ...prev];
-            merged.sort((x, y) => new Date(y.date).getTime() - new Date(x.date).getTime());
-            return merged;
-        });
-    }, [loadLocalActivities, saveLocalActivities]);
+    // Kept for backward compatibility; timeline is now purely server-driven per BUG-005
+    const addLocalActivity = useCallback((..._args: unknown[]) => {
+        void _args;
+    }, []);
 
     return {
         lead,

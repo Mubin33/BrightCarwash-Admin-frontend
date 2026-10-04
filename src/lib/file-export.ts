@@ -37,6 +37,54 @@ class FileExportService {
     }
 
     /**
+     * Validate whether a file URL origin is allowed for download.
+     */
+    private isAllowedDownloadHost(urlStr: string): boolean {
+        if (!urlStr) return false;
+        // Relative paths will be resolved to trusted AI_BASE_URL
+        if (!urlStr.startsWith('http://') && !urlStr.startsWith('https://')) {
+            return true;
+        }
+
+        try {
+            const parsed = new URL(urlStr);
+            const host = parsed.hostname.toLowerCase();
+
+            // Trusted pixelstack and amazonaws domains
+            if (host === 'pixelstack.cloud' || host.endsWith('.pixelstack.cloud')) return true;
+            if (host.endsWith('.amazonaws.com')) return true;
+
+            // Check against configured storage / API / AI hosts
+            if (AI_BASE_URL) {
+                try {
+                    const aiHost = new URL(AI_BASE_URL).hostname.toLowerCase();
+                    if (host === aiHost) return true;
+                } catch {
+                    // Ignore invalid URL
+                }
+            }
+            const storageUrl = process.env.NEXT_PUBLIC_STORAGE_URL;
+            if (storageUrl) {
+                try {
+                    const storageHost = new URL(storageUrl).hostname.toLowerCase();
+                    if (host === storageHost) return true;
+                } catch {
+                    // Ignore invalid URL
+                }
+            }
+
+            // Local development hosts
+            if (process.env.NODE_ENV !== 'production' && (host === 'localhost' || host === '127.0.0.1')) {
+                return true;
+            }
+
+            return false;
+        } catch {
+            return false;
+        }
+    }
+
+    /**
      * Get the full URL for a file from AI base URL
      */
     private getFullFileUrl(fileUrl: string): string {
@@ -71,6 +119,13 @@ class FileExportService {
                 return {
                     success: false,
                     message: 'No file URL provided',
+                };
+            }
+
+            if (!this.isAllowedDownloadHost(fileUrl)) {
+                return {
+                    success: false,
+                    message: 'Download blocked: File host is not in the allowed domain list.',
                 };
             }
 

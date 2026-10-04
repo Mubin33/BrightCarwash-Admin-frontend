@@ -3,7 +3,6 @@
 import { filterItemsByPermission } from "@/components/shared/Sidebar";
 import { NAVIGATION_CONFIG } from "@/configs/navigation.config";
 import {
-  isAuthenticated as checkAuth,
   clearTokens,
   setTokens,
 } from "@/lib/auth-client";
@@ -12,13 +11,11 @@ import { useAppDispatch, useAppSelector } from "@/lib/store";
 import * as authService from "@/services/auth.service";
 import {
   clearAuth,
-  initAuth,
-  setLoading,
   setUser,
 } from "@/store/slices/authSlice";
 import type { LoginCredentials } from "@/types/auth";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect } from "react";
+import { useCallback } from "react";
 import { toast } from "react-toastify";
 
 export function useAuth() {
@@ -27,58 +24,6 @@ export function useAuth() {
     (state) => state.auth,
   );
   const router = useRouter();
-
-  useEffect(() => {
-    dispatch(initAuth());
-  }, [dispatch]);
-
-  useEffect(() => {
-    if (checkAuth() && !user) {
-      dispatch(setLoading(true));
-      authService
-        .getProfile()
-        .then((profile) => dispatch(setUser(profile)))
-        .catch(() => {
-          clearTokens();
-          dispatch(clearAuth());
-        });
-    }
-  }, [user, dispatch]);
-
-  // Real-time synchronization across browser tabs and window focus
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-
-    const refreshProfile = async () => {
-      if (checkAuth()) {
-        try {
-          const profile = await authService.getProfile();
-          dispatch(setUser(profile));
-        } catch {}
-      }
-    };
-
-    let channel: BroadcastChannel | null = null;
-    if ("BroadcastChannel" in window) {
-      channel = new BroadcastChannel("auth_permissions_sync");
-      channel.onmessage = () => {
-        refreshProfile();
-      };
-    }
-
-    const handleFocus = () => {
-      refreshProfile();
-    };
-
-    window.addEventListener("focus", handleFocus);
-
-    return () => {
-      window.removeEventListener("focus", handleFocus);
-      if (channel) {
-        channel.close();
-      }
-    };
-  }, [dispatch]);
 
   const login = useCallback(
     async (credentials: LoginCredentials) => {

@@ -129,7 +129,7 @@ export function HeroBackgroundImage({
     setImageErrors((prev) => ({ ...prev, [index]: true }));
   };
 
-  console.log("imageUrls", imageUrls);
+  // console.log("imageUrls", imageUrls);
 
   const isLoading = isUploading || isSaving;
 

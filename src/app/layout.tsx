@@ -4,6 +4,7 @@ import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import './globals.css';
 import { StoreProvider } from '@/app/StoreProvider';
+import { AuthProvider } from '@/providers/AuthProvider';
 import { SocketProvider } from '@/context/SocketContext';
  
 const inter = Inter({
@@ -40,14 +41,16 @@ export default function RootLayout({
         <html lang='en' className={inter.variable}>
             <body className={inter.className}>
                 <StoreProvider>
-                    <SocketProvider>
-                        {children}
-                        <ToastContainer
-                            position='top-right'
-                            autoClose={3000}
-                            hideProgressBar={false}
-                        />
-                    </SocketProvider>
+                    <AuthProvider>
+                        <SocketProvider>
+                            {children}
+                            <ToastContainer
+                                position='top-right'
+                                autoClose={3000}
+                                hideProgressBar={false}
+                            />
+                        </SocketProvider>
+                    </AuthProvider>
                 </StoreProvider>
             </body>
         </html>

@@ -19,7 +19,7 @@ export function useCampaignActions() {
 
     const handleEdit = useCallback(
         (campaign: Campaign) => {
-            console.log("Edit campaign:", campaign.id);
+            // console.log("Edit campaign:", campaign.id);
             router.push(`/campaigns/edit/${campaign.id}`);
         },
         [router]

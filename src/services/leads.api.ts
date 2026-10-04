@@ -180,8 +180,9 @@ export const leadsApi = createApi({
         );
         try {
           await queryFulfilled;
-        } catch {
+        } catch (error) {
           patchResult.undo();
+          console.error("Mutation failed, rolled back optimistic update:", error);
         }
       },
       invalidatesTags: ["Leads"],
@@ -237,8 +238,8 @@ export const leadsApi = createApi({
               },
             ),
           );
-        } catch {
-          /* undo not needed */
+        } catch (error) {
+          console.error("Failed to update leads cache after create:", error);
         }
       },
     }),
@@ -308,8 +309,9 @@ export const leadsApi = createApi({
         );
         try {
           await queryFulfilled;
-        } catch {
+        } catch (error) {
           patchResult.undo();
+          console.error("Mutation failed, rolled back optimistic update:", error);
         }
       },
       invalidatesTags: ["Leads"],
@@ -536,8 +538,9 @@ export const leadsApi = createApi({
         );
         try {
           await queryFulfilled;
-        } catch {
+        } catch (error) {
           patchResult.undo();
+          console.error("Mutation failed, rolled back optimistic update:", error);
         }
       },
       invalidatesTags: ["Leads"],
@@ -552,8 +555,9 @@ export const leadsApi = createApi({
     >({
       queryFn: async ({ groupId, format }) => {
         try {
+          const queryParams = new URLSearchParams({ format }).toString();
           const response = await apiFetch(
-            `/admin/lead-groups/${groupId}/export-leads?format=${format}`,
+            `/admin/lead-groups/${encodeURIComponent(groupId)}/export-leads?${queryParams}`,
             {
               method: "GET",
               headers: {

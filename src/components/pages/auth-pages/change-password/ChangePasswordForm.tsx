@@ -1,4 +1,5 @@
 "use client";
+import { getPasswordValidationError } from "@/configs/auth.config";
 
 import { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
@@ -17,6 +18,11 @@ export function ChangePasswordForm() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    const passwordError = getPasswordValidationError(newPassword);
+    if (passwordError) {
+      toast.error(passwordError);
+      return;
+    }
     if (newPassword !== confirmPassword) {
       toast.error("Passwords do not match");
       return;

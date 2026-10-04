@@ -26,7 +26,9 @@ function getDisplayContent(content: string): string {
             if (parsed && typeof parsed === "object" && parsed.content) {
                 return String(parsed.content);
             }
-        } catch {}
+        } catch {
+            // Graceful fallback: string is not JSON, proceed to regex / plain-text extraction
+        }
     }
     const match = str.match(/^"?content"?\s*:\s*"([^"]*)"?$/i);
     if (match) return match[1];

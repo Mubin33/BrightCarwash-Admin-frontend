@@ -13,7 +13,7 @@ export function useCampaignFilters(campaigns: Campaign[]) {
 
 	const filtered = useMemo(
 		() => {
-			console.log("Filtering campaigns:", campaigns.length);
+			// console.log("Filtering campaigns:", campaigns.length);
 			return campaigns.filter((campaign) => {
 				// Search
 				if (searchQuery) {
@@ -42,18 +42,18 @@ export function useCampaignFilters(campaigns: Campaign[]) {
 	);
 
 	const setSearchQueryMemo = useCallback((value: string) => {
-		console.log("Set search query:", value);
+		// console.log("Set search query:", value);
 		setSearchQuery(value);
 	}, []);
 
 	const setTypeFilterMemo = useCallback((value: CampaignType) => {
-		console.log("Set type filter:", value);
+		// console.log("Set type filter:", value);
 		setTypeFilter(value);
 	}, []);
 
 	const setStatusFilterMemo = useCallback(
 		(value: CampaignStatus | "All") => {
-			console.log("Set status filter:", value);
+			// console.log("Set status filter:", value);
 			setStatusFilter(value);
 		},
 		[]

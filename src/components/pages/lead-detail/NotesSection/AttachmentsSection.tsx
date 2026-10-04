@@ -80,8 +80,39 @@ export function AttachmentsSection({
     onDelete,
     onDownload,
 }: AttachmentsSectionProps) {
-    void onDownload;
     const [isDragging, setIsDragging] = useState(false);
+
+    const handleDownloadClick = (attachment: Attachment) => {
+        if (onDownload) {
+            onDownload(attachment.id);
+            return;
+        }
+
+        // Safe fallback if onDownload is not provided: validate scheme against javascript: or unvalidated protocols
+        if (!attachment.url) {
+            toast.error("Download URL not found");
+            return;
+        }
+
+        try {
+            const parsed = new URL(attachment.url, window.location.origin);
+            if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+                toast.error("Invalid download URL scheme");
+                return;
+            }
+
+            const link = document.createElement("a");
+            link.href = parsed.href;
+            link.download = attachment.fileName || "download";
+            link.target = "_blank";
+            link.rel = "noopener noreferrer";
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        } catch {
+            toast.error("Failed to parse download URL");
+        }
+    };
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const files = e.target.files;
@@ -203,9 +234,7 @@ export function AttachmentsSection({
                             {/* Actions - Download & Delete buttons */}
                             <div className="flex items-center gap-1 shrink-0">
                                 <button
-                                    onClick={() => {
-                                        window.location.href = attachment.url;
-                                    }}
+                                    onClick={() => handleDownloadClick(attachment)}
                                     className="p-2 rounded-lg text-[#777980] hover:bg-[#F8FAFB] hover:text-[#1B1B1B] transition-colors"
                                     aria-label="Download file"
                                 >

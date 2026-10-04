@@ -17,7 +17,6 @@ import { mapStagesToOptions } from "@/lib/stage-utils";
 import type { StageOption } from "@/components/ui/StageDropdown";
 import { toast } from "react-toastify";
 import { EditLeadModal } from "@/components/pages/lead-detail/EditLeadModal";
-import { formatStandardDate } from "@/lib/date-utils";
 
 interface Props {
 	leadId: string;
@@ -34,13 +33,11 @@ export function LeadDetailContent({ leadId }: Props) {
 		initialLoading,
 		triggerRefresh,
 		deleteNote,
-		addLocalActivity,
-	} = useLeadDetail(leadId);
+		} = useLeadDetail(leadId);
 
 	const { handleAssign } = useLeadAssignment(
 		leadId,
 		lead,
-		addLocalActivity,
 		triggerRefresh
 	);
 
@@ -58,15 +55,6 @@ export function LeadDetailContent({ leadId }: Props) {
 		try {
 			await updateLeadDetails(leadId, { deposit_status: newStatus });
 			toast.success(`Deposit status updated to ${newStatus}`);
-			const dateStr = formatStandardDate(new Date());
-			addLocalActivity({
-				id: `local_${Date.now()}`,
-				type: "lead",
-				title: `Deposit status changed to ${newStatus}`,
-				subtitle: "by You",
-				user: "You",
-				date: dateStr,
-			});
 			triggerRefresh();
 		} catch (err) {
 			const error = err as { message?: string };
@@ -79,15 +67,6 @@ export function LeadDetailContent({ leadId }: Props) {
 		try {
 			await updateLeadDetails(leadId, { stage_name: newStage });
 			toast.success(`Stage updated to ${newStage}`);
-			const dateStr = formatStandardDate(new Date());
-			addLocalActivity({
-				id: `local_${Date.now()}`,
-				type: "stage",
-				title: `Stage changed to ${newStage}`,
-				subtitle: "by You",
-				user: "You",
-				date: dateStr,
-			});
 			triggerRefresh();
 		} catch (err) {
 			const error = err as { message?: string };
@@ -113,18 +92,6 @@ export function LeadDetailContent({ leadId }: Props) {
 	const handleUpload = async (files: File[]) => {
 		try {
 			await updateLeadDetails(leadId, { files });
-
-			const now = new Date();
-			const dateStr = formatStandardDate(now);
-			addLocalActivity({
-				id: `local_${Date.now()}`,
-				type: "lead",
-				title: `${files.length} file(s) uploaded`,
-				subtitle: "by You",
-				user: "You",
-				date: dateStr,
-			});
-
 			toast.success(`${files.length} file(s) uploaded successfully`);
 			triggerRefresh();
 		} catch {
@@ -157,17 +124,6 @@ export function LeadDetailContent({ leadId }: Props) {
 				throw new Error(responseData.message || responseData.error || 'Failed to delete attachment');
 			}
 
-
-			const now = new Date();
-			const dateStr = formatStandardDate(now);
-			addLocalActivity({
-				id: `local_${Date.now()}`,
-				type: "lead",
-				title: `File deleted: ${attachment.fileName}`,
-				subtitle: "by You",
-				user: "You",
-				date: dateStr,
-			});
 
 			toast.success(`"${attachment.fileName}" deleted`);
 			triggerRefresh();
@@ -221,18 +177,6 @@ export function LeadDetailContent({ leadId }: Props) {
 
 	const handleEditSave = async (data: Parameters<typeof updateLeadDetails>[1]) => {
 		await updateLeadDetails(leadId, data);
-
-		const now = new Date();
-		const dateStr = formatStandardDate(now);
-		addLocalActivity({
-			id: `local_${Date.now()}`,
-			type: "lead",
-			title: "Lead details updated",
-			subtitle: "by You",
-			user: "You",
-			date: dateStr,
-		});
-
 		triggerRefresh();
 	};
 

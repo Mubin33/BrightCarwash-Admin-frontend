@@ -27,8 +27,22 @@ export const queriesApi = createApi({
         try {
           const search = (params.search ?? "").replace(/^\+/, "");
 
+          const queryParams: Record<string, string | number> = {
+            page: params.page ?? 1,
+            limit: params.limit ?? 10,
+          };
+          if (params.status) {
+            queryParams.status = params.status;
+          }
+          if (search) {
+            queryParams.search = search;
+          }
+
           const { data } = await axiosInstance.get<quoteInterfece>(
-            `/admin/quotes?page=${params.page}&limit=${params.limit}&status=${params.status}&search=${search}`,
+            "/admin/quotes",
+            {
+              params: queryParams,
+            },
           );
 
           return { data };

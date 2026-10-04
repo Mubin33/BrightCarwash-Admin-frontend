@@ -10,6 +10,64 @@ export interface ApiFetchOptions extends RequestInit {
 }
 
 /**
+ * Determines whether the Authorization header should be attached to the target URL.
+ * Only forwards credentials to internal API/AI endpoints and trusted organization origins (*.pixelstack.cloud).
+ * Never forwards admin Bearer tokens to external third-party origins, S3 buckets, or arbitrary hosts.
+ */
+export function isTrustedInternalOrigin(urlStr: string): boolean {
+  if (!urlStr) return false;
+  if (!urlStr.startsWith('http://') && !urlStr.startsWith('https://')) {
+    return true; // Relative URLs resolve to APP_CONFIG.API_BASE_URL
+  }
+
+  try {
+    const targetUrl = new URL(urlStr);
+    const targetHost = targetUrl.hostname.toLowerCase();
+
+    // Check against configured API base URL
+    if (APP_CONFIG.API_BASE_URL) {
+      try {
+        const apiHost = new URL(APP_CONFIG.API_BASE_URL).hostname.toLowerCase();
+        if (targetHost === apiHost || targetHost.endsWith(`.${apiHost}`)) {
+          return true;
+        }
+      } catch {
+        // Ignore invalid configured URL
+      }
+    }
+
+    // Check against configured AI base URL
+    if (APP_CONFIG.AI_BASE_URL) {
+      try {
+        const aiHost = new URL(APP_CONFIG.AI_BASE_URL).hostname.toLowerCase();
+        if (targetHost === aiHost || targetHost.endsWith(`.${aiHost}`)) {
+          return true;
+        }
+      } catch {
+        // Ignore invalid configured URL
+      }
+    }
+
+    // Allow *.pixelstack.cloud domains for all trusted organizational microservices
+    if (targetHost === 'pixelstack.cloud' || targetHost.endsWith('.pixelstack.cloud')) {
+      return true;
+    }
+
+    // Allow localhost/127.0.0.1 in non-production environments
+    if (
+      process.env.NODE_ENV !== 'production' &&
+      (targetHost === 'localhost' || targetHost === '127.0.0.1')
+    ) {
+      return true;
+    }
+
+    return false;
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Creates an AbortSignal that aborts after timeoutMs or when userSignal aborts,
  * and provides a cleanup function to prevent timer/listener leaks.
  */
@@ -62,7 +120,7 @@ export async function apiFetch(
 
   const headers = new Headers(init?.headers);
   const token = getAccessToken();
-  if (token && !headers.has('Authorization')) {
+  if (token && !headers.has('Authorization') && isTrustedInternalOrigin(fullUrl)) {
     headers.set('Authorization', `Bearer ${token}`);
   }
 
@@ -101,7 +159,7 @@ export async function apiFetch(
     fullUrl.includes('/auth/refresh-tokens') ||
     fullUrl.includes('/auth/logout');
 
-  if (response.status === 401 && !isAuthRoute) {
+  if (response.status === 401 && !isAuthRoute && isTrustedInternalOrigin(fullUrl)) {
     try {
       const newAccessToken = await refreshAccessToken();
       headers.set('Authorization', `Bearer ${newAccessToken}`);

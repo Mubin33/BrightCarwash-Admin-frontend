@@ -1,5 +1,7 @@
 "use client";
 
+import { toast } from "react-toastify";
+
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import ChatSessionList from "./ChatSessionList";
 import ChatWindow from "./ChatWindow";
@@ -104,7 +106,10 @@ export default function AiChatbox() {
           ];
         });
         setNextCursor(nextPageCursor);
-      } catch { }
+      } catch (error) {
+        console.error("Failed to load chat users:", error);
+        toast.error("Failed to load chat users");
+      }
     },
     [getUsers],
   );

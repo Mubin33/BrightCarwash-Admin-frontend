@@ -77,7 +77,8 @@ export function useExportExcel<T>({
 			exportToExcel(
 				formattedData as Record<string, unknown>[],
 				columns,
-				`${filename}.${format === 'csv' ? 'csv' : 'xlsx'}`,
+				filename,
+				format,
 			);
 			toast.success(`Exported ${dataToExport.length} ${filename}`);
 		},

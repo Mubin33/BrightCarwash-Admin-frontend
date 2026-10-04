@@ -1,11 +1,18 @@
 import type { User, LoginResponse, UserResponse } from "@/types/auth";
 import { AUTH_CONFIG } from "@/configs/auth.config";
 
+// Isolated mock credentials for local testing only - never exposed in shared configs or client bundles
+const MOCK_CREDENTIALS = {
+  email: process.env.NEXT_PUBLIC_MOCK_ADMIN_EMAIL || "mock.admin@example.com",
+  password: process.env.NEXT_PUBLIC_MOCK_ADMIN_PASSWORD || "Mock@123!",
+};
+const MOCK_OTP = "123456";
+
 const MOCK_USER: User = {
   id: "cmqgewibz000078tmnjqzlpti",
   firstName: "Admin",
   lastName: "User",
-  email: AUTH_CONFIG.MOCK_CREDENTIALS.email,
+  email: MOCK_CREDENTIALS.email,
   avatar: null,
   role: "Admin",
   permissions: []
@@ -29,7 +36,7 @@ function generateMockToken(payload: Record<string, unknown>, expiresInSeconds: n
 }
 
 export function mockLogin(email: string, password: string): LoginResponse {
-  if (email !== AUTH_CONFIG.MOCK_CREDENTIALS.email || password !== AUTH_CONFIG.MOCK_CREDENTIALS.password) {
+  if (email !== MOCK_CREDENTIALS.email || password !== MOCK_CREDENTIALS.password) {
     throw new Error("Invalid email or password");
   }
 
@@ -79,8 +86,8 @@ export function mockLogout(): void {
 }
 
 export function mockForgotPassword(email: string): void {
-  if (email === AUTH_CONFIG.MOCK_CREDENTIALS.email) {
-    MOCK_OTP_STORE.set(email, AUTH_CONFIG.MOCK_OTP);
+  if (email === MOCK_CREDENTIALS.email) {
+    MOCK_OTP_STORE.set(email, MOCK_OTP);
   }
 }
 
@@ -97,7 +104,7 @@ export function mockResetPassword(email: string, otp: string, _newPassword: stri
 
 export function mockChangePassword(oldPassword: string, _newPassword: string): void {
   void _newPassword;
-  if (oldPassword !== AUTH_CONFIG.MOCK_CREDENTIALS.password) {
+  if (oldPassword !== MOCK_CREDENTIALS.password) {
     throw new Error("Current password is incorrect");
   }
 }

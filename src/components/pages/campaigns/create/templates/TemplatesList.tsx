@@ -105,9 +105,9 @@ export function TemplatesList({ onTemplateSelect }: TemplatesListProps) {
         );
     }
 
-    console.log("editorTypes", editorTypes);
+    // console.log("editorTypes", editorTypes);
 
-    console.log("templates", templates);
+    // console.log("templates", templates);
 
     
 

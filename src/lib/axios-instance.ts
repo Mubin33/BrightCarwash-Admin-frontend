@@ -2,6 +2,7 @@ import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
 import { APP_CONFIG } from '@/configs/app.config';
 import { getAccessToken } from '@/lib/auth-client';
 import { refreshAccessToken } from '@/lib/token-refresh';
+import { isTrustedInternalOrigin } from '@/lib/api-fetch';
 
 export const DEFAULT_REQUEST_TIMEOUT = 30000; // 30 seconds default
 export const UPLOAD_REQUEST_TIMEOUT = 120000; // 2 minutes for file uploads
@@ -16,7 +17,13 @@ const axiosInstance = axios.create({
 axiosInstance.interceptors.request.use(
 	(config: InternalAxiosRequestConfig) => {
 		const token = getAccessToken();
-		if (token && config.headers) {
+		const targetUrl = config.url
+			? config.baseURL && !config.url.startsWith('http://') && !config.url.startsWith('https://')
+				? `${config.baseURL.replace(/\/$/, '')}/${config.url.replace(/^\//, '')}`
+				: config.url
+			: '';
+
+		if (token && config.headers && isTrustedInternalOrigin(targetUrl)) {
 			config.headers.Authorization = `Bearer ${token}`;
 		}
 		if (config.data instanceof FormData) {

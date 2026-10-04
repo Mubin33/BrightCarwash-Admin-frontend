@@ -184,8 +184,12 @@ export function useGroupsData() {
           return [];
         }
 
-        const url = `/admin/lead-groups/${groupId}/leads?page=${page}&limit=${limit}`;
-        const res = await axiosInstance.get(url);
+        const res = await axiosInstance.get(
+          `/admin/lead-groups/${encodeURIComponent(groupId)}/leads`,
+          {
+            params: { page, limit },
+          },
+        );
 
         const leadsData = res.data?.data?.leads || [];
         const meta = res.data?.data?.meta;

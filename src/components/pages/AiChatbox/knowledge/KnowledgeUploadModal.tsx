@@ -13,6 +13,34 @@ interface KnowledgeUploadModalProps {
     isUploading: boolean;
 }
 
+const VALID_EXTENSIONS = [
+    '.pdf',
+    '.docx',
+    '.doc',
+    '.txt',
+    '.csv',
+    '.xlsx',
+    '.xls',
+];
+
+const VALID_MIME_TYPES = [
+    'application/pdf',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'application/msword',
+    'text/plain',
+    'text/csv',
+    'application/csv',
+    'text/x-csv',
+    'application/x-csv',
+    'text/comma-separated-values',
+    'text/x-comma-separated-values',
+    'application/vnd.ms-excel',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+];
+
+const ACCEPTED_FILE_TYPES = VALID_EXTENSIONS.join(',');
+const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100MB
+
 export function KnowledgeUploadModal({
     isOpen,
     onClose,
@@ -36,24 +64,16 @@ export function KnowledgeUploadModal({
     }, [isOpen]);
 
     const handleFileSelect = (file: File) => {
-        const validTypes = [
-            'application/pdf',
-            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-            'application/msword',
-            'text/plain',
-            'text/csv',
-            'application/vnd.ms-excel',
-            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        ];
+        const fileExt = '.' + (file.name.split('.').pop()?.toLowerCase() || '');
+        const hasValidExt = VALID_EXTENSIONS.includes(fileExt);
+        const hasValidMime = file.type ? VALID_MIME_TYPES.includes(file.type.toLowerCase()) : false;
 
-        const maxSize = 100 * 1024 * 1024; // 100MB
-
-        if (!validTypes.includes(file.type)) {
+        if (!hasValidExt && !hasValidMime) {
             toast.error('Please upload a valid file type (PDF, DOCX, TXT, CSV, Excel)');
             return;
         }
 
-        if (file.size > maxSize) {
+        if (file.size > MAX_FILE_SIZE) {
             toast.error('File size must be less than 100MB');
             return;
         }
@@ -170,13 +190,13 @@ export function KnowledgeUploadModal({
                                         Drag and drop a file here
                                     </span>
                                     <span className="text-zinc-500 text-sm font-normal font-['Inter'] leading-5">
-                                        PDF, DOCX, TXT, CSV, Excel - max 100MB
+                                        PDF, DOCX, TXT, CSV, Excel - max 10MB
                                     </span>
                                 </div>
                                 <input
                                     ref={fileInputRef}
                                     type="file"
-                                    accept=".pdf,.docx,.doc,.txt,.csv,.xlsx,.xls"
+                                    accept={ACCEPTED_FILE_TYPES}
                                     onChange={handleFileChange}
                                     className="hidden"
                                     disabled={isUploading}

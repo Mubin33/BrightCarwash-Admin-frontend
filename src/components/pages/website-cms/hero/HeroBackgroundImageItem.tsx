@@ -37,7 +37,7 @@ export function HeroBackgroundImageItem({
 
   const handleRemove = (e: React.MouseEvent) => {
     e.stopPropagation();
-    console.log(`🗑️ Removing image ${index}`);
+    // console.log(`🗑️ Removing image ${index}`);
     onRemove(index);
   };
 
@@ -47,7 +47,7 @@ export function HeroBackgroundImageItem({
   };
 
   const handleLoad = () => {
-    console.log(`✅ Image ${index} loaded successfully:`, fullUrl);
+    // console.log(`✅ Image ${index} loaded successfully:`, fullUrl);
   };
 
   return (
