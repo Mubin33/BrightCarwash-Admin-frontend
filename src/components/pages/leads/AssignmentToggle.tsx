@@ -2,6 +2,7 @@
 
 import { useRef, useEffect, useState } from 'react';
 import { Button } from '@/components/ui/Button';
+import { PERMISSIONS } from '@/lib/permissions';
 
 type LeadType = 'all' | 'mine';
 
@@ -49,6 +50,7 @@ export function AssignmentToggle({ leadType, onChange }: AssignmentToggleProps) 
             <Button
                 variant="icon"
                 onClick={() => onChange('all')}
+                permission={PERMISSIONS.lead.view_all}
                 className={`relative z-10 flex py-2 px-3 justify-center items-center gap-1 rounded-md text-sm font-inter transition-colors duration-200 whitespace-nowrap w-auto! ${leadType === 'all' ? 'text-white' : 'text-[#1B1B1B]'}`}
             >
                 All Leads

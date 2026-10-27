@@ -170,7 +170,24 @@ export function LeadDetailContent({ leadId }: Props) {
 
 			toast.success(`Downloading ${fileName}`);
 		} catch (err) {
-        const error = err as { data?: { message?: string }; message?: string };
+			// A-H5 Fallback: Cross-origin storage reads may be blocked by CORS in the browser.
+			// Trigger direct browser navigation/download so the storage URL can be fetched directly.
+			const attachment = lead?.attachments?.find((a) => a.id === attachmentId);
+			if (attachment?.url) {
+				try {
+					const directLink = document.createElement('a');
+					directLink.href = attachment.url;
+					directLink.target = '_blank';
+					directLink.rel = 'noopener noreferrer';
+					directLink.download = attachment.fileName || 'download';
+					document.body.appendChild(directLink);
+					directLink.click();
+					document.body.removeChild(directLink);
+					toast.success(`Downloading ${attachment.fileName || 'attachment'}`);
+					return;
+				} catch {}
+			}
+			const error = err as { data?: { message?: string }; message?: string };
 			toast.error(error.message || 'Failed to download file');
 		}
 	};

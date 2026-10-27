@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { store, useAppDispatch, useAppSelector } from "@/lib/store";
+import { resetAllApiCaches, store, useAppDispatch, useAppSelector } from "@/lib/store";
 import { initAuth, setLoading, setUser, clearAuth } from "@/store/slices/authSlice";
 import { isAuthenticated as checkAuth, clearTokens } from "@/lib/auth-client";
 import * as authService from "@/services/auth.service";
@@ -27,9 +27,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .then((profile) => {
           dispatch(setUser(profile));
         })
-        .catch(() => {
-          clearTokens();
-          dispatch(clearAuth());
+        .catch((error) => {
+          const status = (error as { response?: { status?: number } })?.response?.status;
+          if (status === 401 || status === 403) {
+            clearTokens();
+            try {
+              sessionStorage.clear();
+            } catch {
+              // Ignore if sessionStorage is not accessible
+            }
+            resetAllApiCaches(dispatch);
+            dispatch(clearAuth());
+          } else {
+            console.warn("Transient error fetching initial user profile:", error);
+            dispatch(setLoading(false));
+          }
         });
     }
   }, [user, dispatch]);
@@ -62,7 +74,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     let channel: BroadcastChannel | null = null;
     if ("BroadcastChannel" in window) {
       channel = new BroadcastChannel("auth_permissions_sync");
-      channel.onmessage = () => {
+      channel.onmessage = (event: MessageEvent) => {
+        if (event.data === "logout") {
+          clearTokens();
+          try {
+            sessionStorage.clear();
+          } catch {
+            // Ignore if sessionStorage is not accessible
+          }
+          resetAllApiCaches(dispatch);
+          dispatch(clearAuth());
+          window.location.assign("/login");
+          return;
+        }
         // Immediate refresh when permissions change across tabs
         refreshProfile(true);
       };

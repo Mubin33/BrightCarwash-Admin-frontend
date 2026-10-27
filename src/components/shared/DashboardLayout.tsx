@@ -41,7 +41,7 @@ function DashboardContentSkeleton() {
 
 export function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { isAuthenticated, isLoading } = useAppSelector((state) => state.auth);
+  const { isAuthenticated, isLoading, user } = useAppSelector((state) => state.auth);
   const router = useRouter();
 
   // Redirect to login if user is definitely unauthenticated
@@ -67,7 +67,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
       <div className="lg:pl-[250px]">
         <Navbar onMenuClick={() => setSidebarOpen(true)} />
         <main className="p-3 sm:p-4 lg:p-6 bg-white">
-          {isLoading || !isAuthenticated ? (
+          {isLoading || !isAuthenticated || !user ? (
             <DashboardContentSkeleton />
           ) : (
             <PermissionGuard>

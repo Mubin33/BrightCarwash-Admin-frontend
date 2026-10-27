@@ -8,6 +8,7 @@ import { useCreateNewsMutation, useUpdateNewsMutation } from '@/services/news.ap
 import { useGetCategoriesQuery } from '@/services/category.api';
 import type { NewsItem } from '@/types/news';
 import { toast } from 'react-toastify';
+import { validateImageFile, IMAGE_ACCEPT } from '@/lib/file-validation';
 
 interface NewsModalProps {
     isOpen: boolean;
@@ -81,6 +82,12 @@ export function NewsModal({ isOpen, onClose, item, onSuccess }: NewsModalProps) 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const selectedFile = e.target.files?.[0];
         if (selectedFile) {
+            const validation = validateImageFile(selectedFile);
+            if (!validation.isValid) {
+                toast.error(validation.error);
+                e.target.value = '';
+                return;
+            }
             setFile(selectedFile);
             const reader = new FileReader();
             reader.onloadend = () => setPreview(reader.result as string);
@@ -91,7 +98,12 @@ export function NewsModal({ isOpen, onClose, item, onSuccess }: NewsModalProps) 
     const handleDrop = (e: React.DragEvent) => {
         e.preventDefault();
         const droppedFile = e.dataTransfer.files?.[0];
-        if (droppedFile && droppedFile.type.startsWith('image/')) {
+        if (droppedFile) {
+            const validation = validateImageFile(droppedFile);
+            if (!validation.isValid) {
+                toast.error(validation.error);
+                return;
+            }
             setFile(droppedFile);
             const reader = new FileReader();
             reader.onloadend = () => setPreview(reader.result as string);
@@ -220,7 +232,7 @@ export function NewsModal({ isOpen, onClose, item, onSuccess }: NewsModalProps) 
                                         </p>
                                     </div>
                                 )}
-                                <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileChange} className="hidden" />
+                                <input ref={fileInputRef} type="file" accept={IMAGE_ACCEPT} onChange={handleFileChange} className="hidden" />
                             </div>
                         </div>
 

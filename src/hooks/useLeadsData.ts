@@ -12,7 +12,6 @@ import {
 import { getStages } from "@/services/stage.service";
 import type { Lead } from "@/types/leads";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useSelector } from "react-redux";
 import { toast } from "react-toastify";
 
 const ITEMS_PER_PAGE = 10;
@@ -29,13 +28,14 @@ export function useLeadsData(
   const [depositFilter, setDepositFilter] = useState("");
   const [searchSubmitted, setSearchSubmitted] = useState(false);
 
-  const currentUser = useSelector(
-    (state: { auth: { user: { id: string } | null } }) => state.auth.user,
-  );
-  const assignedToId =
-    leadType === "mine" && currentUser?.id ? currentUser.id : undefined;
-
+  const isAssignedToMe = leadType === "mine";
   const limit = kanbanLimit || ITEMS_PER_PAGE;
+
+  const [prevLeadType, setPrevLeadType] = useState(leadType);
+  if (leadType !== prevLeadType) {
+    setPrevLeadType(leadType);
+    setCurrentPage(1);
+  }
 
   const {
     data: paginatedData,
@@ -53,7 +53,7 @@ export function useLeadsData(
       source: sourceFilter || undefined,
       priority: priorityFilter || undefined,
       depositStatus: depositFilter || undefined,
-      assignedToId,
+      isAssignedToMe,
     },
     {
       refetchOnMountOrArgChange: true,
@@ -116,7 +116,7 @@ export function useLeadsData(
     sourceFilter,
     priorityFilter,
     depositFilter,
-    assignedToId,
+    isAssignedToMe,
     limit,
     refetch,
   ]);

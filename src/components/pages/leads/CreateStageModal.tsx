@@ -7,6 +7,7 @@ import Image from "next/image";
 import { useState } from "react";
 import { HexColorPicker } from "react-colorful";
 import { toast } from "react-toastify";
+import { validateImageFile, IMAGE_ACCEPT } from "@/lib/file-validation";
 
 interface CreateStageModalProps {
   isOpen: boolean;
@@ -29,14 +30,22 @@ export function CreateStageModal({
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selected = e.target.files?.[0] || null;
-    setFile(selected);
     if (selected) {
+      const validation = validateImageFile(selected);
+      if (!validation.isValid) {
+        toast.error(validation.error);
+        e.target.value = "";
+        return;
+      }
+      setFile(selected);
       const reader = new FileReader();
       reader.onloadend = () => setFilePreview(reader.result as string);
       reader.readAsDataURL(selected);
     } else {
+      setFile(null);
       setFilePreview(null);
     }
+    e.target.value = "";
   };
 
   const removeFile = () => {
@@ -211,11 +220,11 @@ export function CreateStageModal({
                 Upload icon image
               </span>
               <span className="text-xs text-[#A5A5AB] font-inter">
-                SVG, PNG or JPG
+                PNG, JPG or WebP
               </span>
               <input
                 type="file"
-                accept="image/*"
+                accept={IMAGE_ACCEPT}
                 onChange={handleFileChange}
                 className="hidden"
               />

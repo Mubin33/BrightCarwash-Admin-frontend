@@ -2,7 +2,7 @@
 
 import { SettingsTabs } from "./SettingsTabs";
 import { ProfileSettings } from "./ProfileSettings";
-// import { BusinessSettings } from "./BusinessSettings";
+import { BusinessSettings } from "./BusinessSettings";
 import { SecuritySettings } from "./SecuritySettings";
 import type { SettingsTab } from "@/types/settings";
 import BusinessHours from "../website-cms/BusinessHours/BusinessHours";
@@ -19,7 +19,7 @@ export function SettingsContent({ profile, business, security, businessHours }: 
         ? "profile"
         : security
         ? "security"
-        : businessHours || business
+        : businessHours
         ? "business-hours"
         : "profile";
 

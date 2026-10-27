@@ -59,7 +59,10 @@ export function StepTwoActions({
 	const [isScheduling, setIsScheduling] = useState(false);
 	const [isSavingDraft, setIsSavingDraft] = useState(false);
 	const [scheduleModalOpen, setScheduleModalOpen] = useState(false);
+	const [createdCampaignId, setCreatedCampaignId] = useState<string | null>(null);
 
+	const isActionInProgress = isSending || isScheduling || isSavingDraft;
+	const activeCampaignId = campaignId || createdCampaignId;
 
 	const buildPayload = (overrides: Partial<CreateCampaignRequest> = {}): CreateCampaignRequest => ({
 		name: campaignData?.name || '',
@@ -71,6 +74,8 @@ export function StepTwoActions({
 	});
 
 	const handleSendNow = async () => {
+		if (isActionInProgress) return;
+
 		const token = getAccessToken();
 		if (!token) {
 			toast.error('Please login to continue');
@@ -90,16 +95,18 @@ export function StepTwoActions({
 
 		setIsSending(true);
 		try {
-			let campaign;
-			if (isEdit && campaignId) {
-				campaign = await updateCampaign({
-					id: campaignId,
+			let targetId = activeCampaignId;
+			if (targetId) {
+				await updateCampaign({
+					id: targetId,
 					data: buildPayload({ scheduledAt: null })
 				}).unwrap();
 			} else {
-				campaign = await createCampaign(buildPayload({ scheduledAt: null })).unwrap();
+				const created = await createCampaign(buildPayload({ scheduledAt: null })).unwrap();
+				targetId = created.id;
+				setCreatedCampaignId(created.id);
 			}
-			await launchCampaign(campaign.id).unwrap();
+			await launchCampaign(targetId).unwrap();
 			toast.success('Campaign sent successfully!');
 			sessionStorage.removeItem('campaign_creation_draft');
 			dispatch(resetCampaignCreation());
@@ -118,6 +125,8 @@ export function StepTwoActions({
 	};
 
 	const handleScheduleCampaign = async (scheduledAt: string) => {
+		if (isActionInProgress) return;
+
 		const token = getAccessToken();
 		if (!token) {
 			toast.error("Please login to continue");
@@ -137,16 +146,18 @@ export function StepTwoActions({
 
 		setIsScheduling(true);
 		try {
-			let campaign;
-			if (isEdit && campaignId) {
-				campaign = await updateCampaign({
-					id: campaignId,
+			let targetId = activeCampaignId;
+			if (targetId) {
+				await updateCampaign({
+					id: targetId,
 					data: buildPayload({ scheduledAt })
 				}).unwrap();
 			} else {
-				campaign = await createCampaign(buildPayload({ scheduledAt })).unwrap();
+				const created = await createCampaign(buildPayload({ scheduledAt })).unwrap();
+				targetId = created.id;
+				setCreatedCampaignId(created.id);
 			}
-			await launchCampaign(campaign.id).unwrap();
+			await launchCampaign(targetId).unwrap();
 			toast.success(`Campaign scheduled for ${new Date(scheduledAt).toLocaleString()}`);
 			sessionStorage.removeItem('campaign_creation_draft');
 			dispatch(resetCampaignCreation());
@@ -160,6 +171,8 @@ export function StepTwoActions({
 	};
 
 	const handleSaveDraft = async () => {
+		if (isActionInProgress) return;
+
 		const token = getAccessToken();
 		if (!token) {
 			toast.error('Please login to continue');
@@ -174,14 +187,16 @@ export function StepTwoActions({
 
 		setIsSavingDraft(true);
 		try {
-			if (isEdit && campaignId) {
+			const targetId = activeCampaignId;
+			if (targetId) {
 				await updateCampaign({
-					id: campaignId,
+					id: targetId,
 					data: buildPayload({ scheduledAt: null })
 				}).unwrap();
 				toast.success('Campaign updated as draft!');
 			} else {
-				await createCampaign(buildPayload({ scheduledAt: null })).unwrap();
+				const created = await createCampaign(buildPayload({ scheduledAt: null })).unwrap();
+				setCreatedCampaignId(created.id);
 				toast.success('Campaign saved as draft!');
 			}
 			sessionStorage.removeItem('campaign_creation_draft');
@@ -207,9 +222,9 @@ export function StepTwoActions({
 				onClick={handleSendNow}
 				isLoading={isSending}
 				loadingText='Sending...'
-				permission={PERMISSIONS.campaign.create}
+				permission={PERMISSIONS.campaign.launch}
 				className='flex py-2.5 px-4 items-center gap-2 rounded bg-[#0098E8] text-white font-inter text-sm hover:bg-[#0088D8] transition-colors w-auto!'
-				disabled={!allFilled}
+				disabled={!allFilled || isActionInProgress}
 			>
 				<Send size={16} />
 				Send now
@@ -219,9 +234,9 @@ export function StepTwoActions({
 				isLoading={isScheduling}
 				loadingText='Scheduling...'
 				variant='outline'
-				permission={PERMISSIONS.campaign.create}
+				permission={PERMISSIONS.campaign.launch}
 				className='flex py-2.5 px-4 items-center gap-2 rounded border border-[#DFE1E7] text-[#1B1B1B] font-inter text-sm hover:bg-[#F8FAFB] transition-colors w-auto!'
-				disabled={!allFilled}
+				disabled={!allFilled || isActionInProgress}
 			>
 				<Calendar size={16} />
 				Schedule for later
@@ -233,10 +248,10 @@ export function StepTwoActions({
 				variant='outline'
 				permission={PERMISSIONS.campaign.create}
 				className='flex py-2.5 px-4 items-center gap-2 rounded border border-[#DFE1E7] text-[#1B1B1B] font-inter text-sm hover:bg-[#F8FAFB] transition-colors w-auto!'
-				disabled={disableSaveDraft}
+				disabled={disableSaveDraft || isActionInProgress}
 			>
 				<Save size={16} />
-				{isEdit ? 'Update Draft' : 'Save as Draft'}
+				{isEdit || createdCampaignId ? 'Update Draft' : 'Save as Draft'}
 			</Button>
 
 			<ScheduleModal

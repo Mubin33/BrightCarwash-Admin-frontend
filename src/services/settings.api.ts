@@ -112,30 +112,38 @@ export const settingsApi = createApi({
                             tagline: content.tagline || '',
                         },
                     };
-                } catch {
-
+                } catch (err) {
+                    const error = err as { response?: { data?: { message?: string }; status?: number }; message?: string };
+                    const message = error?.response?.data?.message || error?.message || 'Failed to load business profile';
                     return {
-                        data: { logo: null, business_name: '', tagline: '' },
+                        error: {
+                            status: error?.response?.status || 500,
+                            data: message,
+                        },
                     };
                 }
             },
             providesTags: ['BusinessProfile'],
         }),
 
-        updateBusinessProfile: builder.mutation<null, BusinessProfileData>({
+        updateBusinessProfile: builder.mutation<null, Partial<BusinessProfileData>>({
             queryFn: async (payload) => {
                 try {
+                    const content: Record<string, unknown> = {
+                        logo: payload.logo ?? null,
+                        business_name: payload.business_name || '',
+                        tagline: payload.tagline || '',
+                    };
+
                     await axiosInstance.patch('/admin/sections/business_profile', {
                         section_type: 'business_profile',
-                        content: {
-                            logo: payload.logo,
-                            business_name: payload.business_name,
-                            tagline: payload.tagline,
-                        },
+                        content,
                     });
                     return { data: null };
-                } catch {
-                    return { error: { status: 500, data: 'Update failed' } };
+                } catch (err) {
+                    const error = err as { response?: { data?: { message?: string }; status?: number }; message?: string };
+                    const message = error?.response?.data?.message || error?.message || 'Update failed';
+                    return { error: { status: error?.response?.status || 500, data: message } };
                 }
             },
             invalidatesTags: ['BusinessProfile'],

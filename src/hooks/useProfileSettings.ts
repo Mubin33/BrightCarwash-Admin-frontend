@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useEffect, useRef } from "react";
 import { toast } from "react-toastify";
+import { validateAvatarFile } from "@/lib/file-validation";
 import {
   useUpdateProfileMutation,
   useGetProfileQuery,
@@ -67,6 +68,11 @@ export function useProfileSettings(initialData: ProfileFormData) {
   }, []);
 
   const handleAvatarUpload = useCallback((file: File) => {
+    const validation = validateAvatarFile(file);
+    if (!validation.isValid) {
+      toast.error(validation.error);
+      return;
+    }
     setAvatarFile(file);
     setAvatarPreview(URL.createObjectURL(file));
   }, []);

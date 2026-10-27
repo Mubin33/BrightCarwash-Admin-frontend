@@ -141,24 +141,6 @@ export const queriesApi = createApi({
       keepUnusedDataFor: 60,
     }),
 
-    sendEmail: builder.mutation<{ success: boolean; message?: string }, { id: string }>({
-      queryFn: async ({ id }: { id: string }) => {
-        try {
-          const { data } = await axiosInstance.post<{ success: boolean; message?: string }>(
-            `/admin/quotes/${id}/send-email`,
-          );
-          return { data };
-        } catch (err) {
-          const error = err as { response?: { data?: { message?: string }; status?: number } };
-          return {
-            error: {
-              status: error?.response?.status || 500,
-              data: error?.response?.data?.message || "Failed to send email",
-            },
-          };
-        }
-      },
-    }),
   }),
 });
 
@@ -167,5 +149,4 @@ export const {
   useUpdateStatusMutation,
   useDeleteQuoteMutation,
   useQueriesDetailQuery,
-  useSendEmailMutation,
 } = queriesApi;

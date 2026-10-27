@@ -35,20 +35,22 @@ export default function Notification() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  useEffect(() => {
-    if (!socket) return;
-    socket.on('new_in_app_notification', () => {
-      setCount((prev: number) => prev + 1);
-    });
-    return () => {
-      socket.off('new_in_app_notification');
-    };
-  }, [socket]);
-
-  const { data } = useGetNotificationQuery({
+  const { data, refetch } = useGetNotificationQuery({
     page: 1,
     limit: 5,
   } as GetNotificationParams);
+
+  useEffect(() => {
+    if (!socket) return;
+    const handleNewNotification = () => {
+      setCount((prev: number) => prev + 1);
+      refetch();
+    };
+    socket.on('new_in_app_notification', handleNewNotification);
+    return () => {
+      socket.off('new_in_app_notification', handleNewNotification);
+    };
+  }, [socket, refetch]);
   const notifications = data?.data?.items || [];
 
   const [readAll] = useReadAllNotificationMutation();

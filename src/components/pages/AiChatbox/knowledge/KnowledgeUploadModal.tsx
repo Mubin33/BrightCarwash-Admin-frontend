@@ -5,6 +5,10 @@ import { Button } from '@/components/ui/Button';
 import { Icon } from '@/components/ui/Icon';
 import { toast } from 'react-toastify';
 import { X } from 'lucide-react';
+import {
+    validateKnowledgeFile,
+    KNOWLEDGE_FILE_ACCEPT,
+} from '@/lib/file-validation';
 
 interface KnowledgeUploadModalProps {
     isOpen: boolean;
@@ -13,33 +17,7 @@ interface KnowledgeUploadModalProps {
     isUploading: boolean;
 }
 
-const VALID_EXTENSIONS = [
-    '.pdf',
-    '.docx',
-    '.doc',
-    '.txt',
-    '.csv',
-    '.xlsx',
-    '.xls',
-];
 
-const VALID_MIME_TYPES = [
-    'application/pdf',
-    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-    'application/msword',
-    'text/plain',
-    'text/csv',
-    'application/csv',
-    'text/x-csv',
-    'application/x-csv',
-    'text/comma-separated-values',
-    'text/x-comma-separated-values',
-    'application/vnd.ms-excel',
-    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-];
-
-const ACCEPTED_FILE_TYPES = VALID_EXTENSIONS.join(',');
-const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100MB
 
 export function KnowledgeUploadModal({
     isOpen,
@@ -64,17 +42,9 @@ export function KnowledgeUploadModal({
     }, [isOpen]);
 
     const handleFileSelect = (file: File) => {
-        const fileExt = '.' + (file.name.split('.').pop()?.toLowerCase() || '');
-        const hasValidExt = VALID_EXTENSIONS.includes(fileExt);
-        const hasValidMime = file.type ? VALID_MIME_TYPES.includes(file.type.toLowerCase()) : false;
-
-        if (!hasValidExt && !hasValidMime) {
-            toast.error('Please upload a valid file type (PDF, DOCX, TXT, CSV, Excel)');
-            return;
-        }
-
-        if (file.size > MAX_FILE_SIZE) {
-            toast.error('File size must be less than 100MB');
+        const validation = validateKnowledgeFile(file);
+        if (!validation.isValid) {
+            toast.error(validation.error || 'Invalid file');
             return;
         }
 
@@ -196,7 +166,7 @@ export function KnowledgeUploadModal({
                                 <input
                                     ref={fileInputRef}
                                     type="file"
-                                    accept={ACCEPTED_FILE_TYPES}
+                                    accept={KNOWLEDGE_FILE_ACCEPT}
                                     onChange={handleFileChange}
                                     className="hidden"
                                     disabled={isUploading}

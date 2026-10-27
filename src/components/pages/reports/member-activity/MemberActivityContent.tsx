@@ -50,7 +50,7 @@ export function MemberActivityContent({ startDate, endDate }: Props) {
     // Prepare data for export with proper formatting
     const exportData = useMemo(() => {
         return tableDataArray.map((row) => {
-            const rowData: Record<string, any> = {
+            const rowData: Record<string, unknown> = {
                 firstName: row.firstName || '',
                 lastName: row.lastName || '',
                 role: row.role && row.role.length > 0 ? row.role.join(', ') : '—',

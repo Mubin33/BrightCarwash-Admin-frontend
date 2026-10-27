@@ -1,9 +1,5 @@
 import { APP_CONFIG } from '@/configs/app.config';
 import type { Template } from '@/types/template';
-import {
-	mockSavedTemplates,
-	mockCampaignTemplates,
-} from '@/mocks/template.mock';
 import axiosInstance from '@/lib/axios-instance';
 
 function delay(ms: number): Promise<void> {
@@ -30,8 +26,9 @@ function transformTemplate(apiTemplate: Template): Template {
 }
 
 export async function getSavedTemplates(): Promise<Template[]> {
-	if (APP_CONFIG.MOCK_MODE || APP_CONFIG.DASHBOARD_MOCK) {
+	if (process.env.NODE_ENV !== "production" && (APP_CONFIG.MOCK_MODE || APP_CONFIG.DASHBOARD_MOCK)) {
 		await delay(APP_CONFIG.MOCK_DELAY_MS);
+		const { mockSavedTemplates } = await import('@/mocks/template.mock');
 		const stored = typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('savedTemplates') || '[]') : [];
 		return [...mockSavedTemplates, ...stored];
 	}
@@ -51,8 +48,9 @@ export async function getSavedTemplates(): Promise<Template[]> {
 }
 
 export async function getCampaignTemplates(): Promise<Template[]> {
-	if (APP_CONFIG.MOCK_MODE || APP_CONFIG.DASHBOARD_MOCK) {
+	if (process.env.NODE_ENV !== "production" && (APP_CONFIG.MOCK_MODE || APP_CONFIG.DASHBOARD_MOCK)) {
 		await delay(APP_CONFIG.MOCK_DELAY_MS);
+		const { mockCampaignTemplates } = await import('@/mocks/template.mock');
 		return [...mockCampaignTemplates];
 	}
 	try {

@@ -8,8 +8,16 @@ export const PERMISSIONS = {
   chatbot: {
     view: "chatbot-dashboard:view" as const,
   },
+  chatbot_campaign: {
+    read: "chatbot_campaign:read" as const,
+    create: "chatbot_campaign:create" as const,
+    update: "chatbot_campaign:update" as const,
+    delete: "chatbot_campaign:delete" as const,
+    change_status: "chatbot_campaign:change_status" as const,
+  },
   lead: {
     read: "lead:read" as const,
+    view_all: "lead:view_all" as const,
     create: "lead:create" as const,
     update: "lead:update" as const,
     delete: "lead:delete" as const,
@@ -23,6 +31,7 @@ export const PERMISSIONS = {
     create: "campaign:create" as const,
     update: "campaign:update" as const,
     delete: "campaign:delete" as const,
+    launch: "campaign:launch" as const,
   },
   member: {
     read: "member:read" as const,
@@ -140,40 +149,101 @@ export const PERMISSIONS = {
 } as const;
 
 export function hasPermission(
-  user: { permissions?: string[]; role?: string } | null | undefined,
+  user: { permissions?: string[]; role?: string; roles?: string[] } | null | undefined,
   permission: string | string[],
 ): boolean {
   if (!user) return false;
 
-  // SuperAdmin role bypass
-  const normalizedRole = user.role?.toLowerCase().replace(/[\s_-]/g, "");
-  if (normalizedRole === "superadmin" || normalizedRole === "superuser") {
+  // Multi-role support: collect all roles assigned to user
+  const userRoles = [
+    ...(user.role ? [user.role] : []),
+    ...(Array.isArray(user.roles) ? user.roles : []),
+  ];
+  const normalizedRoles = userRoles.map((r) =>
+    r.toLowerCase().replace(/[\s_-]/g, ""),
+  );
+
+  // Special case for AI Chatbot (Finding A-6 / D-12):
+  // The chatbot dashboard service admits only admin-level roles ('admin', 'superadmin', 'superuser').
+  // Checks all assigned roles so admins with secondary roles are not blocked.
+  const isChatbotDashboardPerm = (p: string) => {
+    const lp = p.toLowerCase();
+    return lp.startsWith("chatbot-dashboard") || lp === "chatbot:view";
+  };
+
+  const isChatbotCheck = Array.isArray(permission)
+    ? permission.every(isChatbotDashboardPerm)
+    : isChatbotDashboardPerm(permission);
+
+  if (isChatbotCheck) {
+    const isAllowedChatbotRole = normalizedRoles.some(
+      (nr) => nr === "admin" || nr === "superadmin" || nr === "superuser",
+    );
+    if (!isAllowedChatbotRole) {
+      return false;
+    }
+  }
+
+  // SuperAdmin role bypass across all assigned roles
+  if (normalizedRoles.some((nr) => nr === "superadmin" || nr === "superuser")) {
     return true;
   }
 
   if (!user.permissions) return false;
+
   const check = (perm: string) => {
     const lowerPerm = perm.toLowerCase();
-    if (lowerPerm.endsWith(":*")) {
-      const prefix = lowerPerm.slice(0, -1);
-      return user.permissions!.some((p) => p.toLowerCase().startsWith(prefix));
+
+    // Support kebab-case and snake_case variations for chatbot_campaign
+    const candidatePerms = [lowerPerm];
+    if (lowerPerm.startsWith("chatbot_campaign:")) {
+      const action = lowerPerm.slice("chatbot_campaign:".length);
+      candidatePerms.push(`chatbot-campaign:${action}`);
+    } else if (lowerPerm.startsWith("chatbot-campaign:")) {
+      const action = lowerPerm.slice("chatbot-campaign:".length);
+      candidatePerms.push(`chatbot_campaign:${action}`);
     }
-    return (
-      user.permissions!.includes(perm) ||
-      user.permissions!.some((p) => {
-        const lowerP = p.toLowerCase();
-        if (lowerP === "*" || lowerP === "all") return true;
-        if (lowerP.endsWith(":*")) {
-          const prefix = lowerP.slice(0, -1);
-          return lowerPerm.startsWith(prefix);
-        }
-        return lowerP === lowerPerm;
-      })
-    );
+
+    return candidatePerms.some((target) => {
+      if (target.endsWith(":*")) {
+        const prefix = target.slice(0, -1);
+        return user.permissions!.some((p) => p.toLowerCase().startsWith(prefix));
+      }
+      return (
+        user.permissions!.includes(target) ||
+        user.permissions!.some((p) => {
+          const lowerP = p.toLowerCase();
+          if (lowerP === "*" || lowerP === "all") return true;
+          if (lowerP.endsWith(":*")) {
+            const prefix = lowerP.slice(0, -1);
+            return target.startsWith(prefix);
+          }
+          return lowerP === target;
+        })
+      );
+    });
   };
 
   if (Array.isArray(permission)) {
     return permission.some(check);
   }
   return check(permission);
+}
+
+export function canAccessChatbot(
+  user: { permissions?: string[]; role?: string; roles?: string[] } | null | undefined,
+): boolean {
+  return hasPermission(user, [
+    PERMISSIONS.chatbot_dashboard.view,
+    "chatbot-dashboard:*",
+  ]);
+}
+
+export function getDefaultLeadView(
+  user: { permissions?: string[]; role?: string } | null | undefined,
+): "all" | "mine" {
+  if (hasPermission(user, PERMISSIONS.lead.view_all)) {
+    return "all";
+  }
+  return "mine";
 }

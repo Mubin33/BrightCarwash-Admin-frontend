@@ -1,11 +1,6 @@
 import { apiFetch } from "@/lib/api-fetch";
 import { APP_CONFIG } from "@/configs/app.config";
 import axiosInstance from "@/lib/axios-instance";
-import {
-  mockPermissions,
-  mockTeamMembers,
-  mockTeamRoles,
-} from "@/mocks/team.mock";
 import type {
   MembersApiResponse,
   Permission,
@@ -76,8 +71,9 @@ export const teamApi = createApi({
     >({
       queryFn: async (params = {}) => {
         try {
-          if (APP_CONFIG.MOCK_MODE) {
+          if (process.env.NODE_ENV !== "production" && APP_CONFIG.MOCK_MODE) {
             await delay(APP_CONFIG.MOCK_DELAY_MS);
+            const { mockTeamMembers } = await import("@/mocks/team.mock");
             return {
               data: {
                 members: mockTeamMembers,
@@ -156,8 +152,9 @@ export const teamApi = createApi({
     getTeamRoles: builder.query<TeamRole[], void>({
       queryFn: async () => {
         try {
-          if (APP_CONFIG.MOCK_MODE) {
+          if (process.env.NODE_ENV !== "production" && APP_CONFIG.MOCK_MODE) {
             await delay(APP_CONFIG.MOCK_DELAY_MS);
+            const { mockTeamRoles } = await import("@/mocks/team.mock");
             return { data: [...mockTeamRoles] };
           }
           const res = await axiosInstance.get<{
@@ -184,8 +181,9 @@ export const teamApi = createApi({
     getPermissions: builder.query<Permission[], void>({
       queryFn: async () => {
         try {
-          if (APP_CONFIG.MOCK_MODE) {
+          if (process.env.NODE_ENV !== "production" && APP_CONFIG.MOCK_MODE) {
             await delay(APP_CONFIG.MOCK_DELAY_MS);
+            const { mockPermissions } = await import("@/mocks/team.mock");
             return { data: [...mockPermissions] };
           }
           const res = await axiosInstance.get<{
@@ -211,8 +209,9 @@ export const teamApi = createApi({
     getRoleById: builder.query<string[], string>({
       queryFn: async (name) => {
         try {
-          if (APP_CONFIG.MOCK_MODE) {
+          if (process.env.NODE_ENV !== "production" && APP_CONFIG.MOCK_MODE) {
             await delay(APP_CONFIG.MOCK_DELAY_MS);
+            const { mockPermissions } = await import("@/mocks/team.mock");
             const mockPermIds = mockPermissions.slice(0, 5).map((p) => p.id);
             return { data: mockPermIds };
           }
@@ -233,13 +232,14 @@ export const teamApi = createApi({
       },
       providesTags: (_result, _error, name) => [
         { type: "TeamRoles", id: name },
+        { type: "TeamRoles", id: "ROLE_PERMISSIONS" },
       ],
       keepUnusedDataFor: 300, // 5 minutes
     }),
 
     updateRolePermissions: builder.mutation<
       { success: boolean; message: string; data?: unknown },
-      { id: string; permissions: string[] }
+      { id: string; permissions: string[]; roleName?: string }
     >({
       queryFn: async ({ id, permissions }) => {
         try {
@@ -283,8 +283,12 @@ export const teamApi = createApi({
           };
         }
       },
-      // Invalidate only the specific role’s permissions, not the whole list
-      invalidatesTags: (_result, _error, { id }) => [{ type: "TeamRoles", id }],
+      // AU11 / A-14: Invalidate by id, roleName, and shared permissions tag
+      invalidatesTags: (_result, _error, { id, roleName }) => [
+        { type: "TeamRoles", id },
+        { type: "TeamRoles", id: "ROLE_PERMISSIONS" },
+        ...(roleName ? [{ type: "TeamRoles" as const, id: roleName }] : []),
+      ],
     }),
 
     updateMemberRole: builder.mutation<
@@ -293,8 +297,9 @@ export const teamApi = createApi({
     >({
       queryFn: async ({ id, roleNames }) => {
         try {
-          if (APP_CONFIG.MOCK_MODE) {
+          if (process.env.NODE_ENV !== "production" && APP_CONFIG.MOCK_MODE) {
             await delay(APP_CONFIG.MOCK_DELAY_MS);
+            const { mockTeamMembers } = await import("@/mocks/team.mock");
             const member = mockTeamMembers.find((m) => m.id === id);
             if (member) member.role = roleNames[0] || member.role;
             return { data: { success: true } };
@@ -319,8 +324,9 @@ export const teamApi = createApi({
     blockMember: builder.mutation<{ success: boolean }, string>({
       queryFn: async (id) => {
         try {
-          if (APP_CONFIG.MOCK_MODE) {
+          if (process.env.NODE_ENV !== "production" && APP_CONFIG.MOCK_MODE) {
             await delay(APP_CONFIG.MOCK_DELAY_MS);
+            const { mockTeamMembers } = await import("@/mocks/team.mock");
             const member = mockTeamMembers.find((m) => m.id === id);
             if (member) {
               member.status = 0;
@@ -349,8 +355,9 @@ export const teamApi = createApi({
     unblockMember: builder.mutation<{ success: boolean }, string>({
       queryFn: async (id) => {
         try {
-          if (APP_CONFIG.MOCK_MODE) {
+          if (process.env.NODE_ENV !== "production" && APP_CONFIG.MOCK_MODE) {
             await delay(APP_CONFIG.MOCK_DELAY_MS);
+            const { mockTeamMembers } = await import("@/mocks/team.mock");
             const member = mockTeamMembers.find((m) => m.id === id);
             if (member) {
               member.status = 1;

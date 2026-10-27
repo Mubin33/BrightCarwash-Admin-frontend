@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { X, Upload } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { toast } from "react-toastify";
+import { validateImageFile, IMAGE_ACCEPT } from "@/lib/file-validation";
 import {
   useCreateFaqMutation,
   useUpdateFaqMutation,
@@ -92,6 +93,12 @@ export function WashWithPurposeModal({
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      const validation = validateImageFile(file);
+      if (!validation.isValid) {
+        toast.error(validation.error);
+        e.target.value = "";
+        return;
+      }
       setIconFile(file);
       const reader = new FileReader();
       reader.onloadend = () => {
@@ -249,7 +256,7 @@ export function WashWithPurposeModal({
                 <input
                   ref={fileInputRef}
                   type="file"
-                  accept="image/*"
+                  accept={IMAGE_ACCEPT}
                   onChange={handleFileChange}
                   className="hidden"
                 />

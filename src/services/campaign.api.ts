@@ -8,7 +8,6 @@ import type {
 	CampaignResponse,
 } from '@/types/campaign';
 import { APP_CONFIG } from '@/configs/app.config';
-import { mockCampaigns } from '@/mocks/campaign.mock';
 import axiosInstance from '@/lib/axios-instance';
 
 function delay(ms: number): Promise<void> {
@@ -58,8 +57,9 @@ export const campaignApi = createApi({
 		getCampaigns: builder.query<Campaign[], void>({
 			queryFn: async () => {
 				try {
-					if (APP_CONFIG.MOCK_MODE) {
+					if (process.env.NODE_ENV !== "production" && APP_CONFIG.MOCK_MODE) {
 						await delay(APP_CONFIG.MOCK_DELAY_MS);
+						const { mockCampaigns } = await import('@/mocks/campaign.mock');
 						return { data: mockCampaigns.map(transformCampaign) };
 					}
 					const { data } = await axiosInstance.get<CampaignListResponse>(
@@ -86,8 +86,9 @@ export const campaignApi = createApi({
 		getCampaignById: builder.query<Campaign, string>({
 			queryFn: async (id) => {
 				try {
-					if (APP_CONFIG.MOCK_MODE) {
+					if (process.env.NODE_ENV !== "production" && APP_CONFIG.MOCK_MODE) {
 						await delay(APP_CONFIG.MOCK_DELAY_MS);
+						const { mockCampaigns } = await import('@/mocks/campaign.mock');
 						const mock = mockCampaigns.find((c) => c.id === id);
 						if (!mock) throw new Error('Campaign not found');
 						return { data: transformCampaign(mock) };
@@ -116,7 +117,7 @@ export const campaignApi = createApi({
 		createCampaign: builder.mutation<Campaign, CreateCampaignRequest>({
 			queryFn: async (campaignData) => {
 				try {
-					if (APP_CONFIG.MOCK_MODE) {
+					if (process.env.NODE_ENV !== "production" && APP_CONFIG.MOCK_MODE) {
 						await delay(APP_CONFIG.MOCK_DELAY_MS);
 						const mock: Campaign = {
 							id: `cmp_${Date.now()}`,
@@ -185,8 +186,9 @@ export const campaignApi = createApi({
 		>({
 			queryFn: async ({ id, data }) => {
 				try {
-					if (APP_CONFIG.MOCK_MODE) {
+					if (process.env.NODE_ENV !== "production" && APP_CONFIG.MOCK_MODE) {
 						await delay(APP_CONFIG.MOCK_DELAY_MS);
+						const { mockCampaigns } = await import('@/mocks/campaign.mock');
 						const mock = mockCampaigns.find((c) => c.id === id);
 						if (!mock) throw new Error('Campaign not found');
 						return { data: transformCampaign({ ...mock, ...data }) };

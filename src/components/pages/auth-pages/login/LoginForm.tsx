@@ -1,10 +1,13 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import { MultiFactorChallenge } from "@/components/auth/MultiFactorChallenge";
+import type { MfaChallengeData } from "@/types/auth";
 import { Button } from "@/components/ui/Button";
 import { Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
+import { toast } from "react-toastify";
 
 export function LoginForm() {
   const { login } = useAuth();
@@ -13,7 +16,20 @@ export function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [mfaChallenge, setMfaChallenge] = useState<MfaChallengeData | null>(null);
+  const [sessionExpiredNotice] = useState(() => {
+    if (typeof window !== "undefined") {
+      return new URLSearchParams(window.location.search).get("expired") === "true";
+    }
+    return false;
+  });
   const formRef = useRef<HTMLFormElement>(null);
+
+  useEffect(() => {
+    if (sessionExpiredNotice) {
+      toast.info("Your session has expired. Please log in again.");
+    }
+  }, [sessionExpiredNotice]);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -25,10 +41,15 @@ export function LoginForm() {
     }
     setIsSubmitting(true);
     try {
-      const success = await login({ email, password });
-      if (!success) {
+      const result = await login({ email, password });
+      if (!result.success) {
+        if (result.mfaRequired) {
+          // AU15: Challenge presented after password step
+          setMfaChallenge(result.challenge);
+          return;
+        }
         setPassword("");
-        setError("Invalid email or password");
+        setError(result.error || "Invalid email or password");
       }
     } catch (e) {
       const err = e as { response?: { data?: { message?: string } }; message?: string };
@@ -39,6 +60,21 @@ export function LoginForm() {
     }
   }
 
+  if (mfaChallenge) {
+    return (
+      <MultiFactorChallenge
+        challengeToken={mfaChallenge.challengeToken}
+        email={email}
+        method={mfaChallenge.method}
+        onCancel={() => {
+          setMfaChallenge(null);
+          setPassword("");
+          setError(null);
+        }}
+      />
+    );
+  }
+
   return (
     <form
       ref={formRef}
@@ -46,6 +82,12 @@ export function LoginForm() {
       className="flex flex-col gap-4 sm:gap-6 w-full"
       noValidate
     >
+      {sessionExpiredNotice && (
+        <div className="w-full p-3 bg-[#0098E8]/15 border border-[#0098E8]/40 rounded-lg text-[#0098E8] font-inter text-sm text-center">
+          Your session has expired. Please log in again to continue.
+        </div>
+      )}
+
       {error && (
         <div className="w-full p-3 bg-[#FF4345]/20 border border-[#FF4345] rounded-lg text-[#FF4345] font-inter text-sm text-center">
           {error}

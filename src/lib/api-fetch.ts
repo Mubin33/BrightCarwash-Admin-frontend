@@ -24,11 +24,11 @@ export function isTrustedInternalOrigin(urlStr: string): boolean {
     const targetUrl = new URL(urlStr);
     const targetHost = targetUrl.hostname.toLowerCase();
 
-    // Check against configured API base URL
+    // Check against configured API base URL (exact hostname match)
     if (APP_CONFIG.API_BASE_URL) {
       try {
         const apiHost = new URL(APP_CONFIG.API_BASE_URL).hostname.toLowerCase();
-        if (targetHost === apiHost || targetHost.endsWith(`.${apiHost}`)) {
+        if (targetHost === apiHost) {
           return true;
         }
       } catch {
@@ -36,11 +36,11 @@ export function isTrustedInternalOrigin(urlStr: string): boolean {
       }
     }
 
-    // Check against configured AI base URL
+    // Check against configured AI base URL (exact hostname match)
     if (APP_CONFIG.AI_BASE_URL) {
       try {
         const aiHost = new URL(APP_CONFIG.AI_BASE_URL).hostname.toLowerCase();
-        if (targetHost === aiHost || targetHost.endsWith(`.${aiHost}`)) {
+        if (targetHost === aiHost) {
           return true;
         }
       } catch {
@@ -48,9 +48,16 @@ export function isTrustedInternalOrigin(urlStr: string): boolean {
       }
     }
 
-    // Allow *.pixelstack.cloud domains for all trusted organizational microservices
-    if (targetHost === 'pixelstack.cloud' || targetHost.endsWith('.pixelstack.cloud')) {
-      return true;
+    // Check against configured Socket URL (exact hostname match)
+    if (APP_CONFIG.SOCKET_URL) {
+      try {
+        const socketHost = new URL(APP_CONFIG.SOCKET_URL).hostname.toLowerCase();
+        if (targetHost === socketHost) {
+          return true;
+        }
+      } catch {
+        // Ignore invalid configured URL
+      }
     }
 
     // Allow localhost/127.0.0.1 in non-production environments
@@ -156,10 +163,32 @@ export async function apiFetch(
 
   const isAuthRoute =
     fullUrl.includes('/auth/login') ||
-    fullUrl.includes('/auth/refresh-tokens') ||
-    fullUrl.includes('/auth/logout');
+    fullUrl.includes('/auth/refresh-tokens');
 
   if (response.status === 401 && !isAuthRoute && isTrustedInternalOrigin(fullUrl)) {
+    // If another tab or concurrent request already refreshed the access token, retry immediately with the new token
+    const currentAccessToken = getAccessToken();
+    const requestAuth = headers.get('Authorization');
+    const requestToken = requestAuth?.replace(/^Bearer\s+/i, '');
+
+    if (currentAccessToken && requestToken && currentAccessToken !== requestToken) {
+      headers.set('Authorization', `Bearer ${currentAccessToken}`);
+      const retrySignalHelper = createCompositeTimeoutSignal(
+        timeoutMs,
+        init?.signal,
+      );
+      try {
+        response = await fetch(fullUrl, {
+          ...init,
+          headers,
+          signal: retrySignalHelper.signal,
+        });
+        return response;
+      } finally {
+        retrySignalHelper.cleanup();
+      }
+    }
+
     try {
       const newAccessToken = await refreshAccessToken();
       headers.set('Authorization', `Bearer ${newAccessToken}`);

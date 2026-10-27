@@ -46,3 +46,38 @@ export function hexToTintedBg(hex: string): string {
     const b = parseInt(hex.slice(5, 7), 16);
     return `rgba(${r}, ${g}, ${b}, 0.12)`;
 }
+/**
+ * Resolves the default stage option when opening lead creation forms.
+ * Avoids any hardcoded database CUIDs (Audit Issue BUG-013).
+ */
+export function resolveDefaultStage(
+    stages?: StageOption[],
+    preferredStageId?: string,
+    preferredStageName?: string
+): { stageId: string; stageLabel: string } {
+    if (preferredStageId && stages && stages.length > 0) {
+        const found = stages.find((s) => s.stageId === preferredStageId);
+        if (found) {
+            return { stageId: found.stageId, stageLabel: found.label };
+        }
+    }
+    if (preferredStageId) {
+        return {
+            stageId: preferredStageId,
+            stageLabel:
+                preferredStageName && preferredStageName !== "Select Stage"
+                    ? preferredStageName
+                    : "Select Stage",
+        };
+    }
+    if (stages && stages.length > 0) {
+        return { stageId: stages[0].stageId, stageLabel: stages[0].label };
+    }
+    return {
+        stageId: "",
+        stageLabel:
+            preferredStageName && preferredStageName !== "Select Stage"
+                ? preferredStageName
+                : "Select Stage",
+    };
+}

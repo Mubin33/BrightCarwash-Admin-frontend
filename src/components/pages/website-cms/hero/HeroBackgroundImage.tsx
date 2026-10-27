@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/Button";
 import { Icon } from "@/components/ui/Icon";
 import { useRef, useState } from "react";
 import { toast } from "react-toastify";
+import { validateImageFile, IMAGE_ACCEPT } from "@/lib/file-validation";
 import { HeroBackgroundImageDropzone } from "./HeroBackgroundImageDropzone";
 import { HeroBackgroundImageGallery } from "./HeroBackgroundImageGallery";
 
@@ -30,6 +31,11 @@ export function HeroBackgroundImage({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileSelect = (file: File) => {
+    const validation = validateImageFile(file);
+    if (!validation.isValid) {
+      toast.error(validation.error);
+      return;
+    }
     setSelectedFile(file);
     const reader = new FileReader();
     reader.onloadend = () => setPreviewUrl(reader.result as string);
@@ -48,10 +54,8 @@ export function HeroBackgroundImage({
     e.preventDefault();
     setIsDragging(false);
     const file = e.dataTransfer.files?.[0];
-    if (file && file.type.startsWith("image/")) {
+    if (file) {
       handleFileSelect(file);
-    } else {
-      toast.warning("Please drop an image file");
     }
   };
 
@@ -153,7 +157,7 @@ export function HeroBackgroundImage({
         <input
           ref={fileInputRef}
           type="file"
-          accept="image/*"
+          accept={IMAGE_ACCEPT}
           onChange={handleFileChange}
           className="hidden"
         />

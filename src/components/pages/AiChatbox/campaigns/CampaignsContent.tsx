@@ -1,6 +1,8 @@
 "use client";
 
 import { Pagination } from "@/components/ui/Pagination";
+import { usePermission } from "@/hooks/usePermission";
+import { PERMISSIONS } from "@/lib/permissions";
 import {
   useCreateCampaignMutation,
   useDeleteCampaignMutation,
@@ -35,6 +37,24 @@ export function CampaignsContent() {
   const [statusFilter, setStatusFilter] = useState("All Status");
   const [sortBy, setSortBy] = useState("Newest First");
   const [currentPage, setCurrentPage] = useState(1);
+
+  // Granular chatbot campaign permissions with fallback for admin
+  const canCreate = usePermission([
+    PERMISSIONS.chatbot_campaign.create,
+    "chatbot_campaign:*",
+  ]);
+  const canUpdate = usePermission([
+    PERMISSIONS.chatbot_campaign.update,
+    "chatbot_campaign:*",
+  ]);
+  const canDelete = usePermission([
+    PERMISSIONS.chatbot_campaign.delete,
+    "chatbot_campaign:*",
+  ]);
+  const canChangeStatus = usePermission([
+    PERMISSIONS.chatbot_campaign.change_status,
+    "chatbot_campaign:*",
+  ]);
 
   const { data: campaigns, isLoading, refetch } = useGetCampaignsQuery();
   const { data: campaignDetail, isLoading: isDetailLoading } =
@@ -96,8 +116,15 @@ export function CampaignsContent() {
     start_date?: string;
     end_date?: string;
   }) => {
+    if (!canCreate) {
+      toast.error("You do not have permission to create campaigns");
+      return;
+    }
     try {
-      await createCampaign(data).unwrap();
+      await createCampaign({
+        ...data,
+        is_active: canChangeStatus ? data.is_active : true,
+      }).unwrap();
       toast.success("Campaign created successfully");
       setIsCreateModalOpen(false);
       refetch();
@@ -117,6 +144,10 @@ export function CampaignsContent() {
       end_date?: string;
     },
   ) => {
+    if (!canUpdate) {
+      toast.error("You do not have permission to update campaigns");
+      return;
+    }
     try {
       await updateCampaign({ id, ...data }).unwrap();
       toast.success("Campaign updated successfully");
@@ -127,6 +158,10 @@ export function CampaignsContent() {
   };
 
   const handleDeleteClick = (campaignOrId: Campaign | number) => {
+    if (!canDelete) {
+      toast.error("You do not have permission to delete campaigns");
+      return;
+    }
     if (typeof campaignOrId === "number") {
       const found =
         campaigns?.find((c) => c.id === campaignOrId) ||
@@ -140,6 +175,10 @@ export function CampaignsContent() {
   };
 
   const handleConfirmDelete = async () => {
+    if (!canDelete) {
+      toast.error("You do not have permission to delete campaigns");
+      return;
+    }
     if (!campaignToDelete) return;
     try {
       await deleteCampaign(campaignToDelete.id).unwrap();
@@ -172,7 +211,10 @@ export function CampaignsContent() {
   return (
     <>
       <div className="flex flex-col items-start gap-6 w-full">
-        <CampaignHeader onNewCampaignClick={() => setIsCreateModalOpen(true)} />
+        <CampaignHeader
+          onNewCampaignClick={() => setIsCreateModalOpen(true)}
+          canCreate={canCreate}
+        />
 
         <div className="flex flex-col gap-4 w-full">
           <CampaignFilters
@@ -192,6 +234,7 @@ export function CampaignsContent() {
                 onView={handleView}
                 onDelete={handleDeleteClick}
                 isDeleting={isDeleting}
+                canDelete={canDelete}
               />
             ))}
           </div>
@@ -211,6 +254,7 @@ export function CampaignsContent() {
         onClose={() => setIsCreateModalOpen(false)}
         onCreate={handleCreate}
         isCreating={isCreating}
+        canChangeStatus={canChangeStatus}
       />
 
       <CampaignViewModal
@@ -222,6 +266,9 @@ export function CampaignsContent() {
         onDelete={handleDeleteClick}
         isUpdating={isUpdating}
         isDeleting={isDeleting}
+        canUpdate={canUpdate}
+        canDelete={canDelete}
+        canChangeStatus={canChangeStatus}
       />
 
       <DeleteCampaignModal

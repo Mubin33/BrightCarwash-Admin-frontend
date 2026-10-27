@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import { X, Paperclip } from "lucide-react";
+import { ATTACHMENT_ACCEPT } from "@/lib/file-validation";
 import type { ComposeEmailFormState } from "@/types/email-list";
 
 interface ComposeEmailFormProps {
@@ -220,7 +221,13 @@ export function ComposeEmailForm({
                         ref={fileInputRef}
                         type="file"
                         multiple
-                        onChange={(e) => e.target.files && addFiles(e.target.files)}
+                        accept={ATTACHMENT_ACCEPT}
+                        onChange={(e) => {
+                            if (e.target.files) {
+                                addFiles(e.target.files);
+                            }
+                            e.target.value = "";
+                        }}
                         className="hidden"
                     />
                     {form.files.length > 0 && (

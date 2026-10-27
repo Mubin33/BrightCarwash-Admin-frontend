@@ -8,6 +8,7 @@ import type { GalleryItem } from '@/types/gallery';
 import { toast } from 'react-toastify';
 import { usePermission } from '@/hooks/usePermission';
 import { PERMISSIONS } from '@/lib/permissions';
+import { validateImageFile, IMAGE_ACCEPT } from '@/lib/file-validation';
 
 interface GalleryModalProps {
     isOpen: boolean;
@@ -81,6 +82,12 @@ export function GalleryModal({ isOpen, onClose, item, onSuccess }: GalleryModalP
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const selectedFile = e.target.files?.[0];
         if (selectedFile) {
+            const validation = validateImageFile(selectedFile);
+            if (!validation.isValid) {
+                toast.error(validation.error);
+                e.target.value = '';
+                return;
+            }
             setFile(selectedFile);
             const reader = new FileReader();
             reader.onloadend = () => setPreview(reader.result as string);
@@ -91,7 +98,12 @@ export function GalleryModal({ isOpen, onClose, item, onSuccess }: GalleryModalP
     const handleDrop = (e: React.DragEvent) => {
         e.preventDefault();
         const droppedFile = e.dataTransfer.files?.[0];
-        if (droppedFile && droppedFile.type.startsWith('image/')) {
+        if (droppedFile) {
+            const validation = validateImageFile(droppedFile);
+            if (!validation.isValid) {
+                toast.error(validation.error);
+                return;
+            }
             setFile(droppedFile);
             const reader = new FileReader();
             reader.onloadend = () => setPreview(reader.result as string);
@@ -247,7 +259,7 @@ export function GalleryModal({ isOpen, onClose, item, onSuccess }: GalleryModalP
                                 <input
                                     ref={fileInputRef}
                                     type="file"
-                                    accept="image/*"
+                                    accept={IMAGE_ACCEPT}
                                     onChange={handleFileChange}
                                     className="hidden"
                                 />

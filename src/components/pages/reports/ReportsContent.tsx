@@ -1,18 +1,20 @@
 "use client";
 
+import { getBusinessReportDateRange } from "@/lib/date-utils";
+
 import { FilterDropdown } from "@/components/ui/FilterDropdown";
 import { usePermission } from "@/hooks/usePermission";
 import { useReportState } from "@/hooks/useReportState";
 import { PERMISSIONS } from "@/lib/permissions";
-import { format, subDays, subMonths } from "date-fns";
 import { useEffect, useMemo } from "react";
 import { CampaignPerformanceContent } from "./campaign-performance/CampaignPerformanceContent";
 import { LeadConversionContent } from "./lead-conversion/LeadConversionContent";
 import { ReportTabSwitcher } from "./lead-conversion/ReportTabSwitcher";
 import { MemberActivityContent } from "./member-activity/MemberActivityContent";
 
-const PERIOD_OPTIONS = [
+export const PERIOD_OPTIONS = [
   { value: "last30days", label: "Last 30 Days" },
+  { value: "thisMonth", label: "This Month" },
   { value: "last6months", label: "Last 6 Months" },
   { value: "thisYear", label: "This Year" },
 ];
@@ -54,26 +56,7 @@ export function ReportsContent() {
   }, [availableTabs, tab, setTab]);
 
   const { startDate, endDate } = useMemo(() => {
-    const now = new Date();
-    if (period === "last30days") {
-      return {
-        startDate: format(subDays(now, 30), "yyyy-MM-dd'T'00:00:00'Z'"),
-        endDate: format(now, "yyyy-MM-dd'T'23:59:59'Z'"),
-      };
-    }
-    if (period === "last6months") {
-      return {
-        startDate: format(subMonths(now, 6), "yyyy-MM-dd'T'00:00:00'Z'"),
-        endDate: format(now, "yyyy-MM-dd'T'23:59:59'Z'"),
-      };
-    }
-    return {
-      startDate: format(
-        new Date(now.getFullYear(), 0, 1),
-        "yyyy-MM-dd'T'00:00:00'Z'",
-      ),
-      endDate: format(now, "yyyy-MM-dd'T'23:59:59'Z'"),
-    };
+    return getBusinessReportDateRange(period);
   }, [period]);
 
   return (

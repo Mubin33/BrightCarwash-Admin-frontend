@@ -21,6 +21,7 @@ interface CampaignCreateModalProps {
         end_date?: string;
     }) => Promise<void>;
     isCreating: boolean;
+    canChangeStatus?: boolean;
 }
 
 export function CampaignCreateModal({
@@ -28,6 +29,7 @@ export function CampaignCreateModal({
     onClose,
     onCreate,
     isCreating,
+    canChangeStatus = true,
 }: CampaignCreateModalProps) {
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
@@ -238,12 +240,8 @@ export function CampaignCreateModal({
                             </div>
                             <div className="flex gap-2">
                                 <button
-                                    onClick={() => setIsActive(false)}
-                                    className={`flex-1 px-4 py-3 rounded-lg outline outline-1 outline-offset-[-1px] flex items-center gap-2 transition-colors ${!isActive
-                                        ? 'outline-red-700 bg-pink-100'
-                                        : 'outline-gray-100 bg-white'
-                                        }`}
-                                    disabled={isCreating}
+                                    onClick={() => canChangeStatus && setIsActive(false)}
+                                    className={`flex-1 px-4 py-3 rounded-lg outline outline-1 outline-offset-[-1px] flex items-center gap-2 transition-colors ${!isActive ? 'outline-red-700 bg-pink-100' : 'outline-gray-100 bg-white'} ${!canChangeStatus ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'}`} disabled={isCreating || !canChangeStatus}
                                 >
                                     <div
                                         className={`w-5 h-5 rounded-full border flex items-center justify-center ${!isActive
@@ -260,12 +258,12 @@ export function CampaignCreateModal({
                                     </span>
                                 </button>
                                 <button
-                                    onClick={() => setIsActive(true)}
+                                    onClick={() => canChangeStatus && setIsActive(true)}
                                     className={`flex-1 px-4 py-3 rounded-lg outline outline-1 outline-offset-[-1px] flex items-center gap-2 transition-colors ${isActive
                                         ? 'outline-green-700 bg-green-50'
                                         : 'outline-gray-100 bg-white'
-                                        }`}
-                                    disabled={isCreating}
+                                        } ${!canChangeStatus ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'}`}
+                                    disabled={isCreating || !canChangeStatus}
                                 >
                                     <div
                                         className={`w-5 h-5 rounded-full border flex items-center justify-center ${isActive

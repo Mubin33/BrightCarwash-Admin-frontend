@@ -73,6 +73,15 @@ const ROUTE_PERMISSIONS: { pattern: RegExp; permission: string | string[] }[] =
       permission: PERMISSIONS.activity_log.read,
     },
 
+    // AI Chatbox Campaigns (checked before general /ai-chatbox)
+    {
+      pattern: /^\/ai-chatbox\/campaigns(\/.*)?$/,
+      permission: [
+        PERMISSIONS.chatbot_campaign.read,
+        "chatbot_campaign:*",
+      ],
+    },
+
     // AI Chatbox & Subroutes
     {
       pattern: /^\/ai-chatbox(\/.*)?$/,

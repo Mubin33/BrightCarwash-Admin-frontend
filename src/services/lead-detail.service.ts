@@ -1,8 +1,21 @@
+import { formatBusinessDate } from "@/lib/date-utils";
 import { fetchFromBackend, apiFetch } from "@/lib/api-fetch";
+import { store } from "@/lib/store";
 import type { LeadDetail, ActivityItem, LeadDetailApiResponse } from "@/types/lead-detail";
 
 // Centralized fetchFromBackend imported from @/lib/api-fetch
 
+
+export function getSessionAuthor(): string {
+	try {
+		const user = store.getState()?.auth?.user;
+		if (!user) return "You";
+		const fullName = `${user.firstName || ""} ${user.lastName || ""}`.trim();
+		return fullName || user.email || "You";
+	} catch {
+		return "You";
+	}
+}
 
 export function parseApiNotes(
 	rawNotes: unknown[] | undefined,
@@ -34,7 +47,7 @@ export function parseApiNotes(
 
 			if (obj.content && typeof obj.content === "string") {
 				result.push({
-					id: obj.id || `note_${Date.now()}_${i}`,
+					id: obj.id || `legacy_note_${i}`,
 					content: obj.content,
 					author: authorName,
 					date: obj.date || obj.created_at || defaultDate,
@@ -53,7 +66,7 @@ export function parseApiNotes(
 			if (parsed && typeof parsed === "object") {
 				if (parsed.content) {
 					result.push({
-						id: parsed.id || `note_${Date.now()}_${i}`,
+						id: parsed.id || `legacy_note_${i}`,
 						content: String(parsed.content),
 						author: parsed.author || "You",
 						date: parsed.date || parsed.created_at || defaultDate,
@@ -73,7 +86,7 @@ export function parseApiNotes(
 				const parsed = JSON.parse(joined);
 				if (parsed && typeof parsed === "object" && parsed.content) {
 					result.push({
-						id: parsed.id || `note_${Date.now()}_${i}`,
+						id: parsed.id || `legacy_note_${i}`,
 						content: String(parsed.content),
 						author: parsed.author || "You",
 						date: parsed.date || parsed.created_at || defaultDate,
@@ -89,7 +102,7 @@ export function parseApiNotes(
 				const contentMatch = joined.match(/"content"\s*:\s*"([^"]*)"/);
 				if (contentMatch) {
 					result.push({
-						id: `note_${Date.now()}_${i}`,
+						id: `legacy_note_${i}`,
 						content: contentMatch[1],
 						author: "You",
 						date: defaultDate,
@@ -109,7 +122,7 @@ export function parseApiNotes(
 		const contentMatch = str.match(/^"?content"?\s*:\s*"([^"]*)"?$/i);
 		if (contentMatch) {
 			result.push({
-				id: `note_${Date.now()}_${i}`,
+				id: `legacy_note_${i}`,
 				content: contentMatch[1],
 				author: "You",
 				date: defaultDate,
@@ -121,7 +134,7 @@ export function parseApiNotes(
 		const cleanStr = str.replace(/^"(.*)"$/, "$1").trim();
 		if (cleanStr) {
 			result.push({
-				id: `note_${Date.now()}_${i}`,
+				id: `legacy_note_${i}`,
 				content: cleanStr,
 				author: "You",
 				date: defaultDate,
@@ -261,7 +274,7 @@ function mapApiToLeadDetail(data: LeadDetailApiResponse): LeadDetail {
 		avatar: "/images/avatar-placeholder.png",
 		notes: parseApiNotes(data.notes, data.created_at),
 		attachments: mappedAttachments,
-		date: data.created_at?.split("T")[0] || "",
+		date: formatBusinessDate(data.created_at),
 		activities: allActivities,
 	};
 }
@@ -281,50 +294,112 @@ export async function getLeadActivities(id: string): Promise<ActivityItem[]> {
 	}
 }
 
-export async function addLeadNote(id: string, content: string): Promise<void> {
-	const currentLead = await getLeadDetail(id);
+export async function addLeadNote(
+	id: string,
+	content: string,
+	author?: string,
+): Promise<void> {
+	const trimmed = content.trim();
+	if (!trimmed) return;
+
+	const authorName = author || getSessionAuthor();
 	const nowIso = new Date().toISOString();
 
-	const newNote = {
-		id: `note_${Date.now()}`,
-		content: content.trim(),
-		author: "You",
-		date: nowIso,
-		created_at: nowIso,
-	};
-
-	const currentNotes = (currentLead.notes || []).map((n) => ({
-		id: n.id || `note_${Date.now()}`,
-		content: n.content,
-		author: n.author || "You",
-		date: n.date || nowIso,
-		created_at: n.date || nowIso,
-	}));
-	currentNotes.push(newNote);
-
-	// Serialize each note object into JSON string (pure application/json, never FormData)
-	const notesPayload = currentNotes.map((note) => JSON.stringify(note));
-
-	const res = await apiFetch(`/admin/lead/${id}`, {
-		method: "PATCH",
+	// Primary (A-11 / N-18): Server-side append via dedicated child resource endpoint
+	const appendRes = await apiFetch(`/admin/lead/${id}/notes`, {
+		method: "POST",
 		headers: {
 			Accept: "application/json",
 		},
-		body: JSON.stringify({ notes: notesPayload }),
+		body: JSON.stringify({
+			content: trimmed,
+			author: authorName,
+			date: nowIso,
+			created_at: nowIso,
+		}),
 	});
 
-	if (!res.ok) {
-		const error = await res.json().catch(() => ({ message: "Update failed" }));
-		throw new Error(error.message || "Failed to add note");
+	if (appendRes.ok) {
+		return;
 	}
+
+	// Graceful fallback if backend child resource endpoint is not yet deployed (404/405)
+	if (appendRes.status === 404 || appendRes.status === 405) {
+		const currentLead = await getLeadDetail(id);
+		const newNote = {
+			id:
+				typeof crypto !== "undefined" && crypto.randomUUID
+					? crypto.randomUUID()
+					: `note_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
+			content: trimmed,
+			author: authorName,
+			date: nowIso,
+			created_at: nowIso,
+		};
+
+		const currentNotes = (currentLead.notes || []).map((n) => ({
+			id: n.id,
+			content: n.content,
+			author: n.author || authorName,
+			date: n.date || nowIso,
+			created_at: n.date || nowIso,
+		}));
+		currentNotes.push(newNote);
+
+		const notesPayload = currentNotes.map((note) => JSON.stringify(note));
+
+		const res = await apiFetch(`/admin/lead/${id}`, {
+			method: "PATCH",
+			headers: {
+				Accept: "application/json",
+			},
+			body: JSON.stringify({ notes: notesPayload }),
+		});
+
+		if (!res.ok) {
+			const error = await res.json().catch(() => ({ message: "Update failed" }));
+			throw new Error(error.message || "Failed to add note");
+		}
+		return;
+	}
+
+	const error = await appendRes.json().catch(() => ({ message: "Failed to add note" }));
+	throw new Error(error.message || "Failed to add note");
 }
 
-export async function deleteLeadNote(leadId: string, noteIdentifier: string): Promise<void> {
-	const lead = await getLeadDetail(leadId);
+export async function deleteLeadNote(
+	leadId: string,
+	noteId: string,
+): Promise<void> {
+	// Primary (A-11 / N-18): Server-side delete strictly by note ID
+	const deleteRes = await apiFetch(`/admin/lead/${leadId}/notes/${noteId}`, {
+		method: "DELETE",
+		headers: {
+			Accept: "application/json",
+		},
+	});
 
-	const remainingNotes = (lead.notes || [])
-		.filter((n) => n.id !== noteIdentifier && n.content !== noteIdentifier)
-		.map((n) => ({
+	if (deleteRes.ok) {
+		return;
+	}
+
+	// Graceful fallback if backend child resource endpoint is not yet deployed (404/405)
+	if (deleteRes.status === 404 || deleteRes.status === 405) {
+		const lead = await getLeadDetail(leadId);
+
+		// Find index of note to remove: first try exact ID match, then legacy identifier/content
+		let targetIndex = (lead.notes || []).findIndex((n) => n.id === noteId);
+		if (targetIndex === -1) {
+			targetIndex = (lead.notes || []).findIndex(
+				(n) => n.content === noteId || (n.id && n.id.includes(noteId))
+			);
+		}
+
+		const filteredNotes = targetIndex !== -1
+			? (lead.notes || []).filter((_, idx) => idx !== targetIndex)
+			: (lead.notes || []).filter((n) => n.id !== noteId);
+
+		const remainingNotes = filteredNotes.map((n) => ({
 			id: n.id,
 			content: n.content,
 			author: n.author || "You",
@@ -332,20 +407,25 @@ export async function deleteLeadNote(leadId: string, noteIdentifier: string): Pr
 			created_at: n.date || new Date().toISOString(),
 		}));
 
-	const notesPayload = remainingNotes.map((note) => JSON.stringify(note));
+		const notesPayload = remainingNotes.map((note) => JSON.stringify(note));
 
-	const res = await apiFetch(`/admin/lead/${leadId}`, {
-		method: "PATCH",
-		headers: {
-			Accept: "application/json",
-		},
-		body: JSON.stringify({ notes: notesPayload }),
-	});
+		const res = await apiFetch(`/admin/lead/${leadId}`, {
+			method: "PATCH",
+			headers: {
+				Accept: "application/json",
+			},
+			body: JSON.stringify({ notes: notesPayload }),
+		});
 
-	if (!res.ok) {
-		const error = await res.json().catch(() => ({ message: "Failed to delete note" }));
-		throw new Error(error.message || "Failed to delete note");
+		if (!res.ok) {
+			const error = await res.json().catch(() => ({ message: "Failed to delete note" }));
+			throw new Error(error.message || "Failed to delete note");
+		}
+		return;
 	}
+
+	const error = await deleteRes.json().catch(() => ({ message: "Failed to delete note" }));
+	throw new Error(error.message || "Failed to delete note");
 }
 
 export async function assignLeadToMember(

@@ -31,8 +31,11 @@ export default function ChatWindow({
       toast.error("No valid email address found for this user");
       return;
     }
-    const params = new URLSearchParams({ to: email });
-    router.push(`/marketing/email-list/create?${params.toString()}`);
+    // A-21: Use client state (sessionStorage), not URL query string, to avoid exposing PII in URL
+    if (typeof window !== "undefined") {
+      sessionStorage.setItem("compose_email_recipient", email);
+    }
+    router.push("/marketing/email-list/create");
   };
 
   const copyEmail = () => {

@@ -94,7 +94,7 @@ export function NotesList({
         if (!noteToDelete) return;
         setIsDeleting(true);
         try {
-            await onDeleteNote(noteToDelete.id || noteToDelete.content);
+            await onDeleteNote(noteToDelete.id);
             setNoteToDelete(null);
         } catch {
             // Error handled by parent or toast

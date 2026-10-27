@@ -6,7 +6,6 @@ import type {
 	CreateStageRequest,
 	UpdateStageRequest,
 } from '@/types/stage';
-import { mockStages } from '@/mocks/stage.mock';
 
 function delay(ms: number): Promise<void> {
 	return new Promise((resolve) => setTimeout(resolve, ms));
@@ -15,8 +14,9 @@ function delay(ms: number): Promise<void> {
 // Centralized fetchFromBackend imported from @/lib/api-fetch
 
 export async function getStages(): Promise<Stage[]> {
-	if (APP_CONFIG.MOCK_MODE || APP_CONFIG.DASHBOARD_MOCK) {
+	if (process.env.NODE_ENV !== "production" && (APP_CONFIG.MOCK_MODE || APP_CONFIG.DASHBOARD_MOCK)) {
 		await delay(APP_CONFIG.MOCK_DELAY_MS);
+		const { mockStages } = await import('@/mocks/stage.mock');
 		return [...mockStages];
 	}
 	const json = await fetchFromBackend<StageResponse>('/admin/lead/stages');
@@ -31,8 +31,9 @@ export async function deleteStage(id: string): Promise<void> {
 }
 
 export async function createStage(data: CreateStageRequest): Promise<Stage> {
-	if (APP_CONFIG.MOCK_MODE || APP_CONFIG.DASHBOARD_MOCK) {
+	if (process.env.NODE_ENV !== "production" && (APP_CONFIG.MOCK_MODE || APP_CONFIG.DASHBOARD_MOCK)) {
 		await delay(APP_CONFIG.MOCK_DELAY_MS);
+		const { mockStages } = await import('@/mocks/stage.mock');
 		const newStage: Stage = {
 			id: `stage_${Date.now()}`,
 			name: data.name,
@@ -66,8 +67,9 @@ export async function updateStage(
 	id: string,
 	data: UpdateStageRequest,
 ): Promise<Stage> {
-	if (APP_CONFIG.MOCK_MODE || APP_CONFIG.DASHBOARD_MOCK) {
+	if (process.env.NODE_ENV !== "production" && (APP_CONFIG.MOCK_MODE || APP_CONFIG.DASHBOARD_MOCK)) {
 		await delay(APP_CONFIG.MOCK_DELAY_MS);
+		const { mockStages } = await import('@/mocks/stage.mock');
 		const stage = mockStages.find((s) => s.id === id);
 		if (stage) {
 			if (data.name) stage.name = data.name;

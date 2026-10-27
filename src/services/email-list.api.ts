@@ -94,8 +94,12 @@ export const emailListApi = createApi({
                     formData.append('to', to);
                     formData.append('subject', subject);
                     formData.append('body', body);
-                    if (cc?.length) formData.append('cc', cc.join(','));
-                    if (bcc?.length) formData.append('bcc', bcc.join(','));
+                    if (cc?.length) {
+                        (Array.isArray(cc) ? cc : [cc]).forEach((email) => formData.append('cc', email));
+                    }
+                    if (bcc?.length) {
+                        (Array.isArray(bcc) ? bcc : [bcc]).forEach((email) => formData.append('bcc', email));
+                    }
                     if (files?.length) {
                         files.forEach((file) => formData.append('files', file));
                     }

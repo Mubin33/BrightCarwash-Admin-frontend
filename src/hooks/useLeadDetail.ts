@@ -49,16 +49,17 @@ export function useLeadDetail(leadId: string) {
     }, []);
 
     const deleteNote = useCallback(
-        async (noteIdentifier: string) => {
+        async (noteId: string) => {
             if (!lead) return;
 
+            // Strictly filter by note ID so notes with identical content are not deleted
             const updatedNotes = (lead.notes || []).filter(
-                (n) => n.id !== noteIdentifier && n.content !== noteIdentifier
+                (n) => n.id !== noteId
             );
             setLead((prev) => (prev ? { ...prev, notes: updatedNotes } : prev));
 
             try {
-                await deleteLeadNote(leadId, noteIdentifier);
+                await deleteLeadNote(leadId, noteId);
                 await fetchData();
             } catch {
                 await fetchData();

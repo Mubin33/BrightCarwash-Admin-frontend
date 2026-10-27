@@ -1,3 +1,11 @@
+/**
+ * Edge Proxy & Routing Guard (AUTH-013)
+ *
+ * NOTE: This proxy acts as a client-facing UX routing guard.
+ * It base64-decodes token metadata to quickly redirect unauthenticated users away from admin routes.
+ * Cryptographic verification of JWT signatures, permissions, and PII protection
+ * is strictly enforced server-side by backend API controllers upon every API request.
+ */
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
@@ -91,7 +99,10 @@ export function proxy(request: NextRequest) {
   // If unauthenticated and trying to access protected admin pages, redirect to login
   if (!isAuthenticated && isProtectedPath) {
     const loginUrl = new URL("/login", request.url);
-    loginUrl.searchParams.set("redirect", pathname);
+    // Sanitize redirect target to ensure it is always a safe relative path
+    const safeRedirectPath =
+      pathname.startsWith("/") && !pathname.startsWith("//") ? pathname : "/dashboard";
+    loginUrl.searchParams.set("redirect", safeRedirectPath);
     return NextResponse.redirect(loginUrl);
   }
 

@@ -166,8 +166,8 @@ export const NAVIGATION_CONFIG: NavSection[] = [
             icon: "campaigns",
             href: "/ai-chatbox/campaigns",
             permission: [
-              PERMISSIONS.chatbot_dashboard.view,
-              "chatbot-dashboard:*",
+              PERMISSIONS.chatbot_campaign.read,
+              "chatbot_campaign:*",
             ],
           },
         ],

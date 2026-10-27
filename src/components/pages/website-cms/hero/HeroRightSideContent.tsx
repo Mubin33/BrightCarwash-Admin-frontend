@@ -4,6 +4,7 @@ import { Icon } from "@/components/ui/Icon";
 import { getFullImageUrl } from "@/lib/image-url";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "react-toastify";
+import { validateImageFile } from "@/lib/file-validation";
 import { HeroBannerUpload } from "./HeroBannerUpload";
 import { HeroStatusSelector } from "./HeroStatusSelector";
 import { HeroTextAlignment } from "./HeroTextAlignment";
@@ -45,6 +46,11 @@ export function HeroRightSideContent({
   }, [bannerImageUrl, imageUrl]);
 
   const handleFileSelect = (file: File) => {
+    const validation = validateImageFile(file);
+    if (!validation.isValid) {
+      toast.error(validation.error);
+      return;
+    }
     setSelectedFile(file);
     const reader = new FileReader();
     reader.onloadend = () => setPreviewUrl(reader.result as string);
@@ -63,10 +69,8 @@ export function HeroRightSideContent({
     e.preventDefault();
     setIsDragging(false);
     const file = e.dataTransfer.files?.[0];
-    if (file && file.type.startsWith("image/")) {
+    if (file) {
       handleFileSelect(file);
-    } else {
-      toast.warning("Please drop an image file");
     }
   };
 

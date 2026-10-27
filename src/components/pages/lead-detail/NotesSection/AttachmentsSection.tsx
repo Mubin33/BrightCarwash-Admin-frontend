@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { formatFileDateTime } from "@/lib/date-utils";
+import { validateLeadAttachmentFile, LEAD_ATTACHMENT_ACCEPT } from "@/lib/file-validation";
 import { toast } from "react-toastify";
 import {
     Upload,
@@ -118,10 +119,20 @@ export function AttachmentsSection({
         const files = e.target.files;
         if (files && files.length > 0) {
             const fileArray = Array.from(files);
+            const validFiles: File[] = [];
+            for (const file of fileArray) {
+                const validation = validateLeadAttachmentFile(file);
+                if (!validation.isValid) {
+                    toast.error(validation.error || `Invalid file: ${file.name}`);
+                    e.target.value = "";
+                    return;
+                }
+                validFiles.push(file);
+            }
             if (onUpload) {
-                onUpload(fileArray);
+                onUpload(validFiles);
             } else {
-                toast.info(`${files.length} file(s) selected`);
+                toast.info(`${validFiles.length} file(s) selected`);
             }
         }
         e.target.value = "";
@@ -143,10 +154,19 @@ export function AttachmentsSection({
         const files = e.dataTransfer.files;
         if (files && files.length > 0) {
             const fileArray = Array.from(files);
+            const validFiles: File[] = [];
+            for (const file of fileArray) {
+                const validation = validateLeadAttachmentFile(file);
+                if (!validation.isValid) {
+                    toast.error(validation.error || `Invalid file: ${file.name}`);
+                    return;
+                }
+                validFiles.push(file);
+            }
             if (onUpload) {
-                onUpload(fileArray);
+                onUpload(validFiles);
             } else {
-                toast.info(`${files.length} file(s) dropped`);
+                toast.info(`${validFiles.length} file(s) dropped`);
             }
         }
     };
@@ -198,11 +218,12 @@ export function AttachmentsSection({
                     <p className="text-sm text-[#1B1B1B]">
                         Drag files here or <span className="text-[#0098E8] font-medium">browse</span>
                     </p>
-                    <p className="text-xs text-[#A5A5AB] mt-0.5">PDF, JPG, PNG up to 10 MB</p>
+                    <p className="text-xs text-[#A5A5AB] mt-0.5">PDF, JPG, PNG up to 25 MB</p>
                 </div>
                 <input
                     type="file"
                     multiple
+                    accept={LEAD_ATTACHMENT_ACCEPT}
                     className="absolute inset-0 opacity-0 cursor-pointer"
                     onChange={handleFileChange}
                 />

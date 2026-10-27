@@ -53,11 +53,22 @@ axiosInstance.interceptors.response.use(
 
 		const isAuthRoute =
 			originalRequest?.url?.includes('/auth/login') ||
-			originalRequest?.url?.includes('/auth/refresh-tokens') ||
-			originalRequest?.url?.includes('/auth/logout');
+			originalRequest?.url?.includes('/auth/refresh-tokens');
 
 		if (error.response?.status === 401 && !originalRequest._retry && !isAuthRoute) {
 			originalRequest._retry = true;
+
+			// If another tab or concurrent request already refreshed the token, retry immediately
+			const currentAccessToken = getAccessToken();
+			const requestAuth = originalRequest.headers?.Authorization as string | undefined;
+			const requestToken = requestAuth?.replace(/^Bearer\s+/i, '');
+
+			if (currentAccessToken && requestToken && currentAccessToken !== requestToken) {
+				if (originalRequest.headers) {
+					originalRequest.headers.Authorization = `Bearer ${currentAccessToken}`;
+				}
+				return axiosInstance(originalRequest);
+			}
 
 			try {
 				const newAccessToken = await refreshAccessToken();

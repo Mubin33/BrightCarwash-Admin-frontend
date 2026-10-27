@@ -7,6 +7,7 @@ import { RatingStars } from '@/components/ui/RatingStars';
 import { useCreateTestimonialMutation, useUpdateTestimonialMutation } from '@/services/testimonial.api';
 import type { Testimonial } from '@/types/testimonial';
 import { toast } from 'react-toastify';
+import { validateImageFile, IMAGE_ACCEPT } from '@/lib/file-validation';
 
 interface TestimonialsModalProps {
     isOpen: boolean;
@@ -92,6 +93,12 @@ export function TestimonialsModal({ isOpen, onClose, item, onSuccess }: Testimon
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const selectedFile = e.target.files?.[0];
         if (selectedFile) {
+            const validation = validateImageFile(selectedFile);
+            if (!validation.isValid) {
+                toast.error(validation.error);
+                e.target.value = '';
+                return;
+            }
             setFile(selectedFile);
             const reader = new FileReader();
             reader.onloadend = () => setPreview(reader.result as string);
@@ -191,7 +198,7 @@ export function TestimonialsModal({ isOpen, onClose, item, onSuccess }: Testimon
                                     <input
                                         ref={fileInputRef}
                                         type="file"
-                                        accept="image/*"
+                                        accept={IMAGE_ACCEPT}
                                         onChange={handleFileChange}
                                         className="hidden"
                                     />

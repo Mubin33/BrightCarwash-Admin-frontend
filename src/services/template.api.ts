@@ -230,7 +230,7 @@ export const templateApi = createApi({
             queryFn: async (file) => {
                 try {
                     const formData = new FormData();
-                    formData.append('image', file);
+                    formData.append('file', file);
 
                     const response = await apiFetch('/admin/templates/upload-image', {
                         method: 'POST',
@@ -248,8 +248,14 @@ export const templateApi = createApi({
                         };
                     }
 
-                    // Backend returns { url: "https://..." }
-                    return { data: responseData };
+                    const url =
+                        (typeof responseData.data === 'string'
+                            ? responseData.data
+                            : responseData.data?.url || responseData.data?.fileUrl || responseData.data?.path) ||
+                        responseData.url ||
+                        '';
+
+                    return { data: { url } };
                 } catch (error) {
                     return {
                         error: {

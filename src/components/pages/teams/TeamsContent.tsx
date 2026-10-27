@@ -7,8 +7,9 @@ import { TeamsRolesSection } from "@/components/pages/teams/TeamsRolesSection";
 import { usePermission } from "@/hooks/usePermission";
 import { useTeamPermissions } from "@/hooks/useTeamPermissions";
 import { PERMISSIONS } from "@/lib/permissions";
-import type { RootState } from "@/lib/store";
+import { useAppDispatch, type RootState } from "@/lib/store";
 import {
+  teamApi,
   useBlockMemberMutation,
   useDeleteRoleMutation,
   useGetPermissionsQuery,
@@ -20,7 +21,7 @@ import {
   useUnblockMemberMutation,
 } from "@/services/team.api";
 import type { TeamMember, TeamRole } from "@/types/team";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useSelector } from "react-redux";
 import { toast } from "react-toastify";
 
@@ -53,11 +54,67 @@ export function TeamsContent() {
     },
     { skip: !canReadMembers },
   );
-  const { data: allMembersData } = useGetTeamMembersQuery(
-    { limit: 1000 },
+  const dispatch = useAppDispatch();
+  const [extraMembers, setExtraMembers] = useState<TeamMember[]>([]);
+
+  // Issue #139 (A-15): Server limit is strictly capped at 100 (sending limit: 1000 causes 400 Bad Request).
+  // Request first page with limit: 100 and page through if totalPages > 1.
+  const { data: firstPageMembersData } = useGetTeamMembersQuery(
+    { page: 1, limit: 100 },
     { skip: !canReadMembers },
   );
-  const allMembers = allMembersData?.members || [];
+
+  const totalMemberPages = firstPageMembersData?.meta?.totalPages || 1;
+
+  useEffect(() => {
+    if (!canReadMembers || totalMemberPages <= 1) {
+      setExtraMembers([]);
+      return;
+    }
+
+    let isMounted = true;
+    const runningSubscriptions: Array<{ unsubscribe?: () => void }> = [];
+
+    const fetchRemainingPages = async () => {
+      try {
+        const promises = [];
+        for (let page = 2; page <= totalMemberPages; page++) {
+          const sub = dispatch(
+            teamApi.endpoints.getTeamMembers.initiate(
+              { page, limit: 100 },
+              { subscribe: false, forceRefetch: true },
+            ),
+          );
+          runningSubscriptions.push(sub);
+          promises.push(sub.unwrap());
+        }
+        const results = await Promise.all(promises);
+        if (!isMounted) return;
+        const allFetchedExtra = results.flatMap((res) => res.members);
+        setExtraMembers(allFetchedExtra);
+      } catch (error) {
+        if (isMounted) {
+          console.error("Failed to fetch remaining team members:", error);
+        }
+      }
+    };
+
+    fetchRemainingPages();
+
+    return () => {
+      isMounted = false;
+      runningSubscriptions.forEach((sub) => {
+        if (typeof sub?.unsubscribe === "function") {
+          sub.unsubscribe();
+        }
+      });
+    };
+  }, [totalMemberPages, canReadMembers, dispatch]);
+
+  const allMembers = useMemo(() => {
+    const firstPage = firstPageMembersData?.members || [];
+    return extraMembers.length > 0 ? [...firstPage, ...extraMembers] : firstPage;
+  }, [firstPageMembersData?.members, extraMembers]);
   const members = membersData?.members || [];
   const membersMeta = membersData?.meta || {
     totalItems: 0,

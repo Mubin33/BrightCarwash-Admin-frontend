@@ -14,6 +14,26 @@ export interface LoginResponse {
   roles: string[];
 }
 
+export interface MfaChallengeData {
+  mfaRequired: true;
+  challengeToken: string;
+  method?: "totp" | "sms" | "email";
+  message?: string;
+}
+
+export interface MfaVerifyRequest {
+  challengeToken: string;
+  code: string;
+}
+
+export type LoginApiResponse = LoginResponse | MfaChallengeData;
+
+export type LoginResult =
+  | { success: true; user: User; mfaRequired?: false; challenge?: never; error?: never }
+  | { success: false; mfaRequired: true; challenge: MfaChallengeData; error?: never }
+  | { success: false; mfaRequired?: false; error: string; challenge?: never };
+
+
 export interface UserResponse {
   success: boolean;
   data: {

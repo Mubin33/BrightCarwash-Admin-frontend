@@ -6,12 +6,15 @@ import type {
   ForgotPasswordRequest,
   LoginCredentials,
   LoginResponse,
+  LoginApiResponse,
+  MfaVerifyRequest,
   ResetPasswordRequest,
   User,
   UserResponse,
   VerifyOtpRequest,
 } from "@/types/auth";
 import axios from "axios";
+import { refreshAccessToken as refreshTokensClient } from "@/lib/token-refresh";
 
 function mapUser(data: UserResponse["data"]): User {
   const roleNames =
@@ -34,10 +37,20 @@ function mapUser(data: UserResponse["data"]): User {
 
 export async function login(
   credentials: LoginCredentials,
-): Promise<LoginResponse> {
-  const { data } = await axiosInstance.post<LoginResponse>(
+): Promise<LoginApiResponse> {
+  const { data } = await axiosInstance.post<LoginApiResponse>(
     "/auth/login",
     credentials,
+  );
+  return data;
+}
+
+export async function verifyMfa(
+  reqData: MfaVerifyRequest,
+): Promise<LoginResponse> {
+  const { data } = await axiosInstance.post<LoginResponse>(
+    "/auth/login/mfa",
+    reqData,
   );
   return data;
 }
@@ -49,6 +62,7 @@ export async function getProfile(): Promise<User> {
 
 interface TokenPayload {
   sessionId?: string;
+  exp?: number;
   [key: string]: unknown;
 }
 
@@ -71,22 +85,35 @@ function parseTokenPayload(token: string): TokenPayload | null {
 }
 
 export async function logout(): Promise<void> {
-  const accessToken = getAccessToken();
   const refreshToken = getRefreshToken();
+  let accessToken = getAccessToken();
 
-  // Safely extract sessionId from accessToken or refreshToken
-  const payload =
-    (accessToken ? parseTokenPayload(accessToken) : null) ||
-    (refreshToken ? parseTokenPayload(refreshToken) : null);
+  let payload = accessToken ? parseTokenPayload(accessToken) : null;
+  const isAccessExpired =
+    typeof payload?.exp === "number"
+      ? Date.now() >= payload.exp * 1000
+      : !accessToken;
 
-  const sessionId = payload?.sessionId;
-
-  if (sessionId) {
+  // Proactive refresh before logout if access token is expired/missing but refresh token exists (A-9)
+  if (isAccessExpired && refreshToken) {
     try {
-      await axiosInstance.post("/auth/logout", { sessionId });
+      accessToken = await refreshTokensClient();
+      payload = accessToken ? parseTokenPayload(accessToken) : null;
     } catch {
-      // Continue client-side session cleanup even if server-side logout encounters an error
+      // If refresh fails, proceed to attempt server logout or client cleanup
     }
+  }
+
+  const refreshPayload = refreshToken ? parseTokenPayload(refreshToken) : null;
+  const sessionId = payload?.sessionId || refreshPayload?.sessionId;
+
+  try {
+    await axiosInstance.post("/auth/logout", {
+      sessionId,
+      refresh_token: refreshToken,
+    });
+  } catch {
+    // Continue client-side session cleanup even if server-side logout encounters an error
   }
 }
 

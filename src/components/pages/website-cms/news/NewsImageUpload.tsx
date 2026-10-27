@@ -1,6 +1,7 @@
 'use client';
 
 import { Icon } from '@/components/ui/Icon';
+import { IMAGE_ACCEPT } from '@/lib/file-validation';
 
 interface NewsImageUploadProps {
     preview: string | null;
@@ -61,7 +62,7 @@ export function NewsImageUpload({
                 <input
                     id="coverImage"
                     type="file"
-                    accept="image/*"
+                    accept={IMAGE_ACCEPT}
                     onChange={onFileChange}
                     className="hidden"
                 />

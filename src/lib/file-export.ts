@@ -50,27 +50,45 @@ class FileExportService {
             const parsed = new URL(urlStr);
             const host = parsed.hostname.toLowerCase();
 
-            // Trusted pixelstack and amazonaws domains
-            if (host === 'pixelstack.cloud' || host.endsWith('.pixelstack.cloud')) return true;
-            if (host.endsWith('.amazonaws.com')) return true;
-
-            // Check against configured storage / API / AI hosts
-            if (AI_BASE_URL) {
-                try {
-                    const aiHost = new URL(AI_BASE_URL).hostname.toLowerCase();
-                    if (host === aiHost) return true;
-                } catch {
-                    // Ignore invalid URL
-                }
-            }
+            // Check against configured storage host (exact or subdomain match)
             const storageUrl = process.env.NEXT_PUBLIC_STORAGE_URL;
             if (storageUrl) {
                 try {
                     const storageHost = new URL(storageUrl).hostname.toLowerCase();
-                    if (host === storageHost) return true;
+                    if (host === storageHost || host.endsWith(`.${storageHost}`)) return true;
                 } catch {
                     // Ignore invalid URL
                 }
+            }
+
+            // Check against configured AI host
+            if (AI_BASE_URL) {
+                try {
+                    const aiHost = new URL(AI_BASE_URL).hostname.toLowerCase();
+                    if (host === aiHost || host.endsWith(`.${aiHost}`)) return true;
+                } catch {
+                    // Ignore invalid URL
+                }
+            }
+
+            // Check against configured API host
+            const apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+            if (apiUrl) {
+                try {
+                    const apiHost = new URL(apiUrl).hostname.toLowerCase();
+                    if (host === apiHost || host.endsWith(`.${apiHost}`)) return true;
+                } catch {
+                    // Ignore invalid URL
+                }
+            }
+
+            // Allowed cloud storage domains (AWS S3, DigitalOcean Spaces, CloudFront)
+            if (
+                host.endsWith('.amazonaws.com') ||
+                host.endsWith('.digitaloceanspaces.com') ||
+                host.endsWith('.cloudfront.net')
+            ) {
+                return true;
             }
 
             // Local development hosts
@@ -130,18 +148,29 @@ class FileExportService {
             }
 
             const fullUrl = this.getFullFileUrl(fileUrl);
-            const safeFileName = fileName.replace(/[^a-zA-Z0-9]/g, '_');
+            const safeFileName = (fileName || 'export').replace(/[^a-zA-Z0-9_-]/g, '_');
 
-            // Fetch the file from AI server
+            // Clean extension: strip query parameters, hash fragments, and leading dots
+            let cleanExt = (fileExtension || '').split('?')[0].split('#')[0].replace(/^\./, '').toLowerCase();
+            if (!cleanExt && fileUrl) {
+                const urlPath = fileUrl.split('?')[0].split('#')[0];
+                const derived = urlPath.split('.').pop()?.toLowerCase();
+                if (derived && derived.length <= 5) {
+                    cleanExt = derived;
+                }
+            }
+            cleanExt = cleanExt || 'dat';
+
+            // Fetch the file from server (no Content-Type on GET to prevent unnecessary CORS OPTIONS preflight)
             const response = await apiFetch(fullUrl, {
                 method: 'GET',
-                headers: {
-                    'Content-Type': 'application/octet-stream',
-                },
             });
 
             if (!response.ok) {
-                throw new Error(`Failed to fetch file: ${response.status} ${response.statusText}`);
+                return {
+                    success: false,
+                    message: `Failed to download file: ${response.status} ${response.statusText || 'Error'}`,
+                };
             }
 
             const blob = await response.blob();
@@ -168,21 +197,40 @@ class FileExportService {
                 'xml': 'application/xml',
             };
 
-            const mimeType = mimeTypes[fileExtension.toLowerCase()] || 'application/octet-stream';
+            const mimeType = mimeTypes[cleanExt] || 'application/octet-stream';
 
             // Create a blob with the correct MIME type
             const downloadBlob = new Blob([blob], { type: mimeType });
 
             // Save the file with the proper extension
-            const extension = fileExtension.startsWith('.') ? fileExtension : `.${fileExtension}`;
-            saveAs(downloadBlob, `${safeFileName}${extension}`);
+            saveAs(downloadBlob, `${safeFileName}.${cleanExt}`);
 
             return {
                 success: true,
-                message: `File downloaded successfully as ${fileExtension.toUpperCase()}`,
+                message: `File downloaded successfully as ${cleanExt.toUpperCase()}`,
             };
         } catch (error) {
             console.error('Download error:', error);
+            // A-H5 Fallback: Cross-origin storage reads may be blocked by CORS in the browser.
+            // Trigger direct browser navigation/download so the storage URL can be fetched directly.
+            if (typeof window !== 'undefined' && options.fileUrl) {
+                try {
+                    const fullUrl = this.getFullFileUrl(options.fileUrl);
+                    const link = document.createElement('a');
+                    link.href = fullUrl;
+                    link.target = '_blank';
+                    link.rel = 'noopener noreferrer';
+                    const ext = options.fileExtension.startsWith('.') ? options.fileExtension : `.${options.fileExtension}`;
+                    link.download = `${options.fileName}${ext}`;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    return {
+                        success: true,
+                        message: `File download initiated as ${options.fileExtension.toUpperCase()}`,
+                    };
+                } catch {}
+            }
             return {
                 success: false,
                 message: error instanceof Error ? error.message : 'Failed to download file',

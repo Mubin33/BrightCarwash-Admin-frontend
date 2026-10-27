@@ -4,6 +4,7 @@ interface CampaignViewStatusProps {
     isActive: boolean;
     isEditing: boolean;
     isUpdating: boolean;
+    canChangeStatus?: boolean;
     onStatusChange: (value: boolean) => void;
 }
 
@@ -11,18 +12,19 @@ export function CampaignViewStatus({
     isActive,
     isEditing,
     isUpdating,
+    canChangeStatus = true,
     onStatusChange,
 }: CampaignViewStatusProps) {
     return (
         <div className="flex flex-col gap-2">
             <div className="text-zinc-500 text-base font-normal font-['Inter'] leading-5">
-                Status
+                Status {!canChangeStatus && isEditing && <span className="text-xs text-gray-400">(Read only)</span>}
             </div>
-            {isEditing ? (
+            {isEditing && canChangeStatus ? (
                 <div className="flex gap-2">
                     <button
                         onClick={() => onStatusChange(false)}
-                        className={`flex-1 px-4 py-3 rounded-lg outline outline-1 outline-offset-[-1px] flex items-center gap-2 transition-colors ${!isActive
+                        className={`flex-1 px-4 py-3 rounded-lg outline outline-1 outline-offset-[-1px] flex items-center gap-2 transition-colors cursor-pointer ${!isActive
                                 ? 'outline-red-700 bg-pink-100'
                                 : 'outline-gray-100 bg-white'
                             }`}
@@ -44,7 +46,7 @@ export function CampaignViewStatus({
                     </button>
                     <button
                         onClick={() => onStatusChange(true)}
-                        className={`flex-1 px-4 py-3 rounded-lg outline outline-1 outline-offset-[-1px] flex items-center gap-2 transition-colors ${isActive
+                        className={`flex-1 px-4 py-3 rounded-lg outline outline-1 outline-offset-[-1px] flex items-center gap-2 transition-colors cursor-pointer ${isActive
                                 ? 'outline-green-700 bg-green-50'
                                 : 'outline-gray-100 bg-white'
                             }`}

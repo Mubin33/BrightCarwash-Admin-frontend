@@ -6,7 +6,6 @@ import type {
 	PaymentTransactionResponse,
 } from '@/types/payment';
 import { APP_CONFIG } from '@/configs/app.config';
-import { mockStats, mockTransactions } from '@/mocks/payment.mock';
 import axiosInstance from '@/lib/axios-instance';
 
 function delay(ms: number): Promise<void> {
@@ -35,8 +34,9 @@ export const paymentApi = createApi({
 		getPaymentStats: builder.query<PaymentStatsData, void>({
 			queryFn: async () => {
 				try {
-					if (APP_CONFIG.MOCK_MODE || APP_CONFIG.DASHBOARD_MOCK) {
+					if (process.env.NODE_ENV !== "production" && (APP_CONFIG.MOCK_MODE || APP_CONFIG.DASHBOARD_MOCK)) {
 						await delay(APP_CONFIG.MOCK_DELAY_MS);
+						const { mockStats } = await import('@/mocks/payment.mock');
 						return { data: { ...mockStats } };
 					}
 					const { data } = await axiosInstance.get<PaymentStatsResponse>(
@@ -69,8 +69,9 @@ export const paymentApi = createApi({
 
 					const url = `/payment-transaction?${queryParams.toString()}`;
 
-					if (APP_CONFIG.MOCK_MODE || APP_CONFIG.DASHBOARD_MOCK) {
+					if (process.env.NODE_ENV !== "production" && (APP_CONFIG.MOCK_MODE || APP_CONFIG.DASHBOARD_MOCK)) {
 						await delay(APP_CONFIG.MOCK_DELAY_MS);
+						const { mockTransactions } = await import('@/mocks/payment.mock');
 						// Simple mock filtering
 						let filtered = [...mockTransactions];
 						if (params.search) {

@@ -28,27 +28,31 @@ export function useExportExcel<T>({
 	const handleExport = useCallback(
 		async (selectedIds?: Set<string>) => {
 			if (endpoint) {
-				
-				const query = new URLSearchParams();
-				Object.entries(params ?? {}).forEach(([key, value]) => {
-					if (value) query.set(key, value);
-				});
-				const url = `${APP_CONFIG.API_BASE_URL}${endpoint}?${query.toString()}`;
-				const response = await apiFetch(url);
-				if (!response.ok) throw new Error('Excel export failed');
-
-				const blob = await response.blob();
-				const contentDisposition = response.headers.get('Content-Disposition');
-				const match = contentDisposition?.match(/filename="?([^";]+)"?/i);
-				const downloadUrl = window.URL.createObjectURL(blob);
-				const link = document.createElement('a');
-				link.href = downloadUrl;
-				link.download = match?.[1] || `${filename}.xlsx`;
-				document.body.appendChild(link);
-				link.click();
-				link.remove();
-				window.URL.revokeObjectURL(downloadUrl);
-				return;
+				try {
+					const query = new URLSearchParams();
+					Object.entries(params ?? {}).forEach(([key, value]) => {
+						if (value) query.set(key, value);
+					});
+					const url = `${APP_CONFIG.API_BASE_URL}${endpoint}?${query.toString()}`;
+					const response = await apiFetch(url);
+					if (response.ok) {
+						const blob = await response.blob();
+						const contentDisposition = response.headers.get('Content-Disposition');
+						const match = contentDisposition?.match(/filename="?([^";]+)"?/i);
+						const downloadUrl = window.URL.createObjectURL(blob);
+						const link = document.createElement('a');
+						link.href = downloadUrl;
+						link.download = match?.[1] || `${filename}.xlsx`;
+						document.body.appendChild(link);
+						link.click();
+						link.remove();
+						window.URL.revokeObjectURL(downloadUrl);
+						return;
+					}
+					console.warn(`Server export returned status ${response.status}, falling back to client-side data export.`);
+				} catch (serverError) {
+					console.warn('Server export failed, falling back to client-side data export:', serverError);
+				}
 			}
 
 			const dataToExport =

@@ -1,79 +1,60 @@
 "use client";
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { useGetActivityLogsQuery } from '@/services/activity-log.api';
 import { useActivityLogFilters } from './useActivityLogFilters';
 
 export function useActivityLog(initialPage = 1, initialLimit = 10) {
     const [page, setPage] = useState(initialPage);
-    const [limit] = useState(initialLimit);
+    const [limit, setLimit] = useState(initialLimit);
     const filters = useActivityLogFilters();
 
-    // Reset page to 1 when any filter changes
+    // Debounce search input by 350ms as recommended by the API Change Guide
+    const [debouncedSearch, setDebouncedSearch] = useState(filters.search);
+
     useEffect(() => {
+        const timer = setTimeout(() => {
+            setDebouncedSearch(filters.search);
+        }, 350);
+        return () => clearTimeout(timer);
+    }, [filters.search]);
+
+    // Reset page to 1 when any search or filter option changes (state adjustment during render)
+    const filterKey = `${debouncedSearch}|${filters.action}|${filters.timeRange}`;
+    const [prevFilterKey, setPrevFilterKey] = useState(filterKey);
+
+    if (filterKey !== prevFilterKey) {
+        setPrevFilterKey(filterKey);
         setPage(1);
-    }, [filters.search, filters.action, filters.timeRange]);
+    }
 
-    const { data, isLoading, error, refetch } = useGetActivityLogsQuery({ page, limit });
+    // Query server with page, limit, and active filters (AU11 / A-13: Server-side filters)
+    const { data, isLoading, error, refetch } = useGetActivityLogsQuery({
+        page,
+        limit,
+        search: debouncedSearch.trim() || undefined,
+        action: filters.action !== 'All types' ? filters.action : undefined,
+        timeRange: filters.timeRange !== 'All Time' ? filters.timeRange : undefined,
+    });
 
-    // Memoize filtered logs
-    const filteredLogs = useMemo(() => {
-        if (!data?.data) return [];
-
-        return data.data.filter((log) => {
-            // Search filter
-            if (filters.search.trim()) {
-                const query = filters.search.trim().toLowerCase();
-                const matchesDescription = log.description.toLowerCase().includes(query);
-                const matchesAction = log.action.toLowerCase().includes(query);
-                const matchesEntity = log.entity.toLowerCase().includes(query);
-                if (!matchesDescription && !matchesAction && !matchesEntity) return false;
-            }
-
-            // Action filter - "All types" or empty means no filter
-            const actionFilter = filters.action;
-            if (actionFilter && actionFilter !== 'All types' && log.action !== actionFilter) {
-                return false;
-            }
-
-            // Time filter
-            if (filters.timeRange !== 'All Time') {
-                const now = new Date();
-                const logDate = new Date(log.createdAt);
-                const diffMs = now.getTime() - logDate.getTime();
-                const diffDays = diffMs / (1000 * 60 * 60 * 24);
-
-                switch (filters.timeRange) {
-                    case 'Today':
-                        if (diffDays > 1) return false;
-                        break;
-                    case 'Last 7 Days':
-                        if (diffDays > 7) return false;
-                        break;
-                    case 'Last 30 Days':
-                        if (diffDays > 30) return false;
-                        break;
-                    case 'Last 90 Days':
-                        if (diffDays > 90) return false;
-                        break;
-                }
-            }
-
-            return true;
-        });
-    }, [data, filters.search, filters.action, filters.timeRange]);
+    const logs = data?.data || [];
+    const totalCount = data?.meta?.total_count ?? 0;
+    const totalPages = data?.meta?.total_pages ?? (totalCount > 0 ? 1 : 0);
+    const hasNext = data?.meta?.has_next ?? (page < totalPages);
+    const hasPrevious = data?.meta?.has_previous ?? (page > 1);
 
     return {
-        logs: filteredLogs,
-        totalCount: data?.meta?.total_count || 0,
-        totalPages: data?.meta?.total_pages || 1,
+        logs,
+        totalCount,
+        totalPages,
         currentPage: page,
-        hasNext: data?.meta?.has_next || false,
-        hasPrevious: data?.meta?.has_previous || false,
+        hasNext,
+        hasPrevious,
         isLoading,
         error,
         refetch,
         setPage,
+        setLimit,
         filters,
     };
 }

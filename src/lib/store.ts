@@ -1,4 +1,4 @@
-import { configureStore } from "@reduxjs/toolkit";
+import { configureStore, type Middleware } from "@reduxjs/toolkit";
 import { TypedUseSelectorHook, useDispatch, useSelector } from "react-redux";
 import { dashboardApi } from "@/services/dashboard.api";
 import { leadsApi } from "@/services/leads.api";
@@ -8,7 +8,9 @@ import { campaignApi } from "@/services/campaign.api";
 import { teamApi } from "@/services/team.api";
 import { templateApi } from "@/services/template.api";
 import { activityLogApi } from "@/services/activity-log.api";
-import campaignCreationReducer from "@/store/slices/campaignCreationSlice";
+import campaignCreationReducer, {
+  resetCampaignCreation,
+} from "@/store/slices/campaignCreationSlice";
 import { reportsApi } from "@/services/reports.api";
 import { faqApi } from "@/services/faq.api";
 import { galleryApi } from "@/services/gallery.api";
@@ -25,6 +27,52 @@ import { queriesApi } from "@/services/queries.api";
 import { chatboxApis } from "@/services/ai-Chatbox.api";
 import { knowledgeApi } from "@/services/knowledge.api";
 import { aiCampaignApi } from "@/services/ai-campaign.api";
+import { setOnSessionExpired } from "@/lib/token-refresh";
+
+export const allApis = [
+  dashboardApi,
+  leadsApi,
+  paymentApi,
+  campaignApi,
+  teamApi,
+  templateApi,
+  activityLogApi,
+  reportsApi,
+  faqApi,
+  galleryApi,
+  newsApi,
+  categoryApi,
+  testimonialApi,
+  heroApi,
+  washWithPurposeApi,
+  businessHoursApi,
+  emailListApi,
+  settingsApi,
+  notificationApi,
+  queriesApi,
+  chatboxApis,
+  knowledgeApi,
+  aiCampaignApi,
+] as const;
+
+
+// AU11 / A-14: Cross-feature cache invalidation
+// When any lead mutation succeeds, invalidate dashboard metrics, reports, and activity log caches
+export const crossFeatureCacheMiddleware: Middleware = (storeApi) => (next) => (action: any) => {
+  const result = next(action);
+
+  if (
+    typeof action?.type === "string" &&
+    action.type.startsWith("leadsApi/executeMutation/fulfilled")
+  ) {
+    storeApi.dispatch(dashboardApi.util.invalidateTags(["DashboardMetrics"]));
+    storeApi.dispatch(reportsApi.util.invalidateTags(["Reports"]));
+    storeApi.dispatch(activityLogApi.util.invalidateTags(["ActivityLogs"]));
+  }
+
+  return result;
+};
+
 export const store = configureStore({
   reducer: {
     auth: authReducer,
@@ -55,6 +103,7 @@ export const store = configureStore({
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat(
+      crossFeatureCacheMiddleware,
       dashboardApi.middleware,
       leadsApi.middleware,
       paymentApi.middleware,
@@ -86,3 +135,15 @@ export type AppDispatch = typeof store.dispatch;
 
 export const useAppDispatch: () => AppDispatch = useDispatch;
 export const useAppSelector: TypedUseSelectorHook<RootState> = useSelector;
+
+export function resetAllApiCaches(dispatch: AppDispatch): void {
+  for (const api of allApis) {
+    dispatch(api.util.resetApiState());
+  }
+  dispatch(resetCampaignCreation());
+}
+
+// Automatically register session expiration cache reset handler
+setOnSessionExpired(() => {
+  resetAllApiCaches(store.dispatch);
+});

@@ -34,6 +34,9 @@ interface CampaignViewModalProps {
   onDelete: (id: number) => void | Promise<void>;
   isUpdating: boolean;
   isDeleting: boolean;
+  canUpdate?: boolean;
+  canDelete?: boolean;
+  canChangeStatus?: boolean;
 }
 
 export function CampaignViewModal({
@@ -45,6 +48,9 @@ export function CampaignViewModal({
   onDelete,
   isUpdating,
   isDeleting,
+  canUpdate = true,
+  canDelete = true,
+  canChangeStatus = true,
 }: CampaignViewModalProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [title, setTitle] = useState("");
@@ -97,6 +103,10 @@ export function CampaignViewModal({
   };
 
   const handleSave = async () => {
+    if (!canUpdate) {
+      toast.error("You do not have permission to update campaigns");
+      return;
+    }
     if (!title.trim()) {
       toast.error("Please enter a campaign name");
       return;
@@ -112,7 +122,7 @@ export function CampaignViewModal({
       title: title.trim(),
       description: description.trim(),
       image: selectedFile,
-      is_active: isActive,
+      is_active: canChangeStatus ? isActive : campaign.is_active,
       start_date: startDate || undefined,
       end_date: endDate || undefined,
     });
@@ -122,6 +132,10 @@ export function CampaignViewModal({
   };
 
   const handleDelete = () => {
+    if (!canDelete) {
+      toast.error("You do not have permission to delete campaigns");
+      return;
+    }
     if (!campaign) return;
     onDelete(campaign.id);
   };
@@ -164,6 +178,8 @@ export function CampaignViewModal({
           isEditing={isEditing}
           isLoading={isLoading}
           campaign={campaign}
+          canUpdate={canUpdate}
+          canDelete={canDelete}
           onEdit={() => setIsEditing(true)}
           onDelete={handleDelete}
           onClose={handleClose}
@@ -211,6 +227,7 @@ export function CampaignViewModal({
                 isActive={isActive}
                 isEditing={isEditing}
                 isUpdating={isUpdating}
+                canChangeStatus={canChangeStatus}
                 onStatusChange={setIsActive}
               />
 

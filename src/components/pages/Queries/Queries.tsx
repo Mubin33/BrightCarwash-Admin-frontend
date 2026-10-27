@@ -52,8 +52,16 @@ export default function Queries() {
   const [deleteQuote] = useDeleteQuoteMutation();
 
   const handleUpdateStatus = async (id: string, status: string) => {
-    await updateStatus({ id, status });
-    quotesRefetch();
+    try {
+      await updateStatus({ id, status }).unwrap();
+      toast.success("Query status updated successfully");
+      quotesRefetch();
+    } catch (err) {
+      const error = err as { data?: string; message?: string };
+      toast.error(
+        error?.data || error?.message || "Failed to update query status",
+      );
+    }
   };
 
   const handleDeleteClick = (itemOrId: Item | string) => {
@@ -94,7 +102,8 @@ export default function Queries() {
     try {
       await deleteQuote({ id: queryToDelete.id }).unwrap();
       toast.success("Query deleted successfully");
-      if (isPanelOpen && selectedQueryId === queryToDelete.id) {
+      if (selectedQueryId === queryToDelete.id) {
+        setSelectedQueryId("");
         setIsPanelOpen(false);
       }
       setQueryToDelete(null);
@@ -114,8 +123,10 @@ export default function Queries() {
   };
 
   const handleSendEmail = (email: string) => {
-    const params = new URLSearchParams({ to: email });
-    router.push(`/marketing/email-list/create?${params.toString()}`);
+    if (typeof window !== "undefined") {
+      sessionStorage.setItem("compose_email_recipient", email);
+    }
+    router.push("/marketing/email-list/create");
   };
 
   const handleSearchSubmit = () => {
@@ -284,7 +295,10 @@ export default function Queries() {
 
       <QueryDetailPanel
         isOpen={isPanelOpen}
-        onClose={() => setIsPanelOpen(false)}
+        onClose={() => {
+          setIsPanelOpen(false);
+          setSelectedQueryId("");
+        }}
         data={queryDetail?.data ?? null}
         onStatusChange={handleUpdateStatus}
         onSendEmail={handleSendEmail}

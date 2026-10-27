@@ -4,6 +4,7 @@ import Image from "next/image";
 import { Icon } from "@/components/ui/Icon";
 import { Button } from "@/components/ui/Button";
 import { useRef } from "react";
+import { IMAGE_ACCEPT } from "@/lib/file-validation";
 
 interface HeroBannerUploadProps {
     isDragging: boolean;
@@ -137,7 +138,7 @@ export function HeroBannerUpload({
                     }
                 }}
                 type='file'
-                accept='image/*'
+                accept={IMAGE_ACCEPT}
                 onChange={onFileChange}
                 className='hidden'
             />

@@ -5,11 +5,11 @@ import { FilterDropdown } from "@/components/ui/FilterDropdown";
 import { Modal } from "@/components/ui/Modal";
 import type { StageOption } from "@/components/ui/StageDropdown";
 import { useLeadsData } from "@/hooks/useLeadsData";
-import { mapStagesToOptions } from "@/lib/stage-utils";
+import { mapStagesToOptions, resolveDefaultStage } from "@/lib/stage-utils";
 import { useCreateLeadMutation, useGetLeadsQuery } from "@/services/leads.api";
 import { getStages } from "@/services/stage.service";
 import type { LeadDepositStatus } from "@/types/leads";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { toast } from "react-toastify";
 import { CreateStageModal } from "../CreateStageModal";
 
@@ -38,7 +38,7 @@ export function AddLeadModal({
   isOpen,
   onClose,
   stage = "Select Stage",
-  stageId = "cmqhw9c130002q4tmw3f71hpt",
+  stageId = "",
   borderColor = "#0098E8",
   onLeadCreated,
   stages = [],
@@ -64,21 +64,30 @@ export function AddLeadModal({
   const [depositStatus, setDepositStatus] = useState<LeadDepositStatus>("NONE");
   const [priority, setPriority] = useState<string>("MEDIUM");
   const [createModalOpen, setCreateModalOpen] = useState(false);
-  
-  const [currentStageId, setCurrentStageId] = useState(stageId);
-  const [currentStageLabel, setCurrentStageLabel] = useState(stage);
+  const [selectedStageId, setSelectedStageId] = useState<string | null>(null);
 
-  const stageOptions = stages.map((s) => ({
-    value: s.stageId,
-    label: s.label,
-  }));
+  const defaultResolved = resolveDefaultStage(stages, stageId, stage);
+  const currentStageId = selectedStageId ?? defaultResolved.stageId;
+
+  const stageOptions = useMemo(
+    () =>
+      stages.map((s) => ({
+        value: s.stageId,
+        label: s.label,
+      })),
+    [stages],
+  );
+
+  const currentStageLabel = useMemo(() => {
+    if (selectedStageId) {
+      const match = stageOptions.find((o) => o.value === selectedStageId);
+      if (match) return match.label;
+    }
+    return defaultResolved.stageLabel;
+  }, [selectedStageId, stageOptions, defaultResolved.stageLabel]);
 
   const handleStageChange = (selectedValue: string) => {
-    const selected = stageOptions.find((o) => o.value === selectedValue);
-    if (selected) {
-      setCurrentStageId(selected.value);
-      setCurrentStageLabel(selected.label);
-    }
+    setSelectedStageId(selectedValue);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -90,9 +99,10 @@ export function AddLeadModal({
       !service ||
       !vehicle ||
       !source ||
+      !currentStageLabel ||
       currentStageLabel === "Select Stage"
     ) {
-      toast.warning("Please fill all required fields");
+      toast.warning("Please fill all required fields and select a stage");
       return;
     }
 
@@ -137,8 +147,7 @@ export function AddLeadModal({
       setDeposit(0);
       setDepositStatus("NONE");
       setPriority("MEDIUM");
-      setCurrentStageId(stageId);
-      setCurrentStageLabel(stage);
+      setSelectedStageId(null);
       onClose();
       onLeadCreated?.(result.id);
     } catch (err) {
@@ -162,8 +171,7 @@ export function AddLeadModal({
       setStages(options);
       const lastStage = options[options.length - 1];
       if (lastStage) {
-        setCurrentStageId(lastStage.value);
-        setCurrentStageLabel(lastStage.label);
+        setSelectedStageId(lastStage.stageId);
       }
     });
   };
@@ -325,7 +333,7 @@ export function AddLeadModal({
               </label>
 
               <FilterDropdown
-                label="Select Stage"
+                label={currentStageLabel || (stages.length === 0 ? "Loading stages..." : "Select Stage")}
                 options={[
                   ...stageOptions,
                   {
@@ -360,6 +368,7 @@ export function AddLeadModal({
               type="submit"
               isLoading={isLoading}
               loadingText="Adding…"
+              disabled={isLoading || (stages.length === 0 && !stageId)}
               className="px-6 text-white shadow-lg"
               style={{ backgroundColor: borderColor }}
             >

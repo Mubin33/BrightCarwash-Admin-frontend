@@ -1,3 +1,4 @@
+import { formatBusinessDate } from "@/lib/date-utils";
 import { fetchFromBackend, apiFetch } from "@/lib/api-fetch";
 import type { LeadGroupsListResponse } from "@/types/campaign";
 import type {
@@ -46,7 +47,7 @@ function mapApiToLead(data: LeadApiResponse): Lead {
     stageIcon: data.stage?.icon ?? null,
     assignedToId: data.assigned_to_id || null,
     notes: data.notes || [],
-    date: data.created_at?.split("T")[0] || "",
+    date: formatBusinessDate(data.created_at),
     rank: data.rank || undefined,
   };
 }
@@ -67,12 +68,16 @@ export const leadsApi = createApi({
         source?: string;
         depositStatus?: string;
         stageId?: string;
+        stageName?: string;
         assignedToId?: string;
         priority?: string;
         dateFrom?: string;
         dateTo?: string;
         sortBy?: string;
         sortOrder?: string;
+        isAssignedToMe?: boolean;
+        cursor?: string;
+        take?: number;
       }
     >({
       queryFn: async (params = {}) => {
@@ -93,13 +98,23 @@ export const leadsApi = createApi({
           if (params.depositStatus)
             queryParams.append("deposit_status", params.depositStatus);
           if (params.stageId) queryParams.append("stage_id", params.stageId);
-          if (params.assignedToId)
-            queryParams.append("assigned_to_id", params.assignedToId);
+          if (params.stageName)
+            queryParams.append("stage_name", params.stageName);
           if (params.priority) queryParams.append("priority", params.priority);
           if (params.dateFrom) queryParams.append("date_from", params.dateFrom);
           if (params.dateTo) queryParams.append("date_to", params.dateTo);
+          if (params.cursor) queryParams.append("cursor", params.cursor);
+          if (params.take) queryParams.append("take", String(params.take));
 
-          const url = `/admin/lead?${queryParams.toString()}`;
+          if (!params.isAssignedToMe && params.assignedToId) {
+            queryParams.append("assigned_to_id", params.assignedToId);
+          }
+
+          const basePath = params.isAssignedToMe
+            ? "/admin/lead/assigned-to-me"
+            : "/admin/lead";
+
+          const url = `${basePath}?${queryParams.toString()}`;
 
           const json = await fetchFromBackend<{
             success: boolean;
@@ -132,6 +147,88 @@ export const leadsApi = createApi({
                 error instanceof Error
                   ? error.message
                   : "Failed to fetch leads",
+            },
+          };
+        }
+      },
+      providesTags: ["Leads"],
+    }),
+
+    getAssignedToMeLeads: builder.query<
+      PaginatedResponse<Lead>,
+      {
+        page?: number;
+        limit?: number;
+        search?: string;
+        source?: string;
+        depositStatus?: string;
+        stageId?: string;
+        stageName?: string;
+        priority?: string;
+        dateFrom?: string;
+        dateTo?: string;
+        sortBy?: string;
+        sortOrder?: string;
+        cursor?: string;
+        take?: number;
+      }
+    >({
+      queryFn: async (params = {}) => {
+        try {
+          const queryParams = new URLSearchParams();
+
+          queryParams.append("pagination_type", "offset");
+          queryParams.append("page", String(params.page || 1));
+          queryParams.append("limit", String(params.limit || 10));
+          queryParams.append("sort_by", params.sortBy || "created_at");
+          queryParams.append("sort_order", params.sortOrder || "desc");
+
+          if (params.search) queryParams.append("search", params.search);
+          if (params.source) queryParams.append("source", params.source);
+          if (params.depositStatus)
+            queryParams.append("deposit_status", params.depositStatus);
+          if (params.stageId) queryParams.append("stage_id", params.stageId);
+          if (params.stageName)
+            queryParams.append("stage_name", params.stageName);
+          if (params.priority) queryParams.append("priority", params.priority);
+          if (params.dateFrom) queryParams.append("date_from", params.dateFrom);
+          if (params.dateTo) queryParams.append("date_to", params.dateTo);
+          if (params.cursor) queryParams.append("cursor", params.cursor);
+          if (params.take) queryParams.append("take", String(params.take));
+
+          const url = `/admin/lead/assigned-to-me?${queryParams.toString()}`;
+
+          const json = await fetchFromBackend<{
+            success: boolean;
+            message: string;
+            data: LeadApiResponse[];
+            meta: {
+              page: number;
+              limit: number;
+              total_count: number;
+              total_pages: number;
+              has_next: boolean;
+              has_previous: boolean;
+            };
+          }>(url);
+
+          return {
+            data: {
+              data: (json.data || []).map(mapApiToLead),
+              total: json.meta?.total_count || 0,
+              page: json.meta?.page || params.page || 1,
+              limit: json.meta?.limit || params.limit || 10,
+              totalPages: json.meta?.total_pages || 1,
+            },
+          };
+        } catch (error) {
+          return {
+            error: {
+              status: 500,
+              data:
+                error instanceof Error
+                  ? error.message
+                  : "Failed to fetch assigned leads",
             },
           };
         }
@@ -761,6 +858,7 @@ export const leadsApi = createApi({
 
 export const {
   useGetLeadsQuery,
+  useGetAssignedToMeLeadsQuery,
   useUpdateLeadStageMutation,
   useUpdateLeadPriorityMutation,
   useCreateLeadMutation,

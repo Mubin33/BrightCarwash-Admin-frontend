@@ -44,25 +44,11 @@ export function useTeamPermissions() {
         );
       }
 
-      // Broadcast update across browser tabs for real-time sync
-      if (typeof window !== "undefined" && "BroadcastChannel" in window) {
-        try {
-          const channel = new BroadcastChannel("auth_permissions_sync");
-          channel.postMessage({
-            type: "ROLE_PERMISSIONS_UPDATED",
-            roleId,
-            roleName,
-          });
-          channel.close();
-        } catch (e) {
-          console.warn("Failed to broadcast permission sync:", e);
-        }
-      }
-
       try {
         const result = await updateRolePermissions({
           id: roleId,
           permissions: perms,
+          roleName,
         }).unwrap();
 
         if (result.success !== false) {
@@ -73,6 +59,21 @@ export function useTeamPermissions() {
             dispatch(setUser(profile));
           } catch (e) {
             console.error("Failed to refresh user profile from server:", e);
+          }
+
+          // Broadcast update across browser tabs AFTER server confirms the mutation (Audit Issue BUG-014)
+          if (typeof window !== "undefined" && "BroadcastChannel" in window) {
+            try {
+              const channel = new BroadcastChannel("auth_permissions_sync");
+              channel.postMessage({
+                type: "ROLE_PERMISSIONS_UPDATED",
+                roleId,
+                roleName,
+              });
+              channel.close();
+            } catch (e) {
+              console.warn("Failed to broadcast permission sync:", e);
+            }
           }
         } else {
           toast.error(result.message || "Failed to update permissions");

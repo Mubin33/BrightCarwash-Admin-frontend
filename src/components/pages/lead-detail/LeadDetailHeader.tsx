@@ -16,8 +16,10 @@ export function LeadDetailHeader({ leadEmail, onAssignClick, onEditClick }: Lead
     const router = useRouter();
 
     const handleSendEmail = () => {
-        const params = new URLSearchParams({ to: leadEmail });
-        router.push(`/marketing/email-list/create?${params.toString()}`);
+        if (typeof window !== "undefined") {
+            sessionStorage.setItem("compose_email_recipient", leadEmail);
+        }
+        router.push("/marketing/email-list/create");
     };
 
     return (

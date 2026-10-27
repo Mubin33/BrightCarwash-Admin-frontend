@@ -4,6 +4,7 @@ import Image from "next/image";
 import { Button } from "@/components/ui/Button";
 import { useProfileSettings } from "@/hooks/useProfileSettings";
 import { useGetProfileQuery } from "@/services/settings.api";
+import { IMAGE_ACCEPT } from "@/lib/file-validation";
 
 const labelClass = "text-[#777980] font-inter text-base font-normal leading-5";
 const inputClass = "w-full px-4 py-3 bg-white rounded-lg border border-[#DFE1E7] text-[#1B1B1B] font-inter text-base outline-none focus:border-[#0098E8] transition-all";
@@ -50,8 +51,14 @@ export function ProfileSettings() {
                         {isUploading ? "Uploading..." : "Upload Photo"}
                         <input
                             type="file"
-                            accept="image/*"
-                            onChange={(e) => e.target.files?.[0] && handleAvatarUpload(e.target.files[0])}
+                            accept={IMAGE_ACCEPT}
+                            onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file) {
+                                    handleAvatarUpload(file);
+                                }
+                                e.target.value = "";
+                            }}
                             className="hidden"
                         />
                     </label>

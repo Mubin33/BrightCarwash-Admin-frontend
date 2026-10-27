@@ -5,7 +5,7 @@ import { FilterDropdown } from "@/components/ui/FilterDropdown";
 import { Modal } from "@/components/ui/Modal";
 import type { StageOption } from "@/components/ui/StageDropdown";
 import { getStages } from "@/services/stage.service";
-import { mapStagesToOptions } from "@/lib/stage-utils";
+import { mapStagesToOptions, resolveDefaultStage } from "@/lib/stage-utils";
 import {
   useConnectLeadsToGroupMutation,
   useCreateLeadMutation,
@@ -63,23 +63,30 @@ export function AddGroupMemberModal({
   const [depositStatus, setDepositStatus] = useState<LeadDepositStatus>("NONE");
   const [priority, setPriority] = useState<string>("MEDIUM");
 
-  const defaultStageId = stages[0]?.stageId || "cmqhw9c130002q4tmw3f71hpt";
-  const defaultStageLabel = stages[0]?.label || "New Lead";
-  const [currentStageId, setCurrentStageId] = useState(defaultStageId);
-  const [currentStageLabel, setCurrentStageLabel] = useState(defaultStageLabel);
+  const [selectedStageId, setSelectedStageId] = useState<string | null>(null);
+  const [customStages, setCustomStages] = useState<StageOption[] | null>(null);
+  const stageList = customStages ?? stages;
+
+  const defaultResolved = resolveDefaultStage(stageList);
+  const currentStageId = selectedStageId ?? defaultResolved.stageId;
+
+  const stageOptions = useMemo(
+    () => stageList.map((s) => ({ value: s.stageId, label: s.label })),
+    [stageList],
+  );
+
+  const currentStageLabel = useMemo(() => {
+    if (selectedStageId) {
+      const match = stageOptions.find((o) => o.value === selectedStageId);
+      if (match) return match.label;
+    }
+    return defaultResolved.stageLabel;
+  }, [selectedStageId, stageOptions, defaultResolved.stageLabel]);
 
   const prevIsOpenRef = useRef(false);
 
   const [connectLeads] = useConnectLeadsToGroupMutation();
   const [createLead] = useCreateLeadMutation();
-
-  const [stageList, setStageList] = useState<StageOption[]>(stages);
-
-  useEffect(() => {
-    if (stages && stages.length > 0) {
-      setStageList(stages);
-    }
-  }, [stages]);
 
   // Add new Stages
   const { refreshStages } = useLeadsData();
@@ -91,11 +98,10 @@ export function AddGroupMemberModal({
     try {
       const freshStages = await getStages();
       const options = mapStagesToOptions(freshStages);
-      setStageList(options);
+      setCustomStages(options);
       const lastStage = options[options.length - 1];
       if (lastStage) {
-        setCurrentStageId(lastStage.value);
-        setCurrentStageLabel(lastStage.label);
+        setSelectedStageId(lastStage.stageId);
       }
     } catch {
       // ignore
@@ -134,10 +140,7 @@ export function AddGroupMemberModal({
       setDeposit(0);
       setDepositStatus("NONE");
       setPriority("MEDIUM");
-      if (stages[0]) {
-        setCurrentStageId(stages[0].stageId);
-        setCurrentStageLabel(stages[0].label);
-      }
+      setSelectedStageId(null);
     }
     prevIsOpenRef.current = isOpen;
   }, [isOpen, stages]);
@@ -240,6 +243,11 @@ export function AddGroupMemberModal({
       return;
     }
 
+    if (!currentStageLabel || (stageList.length > 0 && !currentStageId)) {
+      toast.warning("Please select a stage for the new lead");
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       const formattedPhone = phone.startsWith("+")
@@ -284,17 +292,8 @@ export function AddGroupMemberModal({
     }
   };
 
-  const stageOptions =
-    stageList.length > 0
-      ? stageList.map((s) => ({ value: s.stageId, label: s.label }))
-      : [{ value: defaultStageId, label: defaultStageLabel }];
-
   const handleStageChange = (selectedValue: string) => {
-    const selected = stageOptions.find((o) => o.value === selectedValue);
-    if (selected) {
-      setCurrentStageId(selected.value);
-      setCurrentStageLabel(selected.label);
-    }
+    setSelectedStageId(selectedValue);
   };
 
   const inputClass =
@@ -629,7 +628,7 @@ export function AddGroupMemberModal({
                   Stage
                 </label>
                 <FilterDropdown
-                  label="Select stage"
+                  label={currentStageLabel || (stageList.length === 0 ? "Loading stages..." : "Select stage")}
                   options={[
                     ...stageOptions,
                     {
@@ -667,7 +666,7 @@ export function AddGroupMemberModal({
                 isLoading={isSubmitting}
                 loadingText="Creating..."
                 className="px-6 w-auto! bg-[#0098E8] hover:bg-[#0088D8] text-white"
-                disabled={isSubmitting}
+                disabled={isSubmitting || stageList.length === 0}
               >
                 Create & Add to Group
               </Button>

@@ -35,6 +35,10 @@ export function filterItemsByPermission(
       return item;
     })
     .filter((item) => {
+      // If item has subItems that survived filtering, keep the parent item visible
+      if (item.subItems && item.subItems.length > 0) {
+        return true;
+      }
       if (
         item.permission &&
         !hasPermission({ permissions: userPermissions, role: userRole }, item.permission)
@@ -231,7 +235,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
       >
         {/* Logo - fixed at top */}
         <div className="flex flex-col items-center w-full shrink-0 mb-4 pr-3 sm:pr-4">
-          {logoUrl && !logoError ? (
+          {/* {logoUrl && !logoError ? (
             <Link
               href={homeHref}
               className="flex justify-center items-center w-full"
@@ -242,20 +246,27 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                 alt="Logo"
                 width={80}
                 height={80}
-                priority
+                // priority
                 className="object-contain w-auto h-16"
-                onError={() => {
-                  setLogoError(true);
-                }}
-                onLoad={() => {
-                  setLogoError(false);
-                }}
+                // onError={() => {
+                //   setLogoError(true);
+                // }}
+                // onLoad={() => {
+                //   setLogoError(false);
+                // }}
               />
             </Link>
           ) : (
             // Empty div to maintain spacing when logo is not available
             <div className="h-16 w-full" />
-          )}
+          )} */}
+          <Image
+            src="/images/logo.png"
+            alt="Logo"
+            width={80}
+            height={80}
+            className="object-contain w-auto h-20"
+          />
         </div>
 
         {/* Nav - scrollable middle section with scrollbar at right edge */}

@@ -12,6 +12,8 @@ interface CampaignViewHeaderProps {
     onClose: () => void;
     isUpdating: boolean;
     isDeleting: boolean;
+    canUpdate?: boolean;
+    canDelete?: boolean;
 }
 
 export function CampaignViewHeader({
@@ -23,6 +25,8 @@ export function CampaignViewHeader({
     onClose,
     isUpdating,
     isDeleting,
+    canUpdate = true,
+    canDelete = true,
 }: CampaignViewHeaderProps) {
     return (
         <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center z-10">
@@ -32,25 +36,31 @@ export function CampaignViewHeader({
             <div className="flex items-center gap-2">
                 {!isEditing && !isLoading && campaign && (
                     <>
-                        <button
-                            onClick={onEdit}
-                            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-                            disabled={isUpdating || isDeleting}
-                        >
-                            <Pencil size={20} className="text-gray-600" />
-                        </button>
-                        <button
-                            onClick={onDelete}
-                            className="p-2 hover:bg-red-50 rounded-full transition-colors"
-                            disabled={isDeleting || isUpdating}
-                        >
-                            <Trash2 size={20} className="text-red-500" />
-                        </button>
+                        {canUpdate && (
+                            <button
+                                onClick={onEdit}
+                                className="p-2 hover:bg-gray-100 rounded-full transition-colors cursor-pointer"
+                                disabled={isUpdating || isDeleting}
+                                title="Edit Campaign"
+                            >
+                                <Pencil size={20} className="text-gray-600" />
+                            </button>
+                        )}
+                        {canDelete && (
+                            <button
+                                onClick={onDelete}
+                                className="p-2 hover:bg-red-50 rounded-full transition-colors cursor-pointer"
+                                disabled={isDeleting || isUpdating}
+                                title="Delete Campaign"
+                            >
+                                <Trash2 size={20} className="text-red-500" />
+                            </button>
+                        )}
                     </>
                 )}
                 <button
                     onClick={onClose}
-                    className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                    className="p-2 hover:bg-gray-100 rounded-full transition-colors cursor-pointer"
                     disabled={isUpdating || isDeleting}
                 >
                     <X size={20} className="text-gray-600" />

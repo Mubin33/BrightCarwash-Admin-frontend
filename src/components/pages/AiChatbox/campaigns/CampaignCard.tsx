@@ -9,6 +9,7 @@ interface CampaignCardProps {
   onView: (id: number) => void;
   onDelete: (campaign: Campaign) => void;
   isDeleting: boolean;
+  canDelete?: boolean;
 }
 
 const formatDate = (dateStr: string | null) => {
@@ -26,6 +27,7 @@ export function CampaignCard({
   onView,
   onDelete,
   isDeleting,
+  canDelete = true,
 }: CampaignCardProps) {
   return (
     <div className="w-full p-4 bg-gray-50 rounded-lg outline outline-1 outline-offset-[-1px] outline-zinc-200 flex flex-col justify-start items-start gap-4">
@@ -47,25 +49,27 @@ export function CampaignCard({
           <div className="absolute top-3 right-3 flex items-center gap-1.5">
             <button
               type="button"
-              className="p-1.5 bg-white rounded-sm outline outline-1 outline-offset-[-1px] outline-zinc-200 flex justify-center items-center gap-1 hover:bg-gray-50 transition-colors"
+              className="p-1.5 bg-white rounded-sm outline outline-1 outline-offset-[-1px] outline-zinc-200 flex justify-center items-center gap-1 hover:bg-gray-50 transition-colors cursor-pointer"
               onClick={() => onView(campaign.id)}
               disabled={isDeleting}
               title="View Campaign"
             >
               <Eye width={16} height={16} />
             </button>
-            <button
-              type="button"
-              className="p-1.5 bg-white rounded-sm outline outline-1 outline-offset-[-1px] outline-zinc-200 flex justify-center items-center gap-1 hover:bg-red-50 text-red-500 transition-colors"
-              onClick={(e) => {
-                e.stopPropagation();
-                onDelete(campaign);
-              }}
-              disabled={isDeleting}
-              title="Delete Campaign"
-            >
-              <Trash2 width={16} height={16} />
-            </button>
+            {canDelete && (
+              <button
+                type="button"
+                className="p-1.5 bg-white rounded-sm outline outline-1 outline-offset-[-1px] outline-zinc-200 flex justify-center items-center gap-1 hover:bg-red-50 text-red-500 transition-colors cursor-pointer"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDelete(campaign);
+                }}
+                disabled={isDeleting}
+                title="Delete Campaign"
+              >
+                <Trash2 width={16} height={16} />
+              </button>
+            )}
           </div>
         </div>
 
