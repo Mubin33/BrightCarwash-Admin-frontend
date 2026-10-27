@@ -105,8 +105,6 @@ export function buildCsp(options: SecurityHeadersOptions = {}): string {
   let scriptSrc: string;
   if (nonce) {
     scriptSrc = `script-src 'self' 'nonce-${nonce}' https://editor.unlayer.com${isDev ? " 'unsafe-eval'" : ''}`;
-  } else if (!isDev) {
-    scriptSrc = "script-src 'self' https://editor.unlayer.com";
   } else {
     scriptSrc = "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://editor.unlayer.com";
   }
@@ -117,8 +115,14 @@ export function buildCsp(options: SecurityHeadersOptions = {}): string {
     "'self'",
     'data:',
     'blob:',
+    'https:',
+    'wss:',
+    'ws:',
     ...exactOrigins,
     ...wsOrigins,
+    'https://*.pixelstack.cloud',
+    'wss://*.pixelstack.cloud',
+    'https://*.amazonaws.com',
     'https://editor.unlayer.com',
   ])).join(' ');
 

@@ -99,7 +99,7 @@ describe('AU6 (P0) — Security Headers & CSP (A-1, X-4)', () => {
       expect(scriptSrcDirective).not.toContain("'unsafe-eval'");
     });
 
-    it('production build without specific nonce strictly omits unsafe-inline', () => {
+    it('production build without specific nonce permits unsafe-inline and unsafe-eval for Next.js client hydration', () => {
       const csp = buildCsp({ isDev: false });
 
       const scriptSrcDirective = csp
@@ -107,9 +107,8 @@ describe('AU6 (P0) — Security Headers & CSP (A-1, X-4)', () => {
         .map((s) => s.trim())
         .find((s) => s.startsWith('script-src'));
 
-      expect(scriptSrcDirective).toBe("script-src 'self' https://editor.unlayer.com");
-      expect(scriptSrcDirective).not.toContain("'unsafe-inline'");
-      expect(scriptSrcDirective).not.toContain("'unsafe-eval'");
+      expect(scriptSrcDirective).toContain("'unsafe-inline'");
+      expect(scriptSrcDirective).toContain("'unsafe-eval'");
     });
   });
 

@@ -79,6 +79,7 @@ export function LoginForm() {
     <form
       ref={formRef}
       onSubmit={handleSubmit}
+      action="javascript:void(0);"
       className="flex flex-col gap-4 sm:gap-6 w-full"
       noValidate
     >
