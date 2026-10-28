@@ -17,6 +17,22 @@ export function getSessionAuthor(): string {
 	}
 }
 
+export function mapNoteEntries(
+	entries: NonNullable<LeadDetailApiResponse["noteEntries"]>,
+): { id: string; content: string; author: string; date: string }[] {
+	return entries.map((entry) => {
+		const name = entry.author
+			? `${entry.author.first_name || ""} ${entry.author.last_name || ""}`.trim()
+			: "";
+		return {
+			id: entry.id,
+			content: entry.body,
+			author: name || "System",
+			date: entry.created_at || "",
+		};
+	});
+}
+
 export function parseApiNotes(
 	rawNotes: unknown[] | undefined,
 	fallbackDate?: string,
@@ -272,7 +288,10 @@ function mapApiToLeadDetail(data: LeadDetailApiResponse): LeadDetail {
 			? `${assignee.first_name || ''} ${assignee.last_name || ''}`.trim() || null
 			: null,
 		avatar: "/images/avatar-placeholder.png",
-		notes: parseApiNotes(data.notes, data.created_at),
+		// Notes are rows with real ids (backend #36); the plain `notes` array is only a fallback for older responses.
+		notes: Array.isArray(data.noteEntries)
+			? mapNoteEntries(data.noteEntries)
+			: parseApiNotes(data.notes, data.created_at),
 		attachments: mappedAttachments,
 		date: formatBusinessDate(data.created_at),
 		activities: allActivities,
@@ -297,134 +316,46 @@ export async function getLeadActivities(id: string): Promise<ActivityItem[]> {
 export async function addLeadNote(
 	id: string,
 	content: string,
-	author?: string,
+	// Kept for callers; the server records the signed-in user as the author.
+	_author?: string,
 ): Promise<void> {
 	const trimmed = content.trim();
 	if (!trimmed) return;
 
-	const authorName = author || getSessionAuthor();
-	const nowIso = new Date().toISOString();
-
-	// Primary (A-11 / N-18): Server-side append via dedicated child resource endpoint
-	const appendRes = await apiFetch(`/admin/lead/${id}/notes`, {
+	// Backend #36: POST { body } appends one note. Never send `notes` in PATCH (it answers 400).
+	const res = await apiFetch(`/admin/lead/${id}/notes`, {
 		method: "POST",
 		headers: {
 			Accept: "application/json",
+			"Content-Type": "application/json",
 		},
-		body: JSON.stringify({
-			content: trimmed,
-			author: authorName,
-			date: nowIso,
-			created_at: nowIso,
-		}),
+		body: JSON.stringify({ body: trimmed }),
 	});
 
-	if (appendRes.ok) {
-		return;
+	if (!res.ok) {
+		const error = await res.json().catch(() => ({ message: "Failed to add note" }));
+		throw new Error(error.message || "Failed to add note");
 	}
-
-	// Graceful fallback if backend child resource endpoint is not yet deployed (404/405)
-	if (appendRes.status === 404 || appendRes.status === 405) {
-		const currentLead = await getLeadDetail(id);
-		const newNote = {
-			id:
-				typeof crypto !== "undefined" && crypto.randomUUID
-					? crypto.randomUUID()
-					: `note_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
-			content: trimmed,
-			author: authorName,
-			date: nowIso,
-			created_at: nowIso,
-		};
-
-		const currentNotes = (currentLead.notes || []).map((n) => ({
-			id: n.id,
-			content: n.content,
-			author: n.author || authorName,
-			date: n.date || nowIso,
-			created_at: n.date || nowIso,
-		}));
-		currentNotes.push(newNote);
-
-		const notesPayload = currentNotes.map((note) => JSON.stringify(note));
-
-		const res = await apiFetch(`/admin/lead/${id}`, {
-			method: "PATCH",
-			headers: {
-				Accept: "application/json",
-			},
-			body: JSON.stringify({ notes: notesPayload }),
-		});
-
-		if (!res.ok) {
-			const error = await res.json().catch(() => ({ message: "Update failed" }));
-			throw new Error(error.message || "Failed to add note");
-		}
-		return;
-	}
-
-	const error = await appendRes.json().catch(() => ({ message: "Failed to add note" }));
-	throw new Error(error.message || "Failed to add note");
 }
 
 export async function deleteLeadNote(
 	leadId: string,
 	noteId: string,
 ): Promise<void> {
-	// Primary (A-11 / N-18): Server-side delete strictly by note ID
-	const deleteRes = await apiFetch(`/admin/lead/${leadId}/notes/${noteId}`, {
+	// Backend #36: soft delete by the note's real id (from noteEntries).
+	const res = await apiFetch(`/admin/lead/${leadId}/notes/${noteId}`, {
 		method: "DELETE",
 		headers: {
 			Accept: "application/json",
 		},
 	});
 
-	if (deleteRes.ok) {
+	// 404 means the note is already gone (e.g. a double click): treat it as done and let the caller refresh.
+	if (res.ok || res.status === 404) {
 		return;
 	}
 
-	// Graceful fallback if backend child resource endpoint is not yet deployed (404/405)
-	if (deleteRes.status === 404 || deleteRes.status === 405) {
-		const lead = await getLeadDetail(leadId);
-
-		// Find index of note to remove: first try exact ID match, then legacy identifier/content
-		let targetIndex = (lead.notes || []).findIndex((n) => n.id === noteId);
-		if (targetIndex === -1) {
-			targetIndex = (lead.notes || []).findIndex(
-				(n) => n.content === noteId || (n.id && n.id.includes(noteId))
-			);
-		}
-
-		const filteredNotes = targetIndex !== -1
-			? (lead.notes || []).filter((_, idx) => idx !== targetIndex)
-			: (lead.notes || []).filter((n) => n.id !== noteId);
-
-		const remainingNotes = filteredNotes.map((n) => ({
-			id: n.id,
-			content: n.content,
-			author: n.author || "You",
-			date: n.date || new Date().toISOString(),
-			created_at: n.date || new Date().toISOString(),
-		}));
-
-		const notesPayload = remainingNotes.map((note) => JSON.stringify(note));
-
-		const res = await apiFetch(`/admin/lead/${leadId}`, {
-			method: "PATCH",
-			headers: {
-				Accept: "application/json",
-			},
-			body: JSON.stringify({ notes: notesPayload }),
-		});
-
-		if (!res.ok) {
-			const error = await res.json().catch(() => ({ message: "Failed to delete note" }));
-			throw new Error(error.message || "Failed to delete note");
-		}
-		return;
-	}
-
-	const error = await deleteRes.json().catch(() => ({ message: "Failed to delete note" }));
+	const error = await res.json().catch(() => ({ message: "Failed to delete note" }));
 	throw new Error(error.message || "Failed to delete note");
 }
 
